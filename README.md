@@ -1,6 +1,6 @@
-# Nu primesc notă pentru că nu am pus titlu și descriere
+# Luca Clicker
 
-### Folosiți template-ul corespunzător grupei voastre!
+### Idle clicker game inspired by AdVenture Capitalist
 
 | Laborant  | Link template                                |
 |-----------|----------------------------------------------|
