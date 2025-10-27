@@ -243,7 +243,6 @@ public:
 
     // ================= Getters =================
     [[nodiscard]] std::vector<FoodItem>& getFoods() { return foods; }
-    [[nodiscard]] const Player& getPlayer() const { return player; }
     [[nodiscard]] const std::vector<FoodItem>& getFoods() const { return foods; }
 
 
@@ -280,7 +279,7 @@ int main() {
     window.setFramerateLimit(30);
 
     sf::Font font;
-    if (!font.openFromFile("resources/Font/MightySouly-lxggD.ttf")) { //
+    if (!font.openFromFile("resources/font/MightySouly-lxggD.ttf")) { //
         std::cerr << "Failed to load font!\n";
         return 1;
     }
