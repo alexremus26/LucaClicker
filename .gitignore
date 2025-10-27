@@ -85,6 +85,9 @@ install_dir/
 # CMake
 cmake-build-*/
 
+#Update
+!Resources/textfile.txt
+
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
 
