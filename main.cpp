@@ -170,8 +170,6 @@ class GameManager {
         [[nodiscard]] const std::vector<FoodItem>& getFoods() const { return foodsSnapshot; }
     };
 
-    // The history stack itself
-    std::vector<GameState> history;
 
 public:
     // ================= Constructors =================
@@ -224,20 +222,6 @@ public:
         return { player, std::move(foods) };
     }
 
-    // ================= Undo System =================
-    void saveState() {
-        history.emplace_back(player.getMoney(), foods);
-    }
-
-    bool undo() {
-        if (history.empty()) return false;
-        const auto& last = history.back();
-        player.setMoney(last.getMoney());
-        foods = last.getFoods();
-        history.pop_back();
-        return true;
-    }
-
     // ================= Game Actions =================
     static void sell(const FoodItem& object, Player& player) {
         player.setMoney(player.getMoney() + object.getBaseIncome());
@@ -258,7 +242,6 @@ public:
     }
 
     // ================= Getters =================
-    [[nodiscard]] Player& getPlayer() { return player; }
     [[nodiscard]] std::vector<FoodItem>& getFoods() { return foods; }
     [[nodiscard]] const Player& getPlayer() const { return player; }
     [[nodiscard]] const std::vector<FoodItem>& getFoods() const { return foods; }
@@ -337,7 +320,7 @@ int main() {
         // Game logic
         if (lastAction != ' ') {
             if (selectedIndex >= 1 && static_cast<size_t>(selectedIndex) <= game_manager.getFoods().size()) {
-                auto& food = game_manager.getFoods()[selectedIndex - 1];
+                FoodItem& food = game_manager.getFoods()[selectedIndex - 1];
                 if (unlocked[selectedIndex - 1]) {
                     switch (lastAction) {
                         case 's': GameManager::sell(food, player); break;
