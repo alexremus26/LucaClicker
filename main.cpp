@@ -297,13 +297,13 @@ int main() {
     window.setFramerateLimit(30);
 
     sf::Font font;
-    if (!font.openFromFile("resources/Font/times.ttf")) { //
+    if (!font.openFromFile("resources/Font/MightySouly-lxggD.ttf")) { //
         std::cerr << "Failed to load font!\n";
         return 1;
     }
 
     sf::Text text(font, ""); //
-    text.setCharacterSize(40);
+    text.setCharacterSize(50);
     text.setFillColor(sf::Color::White);
 
     bool running = true;
