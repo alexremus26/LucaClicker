@@ -304,8 +304,8 @@ int main() {
         // Game logic
         if (lastAction != ' ') {
             if (selectedIndex >= 1 && static_cast<size_t>(selectedIndex) <= game_manager.getFoods().size()) {
-                FoodItem& food = game_manager.getFoods()[selectedIndex - 1];
                 if (unlocked[selectedIndex - 1]) {
+                    FoodItem& food = game_manager.getFoods()[selectedIndex - 1];
                     switch (lastAction) {
                         case 's': GameManager::sell(food, player); break;
                         case 'u': GameManager::upgrade(food, player); break;
