@@ -51,14 +51,14 @@ public:
         return *this;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const FoodItem& foodItem) {
-        os<<foodItem.foodName<<" a-> Pret:"<<foodItem.baseIncome<<"  CostUpgrade:"<<foodItem.upgradeCost<<"  UnlockCost:"<<foodItem.unlockCost<<"  MultiplicatorPret:"<<foodItem.incomeMultiplier<<"  Multiplicator upgrade:"<<foodItem.upgradeMultiplier<<std::endl;
-        return os;
+    friend std::ostream& operator<<(std::ostream& ostream, const FoodItem& foodItem) {
+        ostream<<foodItem.foodName<<" a-> Pret:"<<foodItem.baseIncome<<"  CostUpgrade:"<<foodItem.upgradeCost<<"  UnlockCost:"<<foodItem.unlockCost<<"  MultiplicatorPret:"<<foodItem.incomeMultiplier<<"  Multiplicator upgrade:"<<foodItem.upgradeMultiplier<<std::endl;
+        return ostream;
     }
 
     // ================= Getters =================
     [[nodiscard]] double getUnlockCost() const { return unlockCost; }
-    [[nodiscard]] const std::string& getName() const { return foodName; }
+    [[nodiscard]] const std::string& getfoodName() const { return foodName; }
     [[nodiscard]] double getBaseIncome() const { return baseIncome; }
     [[nodiscard]] double getUpgradeCost() const { return upgradeCost; }
 
@@ -80,7 +80,7 @@ public:
     // ================= Constructors =================
     Player(std::string  playerName_,const double money_) : playerName(std::move(playerName_)), money(money_) {}
 
-    Player(const Player& p) : playerName(p.playerName) , money(p.money){}
+    Player(const Player& player) : playerName(player.playerName) , money(player.money){}
 
     // ================= Operators =================
     Player& operator=(const Player& player) {
@@ -89,9 +89,9 @@ public:
         return *this;
     }
 
-    friend std::ostream& operator<<(std::ostream& op, const Player& player) {
-        op<<player.playerName<<" "<<player.money;
-        return op;
+    friend std::ostream& operator<<(std::ostream& os, const Player& player) {
+        os<<player.playerName<<" "<<player.money;
+        return os;
     }
 
     // ================= Getters/Setters =================
@@ -110,9 +110,9 @@ class Delivery {
 public:
     [[nodiscard]] bool canUnlock(const Player& player) const {return player.getMoney() >= unlockDeliveryCost;}
     // ================= Getters =================
-    [[nodiscard]] const std::string& getName() const { return deliveryName; }
+    [[nodiscard]] const std::string& getDeliveryName() const { return deliveryName; }
     [[nodiscard]] double getUnlockCost() const { return unlockDeliveryCost; }
-    [[nodiscard]] sf::Time getInterval() const { return timeInterval; }
+    [[nodiscard]] sf::Time getTimeInterval() const { return timeInterval; }
     [[nodiscard]] const double& getDeliveryUnlockCost() const{return unlockDeliveryCost;}
     // ================= Constructors =================
     Delivery(std::string deliveryName_, const double& unlockDeliveryCost_, const sf::Time& timeInterval_) : deliveryName(std::move(deliveryName_)), unlockDeliveryCost(unlockDeliveryCost_), timeInterval(timeInterval_){};
@@ -133,15 +133,15 @@ public:
         return *this;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Delivery& delivery) {
-        os<<"Delivery:"<<delivery.deliveryName<<"Unlock Cost:"<<delivery.unlockDeliveryCost<<"  SaleRate:"<<delivery.timeInterval.asSeconds()<<std::endl;
-        return os;
+    friend std::ostream& operator<<(std::ostream& ostream, const Delivery& delivery) {
+        ostream<<"Delivery:"<<delivery.deliveryName<<"Unlock Cost:"<<delivery.unlockDeliveryCost<<"  SaleRate:"<<delivery.timeInterval.asSeconds()<<std::endl;
+        return ostream;
     }
 };
 
 class GameManager {
     Player& player;
-    std::vector<FoodItem> foods;
+    std::vector<FoodItem> foodItems;
     std::vector<Delivery> deliveries;
     bool deliveryRunning = false;
 
@@ -150,7 +150,7 @@ private:
         std::thread([this, &food, &delivery]() {
             sf::Clock clock;
             while (deliveryRunning) {
-                if (clock.getElapsedTime().asSeconds() >= delivery.getInterval().asSeconds()) {
+                if (clock.getElapsedTime().asSeconds() >= delivery.getTimeInterval().asSeconds()) {
                     player.setMoney(player.getMoney() + food.getBaseIncome());
                     clock.restart();
                 }
@@ -162,19 +162,19 @@ private:
 
 public:
     // ================= Constructors =================
-    GameManager(Player& player_, std::vector<FoodItem> foods_, std::vector<Delivery> deliveries_)
-         : player(player_), foods(std::move(foods_)), deliveries(std::move(deliveries_)) {}
+    GameManager(Player& player_, std::vector<FoodItem> foodItem_, std::vector<Delivery> deliveries_)
+         : player(player_), foodItems(std::move(foodItem_)), deliveries(std::move(deliveries_)) {}
 
-    GameManager(const GameManager& manager)
-        : player(manager.player), foods(manager.foods), deliveries(manager.deliveries) {}
+    GameManager(const GameManager& gameManager)
+        : player(gameManager.player), foodItems(gameManager.foodItems), deliveries(gameManager.deliveries) {}
 
     // ================= File Loading =================
-    static GameManager loadFromFile(const std::string& filename, Player& player) {
-    std::ifstream file(filename);
+    static GameManager loadFromFile(const std::string& fileName, Player& player) {
+    std::ifstream file(fileName);
     if (!file.is_open())
-        throw std::runtime_error("Error: Unable to open file " + filename);
+        throw std::runtime_error("Error: Unable to open file " + fileName);
 
-    std::vector<FoodItem> foods;
+    std::vector<FoodItem> foodItems;
     std::vector<Delivery> deliveries;
 
     std::string line;
@@ -193,7 +193,7 @@ public:
         // Empty line -> commit current food + delivery
         if (line.empty()) {
             if (!foodName.empty()) {
-                foods.emplace_back(
+                foodItems.emplace_back(
                     foodName,
                     baseIncome,
                     upgradeCost,
@@ -232,7 +232,7 @@ public:
 
     // If file doesn’t end with an empty line
     if (!foodName.empty()) {
-        foods.emplace_back(
+        foodItems.emplace_back(
             foodName,
             baseIncome,
             upgradeCost,
@@ -243,13 +243,13 @@ public:
 
         deliveries.emplace_back(courierName, unlockDeliveryCost);
     }
-        std::cout << "Loaded " << foods.size() << " food items and couriers:\n";
-        for (size_t i = 0; i < foods.size(); ++i) {
-            const auto& food = foods[i];
+        std::cout << "Loaded " << foodItems.size() << " food items and couriers:\n";
+        for (size_t i = 0; i < foodItems.size(); ++i) {
+            const auto& food = foodItems[i];
             const auto& delivery = deliveries[i];
 
             std::cout << "=======================================================\n";
-            std::cout << "Food Name: " << food.getName() << "\n"
+            std::cout << "Food Name: " << food.getfoodName() << "\n"
                       << "  Base Income: " << food.getBaseIncome() << "\n"
                       << "  Upgrade Cost: " << food.getUpgradeCost() << "\n"
                       << "  Unlock Food Cost: " << food.getUnlockCost() << "\n"
@@ -260,7 +260,7 @@ public:
              std::cout<< "=======================================================\n";
 
 
-    return { player, std::move(foods), std::move(deliveries) };
+    return { player, std::move(foodItems), std::move(deliveries) };
 }
 
     // ================= Game Actions =================
@@ -275,45 +275,45 @@ public:
         }
     }
 
-    void startDelivery(FoodItem& food, Delivery& delivery) {
+    void startDelivery(FoodItem& foodItem, Delivery& delivery) {
         if (!deliveryRunning && delivery.canUnlock(player)) {
             player.setMoney(player.getMoney() - delivery.getDeliveryUnlockCost());
             deliveryRunning = true;
-            runDeliveryLoop(food, delivery);
+            runDeliveryLoop(foodItem, delivery);
         }
     }
     void stopDelivery() { deliveryRunning = false; }
 
     // ================= Getters =================
-    [[nodiscard]] std::vector<FoodItem>& getFoods() { return foods; }
+    [[nodiscard]] std::vector<FoodItem>& getFoods() { return foodItems; }
     [[nodiscard]] std::vector<Delivery>& getDelivery() { return deliveries;}
 
     // ================= Operators =================
     GameManager& operator=(const GameManager& manager) {
         if (this != &manager) {
             player = manager.player;
-            foods = manager.foods;
+            foodItems = manager.foodItems;
         }
         return *this;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const GameManager& manager) {
-        os << "=== Game Manager ===\n";
-        os << "Player: " << manager.player << " RON\n";
-        os << "Food items:\n";
-        for (const auto& food : manager.foods)
-            os << "  " << food;
-        return os;
+    friend std::ostream& operator<<(std::ostream& ostream, const GameManager& manager) {
+        ostream << "=== Game Manager ===\n";
+        ostream << "Player: " << manager.player << " RON\n";
+        ostream << "Food items:\n";
+        for (const auto& food : manager.foodItems)
+            ostream << "  " << food;
+        return ostream;
     }
 };
 
 
 int main() {
     Player player("Stoicescu", 0.0);
-    GameManager game_manager = GameManager::loadFromFile("resources/textfile.txt", player);
+    GameManager gameManager = GameManager::loadFromFile("resources/textfile.txt", player);
 
     std::vector<bool> unlocked;
-    for (const auto& food : game_manager.getFoods())
+    for (const auto& food : gameManager.getFoods())
         unlocked.push_back(player.getMoney() >= food.getUnlockCost());
     unlocked[0] = true;
 
@@ -373,19 +373,19 @@ int main() {
         }
 
         if (lastAction != ' ') {
-            if (static_cast<size_t>(selectedIndex) <= game_manager.getFoods().size()) {
-                FoodItem& food = game_manager.getFoods()[selectedIndex - 1];
+            if (static_cast<size_t>(selectedIndex) <= gameManager.getFoods().size()) {
+                FoodItem& food = gameManager.getFoods()[selectedIndex - 1];
                 if (unlocked[selectedIndex - 1]) {
-                    Delivery& delivery = game_manager.getDelivery()[selectedIndex - 1];
+                    Delivery& delivery = gameManager.getDelivery()[selectedIndex - 1];
                     switch (lastAction) {
                         case 's': GameManager::sell(food, player); break;
                         case 'u': GameManager::upgrade(food, player); break;
-                        case 'd': game_manager.startDelivery(food, delivery); break;
+                        case 'd': gameManager.startDelivery(food, delivery); break;
                         default: ;
                     }
                     warningMessage.clear();
                 } else {
-                    warningMessage = "Cannot sell or upgrade '" + food.getName() +
+                    warningMessage = "Cannot sell or upgrade '" + food.getfoodName() +
                                      "' (unlock cost: " + std::to_string(static_cast<int>(food.getUnlockCost())) + " RON)";
                     warningClock.restart();
                 }
@@ -394,7 +394,7 @@ int main() {
         }
 
         for (size_t i = 0; i < unlocked.size(); ++i)
-            if (!unlocked[i] && player.getMoney() >= game_manager.getFoods()[i].getUnlockCost())
+            if (!unlocked[i] && player.getMoney() >= gameManager.getFoods()[i].getUnlockCost())
                 unlocked[i] = true;
 
         // === Build display text ===
@@ -406,11 +406,11 @@ int main() {
         buffer << "Money: " << player.getMoney() << " RON\n";
         buffer << "Currently selected item: " << selectedIndex << "\n\n";
 
-        for (size_t i = 0; i < game_manager.getFoods().size(); ++i) {
-            const auto& food = game_manager.getFoods()[i];
-            const auto& delivery = game_manager.getDelivery()[i];
+        for (size_t i = 0; i < gameManager.getFoods().size(); ++i) {
+            const auto& food = gameManager.getFoods()[i];
+            const auto& delivery = gameManager.getDelivery()[i];
             if (unlocked[i])
-                buffer << "[" << i + 1 << "] " << food.getName()
+                buffer << "[" << i + 1 << "] " << food.getfoodName()
                        << " - Income: " << food.getBaseIncome()
                        << " | Upgrade: " << food.getUpgradeCost()
                        << " | Delivery: " << delivery.getDeliveryUnlockCost() << "\n";
@@ -445,6 +445,6 @@ int main() {
         sf::sleep(sf::milliseconds(50));
     }
 
-    game_manager.stopDelivery();
+    gameManager.stopDelivery();
     std::cout << "Exiting game...\n";
 }
