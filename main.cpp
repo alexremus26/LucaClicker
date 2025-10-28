@@ -107,28 +107,7 @@ class Delivery {
     friend class GameManager;
 
     // ================= Functions =================
-private:
-    void start(Player& player, FoodItem& foodItem) {
-        player.setMoney(player.getMoney()-foodItem.getUnlockCost());
-        running = true;
-        std::thread([this, &player, &foodItem]() {
-            sf::Clock clock;
-            while (running) {
-                sf::Time elapsed = clock.getElapsedTime();
-                if (elapsed.asSeconds() >= timeInterval.asSeconds()) {
-                    player.setMoney(player.getMoney() + foodItem.getBaseIncome());
-                    clock.restart();
-                }
-                using namespace std::chrono_literals;
-                std::this_thread::sleep_for(100ms); // avoid 100% CPU usage
-            }
-        }).detach(); // run thread in background
-    }
 public:
-    void stop() {
-        running = false;
-    }
-
     [[nodiscard]] bool canUnlock(const Player& player) const {return player.getMoney() >= unlockDeliveryCost;}
     // ================= Getters =================
     [[nodiscard]] const std::string& getName() const { return deliveryName; }
@@ -150,6 +129,7 @@ public:
     Delivery& operator=(const Delivery& delivery) {
         deliveryName = delivery.deliveryName;
         timeInterval = delivery.timeInterval;
+        unlockDeliveryCost = delivery.unlockDeliveryCost;
         return *this;
     }
 
@@ -307,7 +287,6 @@ public:
     // ================= Getters =================
     [[nodiscard]] std::vector<FoodItem>& getFoods() { return foods; }
     [[nodiscard]] std::vector<Delivery>& getDelivery() { return deliveries;}
-    [[nodiscard]] const double& getPlayerMoney() const {return player.getMoney();}
 
     // ================= Operators =================
     GameManager& operator=(const GameManager& manager) {
@@ -396,9 +375,8 @@ int main() {
         if (lastAction != ' ') {
             if (static_cast<size_t>(selectedIndex) <= game_manager.getFoods().size()) {
                 FoodItem& food = game_manager.getFoods()[selectedIndex - 1];
-                Delivery& delivery = game_manager.getDelivery()[selectedIndex - 1];
-
                 if (unlocked[selectedIndex - 1]) {
+                    Delivery& delivery = game_manager.getDelivery()[selectedIndex - 1];
                     switch (lastAction) {
                         case 's': GameManager::sell(food, player); break;
                         case 'u': GameManager::upgrade(food, player); break;
