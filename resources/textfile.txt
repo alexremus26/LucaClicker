@@ -1,4 +1,26 @@
-Covrig 1 5 100 0 1.5 2 0
-Merdenea 10 100 500 100 1.5 2 100
-Pizza 20 200 1000 1000 1.5 2 1000
-CovriLuca 50 300 5000 5000 1.5 2 5000
+foodName: Covrig
+baseIncome: 1
+upgradeCost: 10
+incomeMultiplier: 1.5
+upgradeMultiplier: 5
+unlockFoodCost: 0
+courierName: Raul
+unlockDeliveryCost: 100
+
+foodName: Merdenea
+baseIncome: 50
+upgradeCost: 500
+incomeMultiplier: 2
+upgradeMultiplier: 500
+unlockFoodCost: 100
+courierName: Andrei
+unlockDeliveryCost: 500
+
+foodName: Pizza
+baseIncome: 200
+upgradeCost: 1000
+incomeMultiplier: 1.5
+upgradeMultiplier: 1000
+unlockFoodCost: 500
+courierName: Denis
+unlockDeliveryCost: 1000
