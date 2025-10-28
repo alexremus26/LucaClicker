@@ -110,7 +110,6 @@ class Delivery {
 public:
     [[nodiscard]] bool canUnlock(const Player& player) const {return player.getMoney() >= unlockDeliveryCost;}
     // ================= Getters =================
-    [[nodiscard]] const std::string& getDeliveryName() const { return deliveryName; }
     [[nodiscard]] double getUnlockCost() const { return unlockDeliveryCost; }
     [[nodiscard]] sf::Time getTimeInterval() const { return timeInterval; }
     [[nodiscard]] const double& getDeliveryUnlockCost() const{return unlockDeliveryCost;}
