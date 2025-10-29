@@ -1,6 +1,15 @@
 # Luca Clicker
 
-### Idle Clicker Game inspired by AdVenture Capitalist.
+### Luca Clicker
+Luca Clicker is an idle-incremental simulation game inspired by AdVenture Capitalist based on the Luca pastry shop. You start with nothing but ambition and a bagel. Sell items, earn money, and build your empire one click at a time. Each sale earns you income, which can be reinvested into upgrades and automation systems to scale your profits.
+Players begin with a single unlocked food item. Selling it earns small profits that can be used to: 
+  - Upgrade food items — Boost the income each sale generates.
+
+  - Unlock new foods — Expand your empire and diversify income sources.
+
+  - Hire delivery services — Automate production and sales so your income grows passively over time.
+
+
 
 | Laborant  | Link template                                |
 |-----------|----------------------------------------------|
