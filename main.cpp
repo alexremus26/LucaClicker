@@ -405,16 +405,13 @@ int main() {
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 using Scan = sf::Keyboard::Scan;
                 switch (keyPressed->scancode) {
-                    case Scan::Q: window.close();;
-                        break; // Replaced running = false with window.close();
+                    case Scan::Q: window.close();break; // Replaced running = false with window.close();
                     case Scan::S: lastAction = 's'; break;
                     case Scan::U: lastAction = 'u'; break;
                     case Scan::D: lastAction = 'd'; break;
                     case Scan::Num1: case Scan::Num2: case Scan::Num3:
                     case Scan::Num4: case Scan::Num5: case Scan::Num6:
-                    case Scan::Num7:
-                    case Scan::Num8:
-                    case Scan::Num9:
+                    case Scan::Num7: case Scan::Num8: case Scan::Num9:
                         selectedIndex = std::min(
                             (static_cast<int>(keyPressed->scancode) - static_cast<int>(Scan::Num1) + 1),
                             static_cast<int>(gameManager.getFoods().size()) );
