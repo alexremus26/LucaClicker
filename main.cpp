@@ -385,18 +385,19 @@ int main() {
     warningText.setFillColor(sf::Color::Red);
 
     // Game state variables
-    bool running = true;
+    // bool running = true; Useless
     char lastAction = ' ';
     int selectedIndex = 1;
     std::string warningMessage;
     sf::Clock warningClock;
 
     // Main game loop
-    while (window.isOpen() && running) {
+    while (window.isOpen()) {
+        //&& running) {
         // Handle events
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                running = false;
+                // running = false;
                 window.close();
             }
 
@@ -404,15 +405,16 @@ int main() {
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 using Scan = sf::Keyboard::Scan;
                 switch (keyPressed->scancode) {
-                    case Scan::Q: running = false; break;
+                    case Scan::Q: window.close();break; // Replaced running = false with window.close();
                     case Scan::S: lastAction = 's'; break;
                     case Scan::U: lastAction = 'u'; break;
                     case Scan::D: lastAction = 'd'; break;
                     case Scan::Num1: case Scan::Num2: case Scan::Num3:
                     case Scan::Num4: case Scan::Num5: case Scan::Num6:
                     case Scan::Num7: case Scan::Num8: case Scan::Num9:
-                        selectedIndex = static_cast<int>(keyPressed->scancode)
-                                      - static_cast<int>(Scan::Num1) + 1;
+                        selectedIndex = std::min(
+                            (static_cast<int>(keyPressed->scancode) - static_cast<int>(Scan::Num1) + 1),
+                            static_cast<int>(gameManager.getFoods().size()) );
                         break;
                     default: break;
                 }
@@ -451,7 +453,7 @@ int main() {
         std::ostringstream buffer;
         buffer << "================ Luca Clicker ========================\n";
         buffer << "Controls: [S] Sell | [U] Upgrade | [D] Delivery | [Q] Quit\n";
-        buffer << "Use [1-9] to select a food item.\n";
+        buffer << "Use [1-"<< static_cast<int>(gameManager.getFoods().size()) << "] to select a food item.\n";
         buffer << "======================================================\n";
         buffer << "Money: " << player.getMoney() << " RON\n";
         buffer << "Currently selected item: " << selectedIndex << "\n\n";
