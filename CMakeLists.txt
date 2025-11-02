@@ -58,6 +58,17 @@ endif()
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 add_executable(${MAIN_EXECUTABLE_NAME}
     main.cpp
+        src/FoodItem.cpp
+        src/FoodItem.h
+        src/FoodItem.h
+        src/Player.cpp
+        src/Player.h
+        src/Delivery.cpp
+        src/Delivery.h
+        src/Delivery.h
+        src/GameManager.cpp
+        src/GameManager.h
+        src/GameManager.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
@@ -94,3 +105,4 @@ copy_files(FILES tastatura.txt COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE
 # copy_files(FILES tastatura.txt config.json DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # copy_files(DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 copy_files(DIRECTORY resources COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+copy_files(DIRECTORY src COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
