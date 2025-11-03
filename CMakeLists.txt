@@ -69,6 +69,9 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/GameManager.cpp
         src/GameManager.h
         src/GameManager.h
+        src/Display.cpp
+        src/Display.h
+        src/Display.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
@@ -101,8 +104,10 @@ if(APPLE)
 endif()
 
 
-copy_files(FILES tastatura.txt COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # copy_files(FILES tastatura.txt config.json DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # copy_files(DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+copy_files(FILES tastatura.txt COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 copy_files(DIRECTORY resources COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 copy_files(DIRECTORY src COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+
+

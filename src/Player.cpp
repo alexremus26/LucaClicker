@@ -5,7 +5,7 @@ Player::Player(std::string  playerName_,const double money_) : playerName(std::m
 
 Player::Player(const Player& player) : playerName(player.playerName) , money(player.money){}
 
-Player::~Player(){std::cout<<"FoodItem-ul "<< playerName <<" a fost distrus! \n ";}
+Player::~Player(){std::cout<<"Player-ul "<< playerName <<" a fost distrus! \n ";}
 
 Player &Player::operator=(const Player &player) {
     playerName = player.playerName;

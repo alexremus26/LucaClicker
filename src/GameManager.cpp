@@ -3,21 +3,28 @@
 #include <thread>
 #include <fstream>
 #include <SFML/System/Clock.hpp>
-
+#include <SFML/Graphics.hpp>
 
 GameManager::GameManager(Player& player_, std::vector<FoodItem> foodItem_, std::vector<Delivery> deliveries_)
-         : player(player_), foodItems(std::move(foodItem_)), deliveries(std::move(deliveries_)) {}
+         : player(player_), foodItems(std::move(foodItem_)), deliveries(std::move(deliveries_)) {
+    deliveryRunning.resize(foodItems.size(), false);
+}
 
 GameManager::GameManager(const GameManager& gameManager)
-    : player(gameManager.player), foodItems(gameManager.foodItems), deliveries(gameManager.deliveries) {}
+    : player(gameManager.player), foodItems(gameManager.foodItems), deliveries(gameManager.deliveries),
+      deliveryRunning(gameManager.deliveryRunning) {}
 
-GameManager::~GameManager(){std::cout<<"GameManager a fost distrus! \n";}
+GameManager::~GameManager(){
+    stopAllDeliveries();
+    std::cout<<"GameManager a fost distrus! \n";
+}
 
 GameManager& GameManager::operator=(const GameManager& manager) {
     if (this != &manager) {
         player = manager.player;
         foodItems = manager.foodItems;
         deliveries = manager.deliveries;
+        deliveryRunning = manager.deliveryRunning;
     }
     return *this;
 }
@@ -31,19 +38,19 @@ std::ostream &operator<<(std::ostream &ostream, const GameManager &manager) {
     return ostream;
 }
 
-void GameManager::runDeliveryLoop(FoodItem &food, Delivery &delivery) const {
-    std::thread([this, &food, &delivery]() {
-    sf::Clock clock;
-    while (deliveryRunning) {
-        // Add income at the determined interval
-        if (clock.getElapsedTime().asSeconds() >= delivery.getTimeInterval().asSeconds()) {
-            player.setMoney(player.getMoney() + food.getBaseIncome());
-            clock.restart();
+void GameManager::runDeliveryLoop(FoodItem &food, Delivery &delivery, int index) {
+    std::thread([this, &food, &delivery, index]() {
+        sf::Clock clock;
+        while (deliveryRunning[index]) {
+            // Add income at the determined interval
+            if (clock.getElapsedTime().asSeconds() >= delivery.getTimeInterval().asSeconds()) {
+                player.setMoney(player.getMoney() + food.getBaseIncome());
+                clock.restart();
+            }
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(50ms); // Prevent CPU overuse
         }
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(50ms); // Prevent CPU overuse
-    }
-}).detach();
+    }).detach();
 }
 
 GameManager GameManager::loadFromFile(const std::string &fileName, Player &player) {
@@ -156,15 +163,89 @@ void GameManager::upgrade(FoodItem &foodItem) const {
     }
 }
 
-void GameManager::startDelivery(FoodItem &foodItem, Delivery &delivery) {
-    if (!deliveryRunning && delivery.canUnlock(player)) {
+void GameManager::startDelivery(FoodItem &foodItem, Delivery &delivery, const int index) {
+    if (!deliveryRunning[index-1] && delivery.canUnlock(player)) {
         player.setMoney(player.getMoney() - delivery.getUnlockCost());
-        deliveryRunning = true;
-        runDeliveryLoop(foodItem, delivery);
+        deliveryRunning[index-1] = true;
+        runDeliveryLoop(foodItem, delivery, index-1);
     }
 }
 
-void GameManager::stopDelivery() { deliveryRunning = false; }
+void GameManager::stopAllDeliveries() {
+    for (size_t i = 0; i < deliveryRunning.size(); ++i) {
+        deliveryRunning[i] = false;
+    }
+}
+
+void GameManager::saveGame() const {
+    std::ofstream file("resources/savegame.txt");
+    if (!file.is_open()) {
+        file.open("savegame.txt");
+        if (!file.is_open()) {
+            std::cerr << "Warning: Could not save game progress\n";
+            return;
+        }
+    }
+
+    file << player.getMoney() << "\n";
+    file << foodItems.size() << "\n";
+    for (size_t i = 0; i < foodItems.size(); ++i) {
+        const auto& food = foodItems[i];
+        file << food.getFoodName() << "\n";
+        file << food.getBaseIncome() << "\n";
+        file << food.getUpgradeCost() << "\n";
+        file << deliveryRunning[i] << "\n";  // Save delivery state per food item
+    }
+
+    file.close();
+    std::cout << "Game progress saved automatically\n";
+}
+
+bool GameManager::loadSavedGame() {
+    std::ifstream file("resources/savegame.txt");
+    if (!file.is_open()) {
+        file.open("savegame.txt");
+        if (!file.is_open()) {
+            return false;
+        }
+    }
+    try {
+        double savedMoney;
+        file >> savedMoney;
+        player.setMoney(savedMoney);
+        std::cout << "Loaded saved game with " << savedMoney << " RON\n";
+
+        int foodCount;
+        file >> foodCount;
+        bool deliveryState;
+
+        for (size_t i = 0; i < foodItems.size() && i < static_cast<size_t>(foodCount); ++i) {
+            auto& food = foodItems[i];
+            std::string foodName;
+            double baseIncome, upgradeCost;
+
+            file >> foodName;
+            file >> baseIncome;
+            file >> upgradeCost;
+            file >> deliveryState;
+
+            food.setBaseIncome(baseIncome);
+            food.setUpgradeCost(upgradeCost);
+            deliveryRunning[i] = deliveryState;
+
+            // Restart delivery if it was running
+            if (deliveryRunning[i]) {
+                runDeliveryLoop(food, deliveries[i], i);
+            }
+        }
+
+        file.close();
+        return true;
+    } catch (...) {
+        std::cerr << "Error reading save file\n";
+        return false;
+    }
+}
 
 std::vector<FoodItem> &GameManager::getFoods() {
     return foodItems;
@@ -174,9 +255,15 @@ std::vector<Delivery> &GameManager::getDelivery() {
     return deliveries;
 }
 
+bool GameManager::getIfDeliveryRunning(const int index) const {
+    if (index >= 0 && index < static_cast<int>(deliveryRunning.size())) {
+        return deliveryRunning[index];
+    }
+    return false;
+}
 
-
-
-
-
-
+void GameManager::setIfDeliveryRunning(const int index, const bool set) {
+    if (index >= 0 && index < static_cast<int>(deliveryRunning.size())) {
+        deliveryRunning[index] = set;
+    }
+}

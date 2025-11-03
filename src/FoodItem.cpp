@@ -30,6 +30,10 @@ const std::string &FoodItem::getFoodName() const { return foodName; }
 double FoodItem::getBaseIncome() const { return baseIncome; }
 double FoodItem::getUpgradeCost() const { return upgradeCost; }
 double FoodItem::getUnlockCost() const { return unlockCost; }
+void FoodItem::setBaseIncome(const double newBaseIncome) { baseIncome = newBaseIncome; }
+void FoodItem::setUpgradeCost(const double newUpgradeCost) { upgradeCost = newUpgradeCost; }
+
+
 
 double FoodItem::newIncome() const {
     return baseIncome * incomeMultiplier + baseIncome;

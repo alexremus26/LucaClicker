@@ -12,19 +12,21 @@ class FoodItem {
     double upgradeMultiplier;
 
 public:
-    FoodItem(std::string  foodName_, const double baseIncome_, const double upgradeCost_,
-             const double incomeMultiplier_, const double upgradeMultiplier_, const double unlockCost_);
+    FoodItem(std::string  foodName_, double baseIncome_, double upgradeCost_,
+             double incomeMultiplier_, double upgradeMultiplier_, double unlockCost_);
     FoodItem(const FoodItem& foodItem);
     ~FoodItem();
     FoodItem& operator=(const FoodItem& foodItem);
     friend std::ostream& operator<<(std::ostream& ostream, const FoodItem& foodItem);
 
-    double getUnlockCost() const;
-    const std::string& getFoodName() const;
-    double getBaseIncome() const;
-    double getUpgradeCost() const;
-    double newIncome() const;
-    double newUpgradeCost() const;
+    [[nodiscard]] double getUnlockCost() const;
+    [[nodiscard]] const std::string& getFoodName() const;
+    [[nodiscard]] double getBaseIncome() const;
+    [[nodiscard]] double getUpgradeCost() const;
+    [[nodiscard]] double newIncome() const;
+    [[nodiscard]] double newUpgradeCost() const;
+    void setBaseIncome(double newBaseIncome);
+    void setUpgradeCost(double newUpgradeCost);
     void update();
 };
 

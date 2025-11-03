@@ -17,9 +17,9 @@ public:
     Delivery& operator=(const Delivery& delivery);
     friend std::ostream& operator<<(std::ostream& ostream, const Delivery& delivery);
 
-    bool canUnlock(const Player& player) const;
-    sf::Time getTimeInterval() const;
-    const double& getUnlockCost() const;
+    [[nodiscard]] bool canUnlock(const Player& player) const;
+    [[nodiscard]] sf::Time getTimeInterval() const;
+    [[nodiscard]] const double& getUnlockCost() const;
 };
 
 

@@ -8,14 +8,14 @@ class Player {
     double money;
 
 public:
-    Player(std::string  playerName_,const double money_);
+    Player(std::string  playerName_,double money_);
     Player(const Player& player);
     ~Player();
     Player& operator=(const Player& player);
     friend std::ostream& operator<<(std::ostream& os, const Player& player);
 
-    const double& getMoney() const;
-    void setMoney(double const money_);
+    [[nodiscard]] const double& getMoney() const;
+    void setMoney(double money_);
 };
 
 
