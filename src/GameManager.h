@@ -29,8 +29,6 @@ public:
     void stopAllDeliveries();
     std::vector<FoodItem>& getFoods();
     std::vector<Delivery>& getDelivery();
-    bool getIfDeliveryRunning(int index) const;
-    void setIfDeliveryRunning(int index, bool set);
     void saveGame() const;
     bool loadSavedGame();
 };

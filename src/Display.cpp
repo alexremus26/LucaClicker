@@ -27,6 +27,8 @@ Display::~Display(){std::cout<<"Display a fost distrus! \n";}
 Display &Display::operator=(const Display &other) {
     gameManager = other.gameManager;
     player = other.player;
+    lastAction = other.lastAction;
+    selectedIndex = other.selectedIndex;
     return *this;
 }
 

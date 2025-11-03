@@ -254,16 +254,3 @@ std::vector<FoodItem> &GameManager::getFoods() {
 std::vector<Delivery> &GameManager::getDelivery() {
     return deliveries;
 }
-
-bool GameManager::getIfDeliveryRunning(const int index) const {
-    if (index >= 0 && index < static_cast<int>(deliveryRunning.size())) {
-        return deliveryRunning[index];
-    }
-    return false;
-}
-
-void GameManager::setIfDeliveryRunning(const int index, const bool set) {
-    if (index >= 0 && index < static_cast<int>(deliveryRunning.size())) {
-        deliveryRunning[index] = set;
-    }
-}
