@@ -9,7 +9,7 @@ Players begin with a single unlocked food item. Selling it earns small profits t
 
   - Hire delivery services — Automate production and sales so your income grows passively over time.
 
-### Will be implemented
+### To be implemented
   - Selling each item will take a certain amount of time based on it's cost.
     
   - The time interval of the delivery will be changed based on each food item corresponding a courier.
