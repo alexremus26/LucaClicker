@@ -31,7 +31,7 @@ env:
   BIN_DIR: "bin"       # update in cmake/Options.cmake:6 if changing name here
   BUILD_DIR: "build"
   EXT_DIR: "ext"
-  APP_WINDOW: "My Window"
+  APP_WINDOW: "Luca Clicker"
   # NOTE: also update in CMakeLists FetchContent
   # renovate: datasource=github-tags depName=SFML/SFML versioning=loose
   SFML_VERSION: "3.0.2"
