@@ -14,7 +14,6 @@ class Display {
     Player& player;
 
     std::vector<bool> unlocked;
-    bool running = true;
     char lastAction = ' ';
     int selectedIndex = 1;
     std::string warningMessage;
