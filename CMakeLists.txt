@@ -58,9 +58,6 @@ endif()
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 add_executable(${MAIN_EXECUTABLE_NAME}
     main.cpp
-        src/FoodItem.cpp
-        src/FoodItem.h
-        src/FoodItem.h
         src/Player.cpp
         src/Player.h
         src/Delivery.cpp
@@ -72,6 +69,12 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/Display.cpp
         src/Display.h
         src/Display.h
+        src/Item.cpp
+        src/Item.h
+        src/Item.h
+        src/Pastry.cpp
+        src/Pastry.h
+        src/Pastry.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

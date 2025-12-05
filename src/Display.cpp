@@ -1,10 +1,14 @@
 #include "Display.h"
 #include <iostream>
+#include <sstream>
+#include <algorithm>
 
 Display::Display(GameManager &gm, Player &p) : gameManager(gm), player(p) {
-    for (const auto& food : gameManager.getFoods())
-        unlocked.push_back(player.getMoney() >= food.getUnlockCost());
-    unlocked[0] = true; // First item starts unlocked
+
+    for (const auto& item : gameManager.getItems())
+        unlocked.push_back(player.getMoney() >= item->getUnlockCost());
+
+    if (!unlocked.empty()) unlocked[0] = true; // Safety check
 
     const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     const unsigned int width = desktop.size.x;
@@ -22,13 +26,15 @@ Display::Display(GameManager &gm, Player &p) : gameManager(gm), player(p) {
 
 Display::Display(const Display &other) : gameManager(other.gameManager), player(other.player) {}
 
-Display::~Display(){std::cout<<"Display a fost distrus! \n";}
+Display::~Display(){std::cout<<"Display destroyed!\n";}
 
 Display &Display::operator=(const Display &other) {
-    gameManager = other.gameManager;
-    player = other.player;
-    lastAction = other.lastAction;
-    selectedIndex = other.selectedIndex;
+    if (this != &other) { // Self-assignment check
+        gameManager = other.gameManager;
+        player = other.player;
+        lastAction = other.lastAction;
+        selectedIndex = other.selectedIndex;
+    }
     return *this;
 }
 
@@ -36,8 +42,6 @@ std::ostream &operator<<(std::ostream &os, const Display &d) {
     os << d.gameManager << " " << d.player;
     return os;
 }
-
-
 
 void Display::run() {
 
@@ -71,7 +75,7 @@ void Display::run() {
                     case Scan::Num7: case Scan::Num8: case Scan::Num9:
                         selectedIndex = std::min(
                         (static_cast<int>(keyPressed->scancode) - static_cast<int>(Scan::Num1) + 1),
-                         static_cast<int>(gameManager.getFoods().size()) );
+                         static_cast<int>(gameManager.getItems().size()) );
                         break;
                     default: break;
                 }
@@ -80,21 +84,23 @@ void Display::run() {
 
         // Process player actions
         if (lastAction != ' ') {
-            if (static_cast<size_t>(selectedIndex) <= gameManager.getFoods().size()) {
-                FoodItem& food = gameManager.getFoods()[selectedIndex - 1];
+            if (selectedIndex > 0 && static_cast<size_t>(selectedIndex) <= gameManager.getItems().size()) {
+
+
+                Item& item = *gameManager.getItems()[selectedIndex - 1];
+
                 if (unlocked[selectedIndex - 1]) {
                     Delivery& delivery = gameManager.getDelivery()[selectedIndex - 1];
                     switch (lastAction) {
-                        case 's': gameManager.sell(food); break;
-                        case 'u': gameManager.upgrade(food); break;
-                        case 'd': gameManager.startDelivery(food, delivery, selectedIndex); break;
+                        case 's': gameManager.sell(item); break;
+                        case 'u': gameManager.upgrade(item); break;
+                        case 'd': gameManager.startDelivery(item, delivery, selectedIndex - 1); break;
                         default: ;
                     }
                     warningMessage.clear();
                 } else {
-                    // Show warning if item is locked
-                    warningMessage = "Cannot sell or upgrade '" + food.getFoodName() +
-                                     "' (unlock cost: " + std::to_string(static_cast<int>(food.getUnlockCost())) + " RON)";
+                    warningMessage = "Cannot sell or upgrade '" + item.getName() +
+                                     "' (unlock cost: " + std::to_string(static_cast<int>(item.getUnlockCost())) + " RON)";
                     warningClock.restart();
                 }
             }
@@ -103,23 +109,24 @@ void Display::run() {
 
         // Check for newly unlocked items
         for (size_t i = 0; i < unlocked.size(); ++i)
-            if (!unlocked[i] && player.getMoney() >= gameManager.getFoods()[i].getUnlockCost())
+            if (!unlocked[i] && player.getMoney() >= gameManager.getItems()[i]->getUnlockCost())
                 unlocked[i] = true;
 
         std::ostringstream buffer;
         buffer << "================ Luca Clicker =========================\n";
         buffer << "Controls: [S] Sell | [U] Upgrade | [D] Delivery | [Q] Quit\n";
-        buffer << "Use [1-"<< static_cast<int>(gameManager.getFoods().size()) << "] to select a food item.\n";
+        buffer << "Use [1-"<< static_cast<int>(gameManager.getItems().size()) << "] to select a food item.\n";
         buffer << "======================================================\n";
         buffer << "Money: " << player.getMoney() << " RON\n";
         buffer << "Currently selected item: " << selectedIndex << "\n\n";
 
         // Display food items and their status
-        for (size_t i = 0; i < gameManager.getFoods().size(); ++i) {
-            const auto& food = gameManager.getFoods()[i];
+        for (size_t i = 0; i < gameManager.getItems().size(); ++i) {
+            const Item& food = *gameManager.getItems()[i];
             const auto& delivery = gameManager.getDelivery()[i];
+
             if (unlocked[i])
-                buffer << "[" << i + 1 << "] " << food.getFoodName()
+                buffer << "[" << i + 1 << "] " << food.getName()
                        << " - Income: " << food.getBaseIncome()
                        << " | Upgrade: " << food.getUpgradeCost()
                        << " | Delivery: " << delivery.getUnlockCost() << "\n";
@@ -158,8 +165,3 @@ void Display::run() {
     gameManager.stopAllDeliveries();
     std::cout << "Exiting game...\n";
 }
-
-
-
-
-

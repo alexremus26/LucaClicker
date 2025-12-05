@@ -11,7 +11,6 @@ Delivery::Delivery(const Delivery &delivery)
       timeInterval(delivery.timeInterval),
       running(delivery.running) {
 }
-
 Delivery::~Delivery() { std::cout << "Curierul " << deliveryName << " a fost distrus! \n"; }
 
 Delivery &Delivery::operator=(const Delivery &delivery) {
@@ -20,7 +19,6 @@ Delivery &Delivery::operator=(const Delivery &delivery) {
     unlockDeliveryCost = delivery.unlockDeliveryCost;
     return *this;
 }
-
 std::ostream &operator<<(std::ostream &ostream, const Delivery &delivery) {
     ostream << "Delivery:" << delivery.deliveryName << "Unlock Cost:" << delivery.unlockDeliveryCost << "  SaleRate:" <<
             delivery.timeInterval.asSeconds() << std::endl;

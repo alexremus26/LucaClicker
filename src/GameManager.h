@@ -2,36 +2,46 @@
 #define OOP_GAMEMANAGER_H
 
 #include <vector>
+#include <memory> // REQUIRED for std::unique_ptr
+#include <string>
 #include "Player.h"
-#include "FoodItem.h"
+#include "Item.h"
 #include "Delivery.h"
 #include <SFML/Graphics.hpp>
 
+class Item;
+class Player; // Likely needed too based on context
+
 class GameManager {
+private:
     Player& player;
-    std::vector<FoodItem> foodItems;
+    std::vector<std::unique_ptr<Item>> items;
     std::vector<Delivery> deliveries;
     std::vector<bool> deliveryRunning;
 
-    void runDeliveryLoop(FoodItem& food, Delivery& delivery, int index);
+    void runDeliveryLoop(Item& item, Delivery& delivery, int index);
 
 public:
-    GameManager(Player& player_, std::vector<FoodItem> foodItem_, std::vector<Delivery> deliveries_);
-    GameManager(const GameManager& gameManager);
+    // CHANGED: Constructor accepts unique_ptrs
+    GameManager(Player& player_, std::vector<std::unique_ptr<Item>> items_, std::vector<Delivery> deliveries_);
+
+    GameManager(const GameManager& other);
     ~GameManager();
-    GameManager& operator=(const GameManager& manager);
+    GameManager& operator=(const GameManager& other);
     friend std::ostream& operator<<(std::ostream& ostream, const GameManager& manager);
 
     static GameManager loadFromFile(const std::string& fileName, Player& player);
-    void sell(const FoodItem& foodItem) const;
-    void upgrade(FoodItem& foodItem) const;
-    void startDelivery(FoodItem& foodItem, Delivery& delivery, int index);
+    void sell(const Item& item) const;
+    void upgrade(Item& item) const;
+    void startDelivery(Item& item, Delivery& delivery, int index);
     void stopAllDeliveries();
-    std::vector<FoodItem>& getFoods();
+
+    // CHANGED: Returns reference to vector of pointers
+    std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();
+
     void saveGame() const;
     bool loadSavedGame();
 };
-
 
 #endif //OOP_GAMEMANAGER_H

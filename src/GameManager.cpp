@@ -1,30 +1,55 @@
 #include "GameManager.h"
+#include "Pastry.h"
+
 #include <iostream>
 #include <thread>
 #include <fstream>
+#include <sstream>
+#include <memory> // For std::unique_ptr
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics.hpp>
 
-GameManager::GameManager(Player& player_, std::vector<FoodItem> foodItem_, std::vector<Delivery> deliveries_)
-         : player(player_), foodItems(std::move(foodItem_)), deliveries(std::move(deliveries_)) {
-    deliveryRunning.resize(foodItems.size(), false);
+// ==========================================
+// CONSTRUCTORS & DESTRUCTORS
+// ==========================================
+
+GameManager::GameManager(Player& player_, std::vector<std::unique_ptr<Item>> items_, std::vector<Delivery> deliveries_)
+         : player(player_), items(std::move(items_)), deliveries(std::move(deliveries_)) {
+    deliveryRunning.resize(items.size(), false);
 }
 
-GameManager::GameManager(const GameManager& gameManager)
-    : player(gameManager.player), foodItems(gameManager.foodItems), deliveries(gameManager.deliveries),
-      deliveryRunning(gameManager.deliveryRunning) {}
+// Copy Constructor: DEEP COPY needed for pointers
+GameManager::GameManager(const GameManager& other)
+    : player(other.player),
+      deliveries(other.deliveries),
+      deliveryRunning(other.deliveryRunning) {
+
+    items.reserve(other.items.size());
+    for (const auto& item : other.items) {
+        // CALLS THE VIRTUAL CLONE METHOD (Polymorphism)
+        items.push_back(std::unique_ptr<Item>(item->clone()));
+    }
+}
 
 GameManager::~GameManager(){
     stopAllDeliveries();
-    std::cout<<"GameManager a fost distrus! \n";
+    std::cout << "GameManager destroyed!\n";
 }
 
-GameManager& GameManager::operator=(const GameManager& manager) {
-    if (this != &manager) {
-        player = manager.player;
-        foodItems = manager.foodItems;
-        deliveries = manager.deliveries;
-        deliveryRunning = manager.deliveryRunning;
+GameManager& GameManager::operator=(const GameManager& other) {
+    if (this != &other) {
+        player = other.player;
+        deliveries = other.deliveries;
+        deliveryRunning = other.deliveryRunning;
+
+        // Clear old pointers
+        items.clear();
+
+        // Deep copy new ones
+        items.reserve(other.items.size());
+        for (const auto& item : other.items) {
+            items.push_back(std::unique_ptr<Item>(item->clone()));
+        }
     }
     return *this;
 }
@@ -32,68 +57,134 @@ GameManager& GameManager::operator=(const GameManager& manager) {
 std::ostream &operator<<(std::ostream &ostream, const GameManager &manager) {
     ostream << "=== Game Manager ===\n";
     ostream << "Player: " << manager.player << " RON\n";
-    ostream << "Food items:\n";
-    for (const auto& food : manager.foodItems)
-        ostream << "  " << food;
+    ostream << "Items:\n";
+    for (const auto& item : manager.items)
+        ostream << "  " << *item; // Dereference pointer to print
     return ostream;
 }
 
-void GameManager::runDeliveryLoop(FoodItem &food, Delivery &delivery, int index) {
-    std::thread([this, &food, &delivery, index]() {
+// ==========================================
+// GAME LOGIC
+// ==========================================
+
+void GameManager::runDeliveryLoop(Item &item, Delivery &delivery, int index) {
+    std::thread([this, &item, &delivery, index]() {
         sf::Clock clock;
-        while (deliveryRunning[index]) {
-            // Add income at the determined interval
-            if (clock.getElapsedTime().asSeconds() >= delivery.getTimeInterval().asSeconds()) {
-                player.setMoney(player.getMoney() + food.getBaseIncome());
+
+        // LOOP CONDITION: Checks if the "Delivery" (Automation) is active.
+        // If deliveryRunning[index] becomes false, the automation stops.
+        while (index < deliveryRunning.size() && deliveryRunning[index]) {
+
+            // TIMING CONDITION: Uses the ITEM'S duration.
+            // Example: A Croissant takes 2.0 seconds to bake/sell.
+            if (clock.getElapsedTime() >= item.getDuration()) {
+
+                // REVENUE: Uses the ITEM'S revenue calculation.
+                player.setMoney(player.getMoney() + item.calculateRevenue());
+
+                // Reset the timer for the next product
                 clock.restart();
             }
+
+            // Sleep to save CPU usage
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(50ms); // Prevent CPU overuse
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }).detach();
 }
+void GameManager::sell(const Item &item) const {
+    player.setMoney(player.getMoney() + item.calculateRevenue());
+}
+
+void GameManager::upgrade(Item &item) const {
+    if (player.getMoney() >= item.getUpgradeCost()) {
+        player.setMoney(player.getMoney() - item.getUpgradeCost());
+        item.upgrade(); // Polymorphic call
+    }
+}
+
+void GameManager::startDelivery(Item &item, Delivery &delivery, const int index) {
+    // Safety check for index bounds
+    if (index < 0 || index >= deliveryRunning.size()) return;
+
+    // 1. Check if automation is NOT already running
+    // 2. Check if player has enough money to buy this specific Automation/Courier
+    if (!deliveryRunning[index] && delivery.canUnlock(player)) {
+
+        // Deduct the cost of the Automation (One-time purchase)
+        player.setMoney(player.getMoney() - delivery.getUnlockCost());
+
+        // Turn the switch ON
+        deliveryRunning[index] = true;
+
+        // Spin up the thread that does the work for us
+        runDeliveryLoop(item, delivery, index);
+
+        std::cout << "Automation purchased for " << item.getName() << "!\n";
+    }
+}
+
+void GameManager::stopAllDeliveries() {
+    for (size_t i = 0; i < deliveryRunning.size(); ++i) {
+        deliveryRunning[i] = false;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+// ==========================================
+// FILE I/O (FACTORY PATTERN)
+// ==========================================
 
 GameManager GameManager::loadFromFile(const std::string &fileName, Player &player) {
     std::ifstream file(fileName);
     if (!file.is_open())
         throw std::runtime_error("Error: Unable to open file " + fileName);
 
-    std::vector<FoodItem> foodItems;
+    std::vector<std::unique_ptr<Item>> items;
     std::vector<Delivery> deliveries;
 
     std::string line;
 
-    // Temporary variables for parsing
-    std::string foodName, courierName;
-    double baseIncome = 0, upgradeCost = 0, upgradeMultiplier = 0;
-    double incomeMultiplier = 0, unlockFoodCost = 0, unlockDeliveryCost = 0;
+    // Data buffers
+    std::string type = "Pastry"; // Default type
+    std::string name, courierName;
+    double baseIncome = 0, upgradeCost = 0, multiplier = 0;
+    double unlockCost = 0, unlockDeliveryCost = 0;
+    double durationSec = 2.0;
 
-    // Reset function for parsing new items
-    auto reset_fields = [&]() {
-        foodName.clear();
-        courierName.clear();
-        baseIncome = upgradeCost = upgradeMultiplier = incomeMultiplier = unlockFoodCost = unlockDeliveryCost = 0;
+    // Lambda to create objects based on 'type'
+    auto create_and_add_item = [&]() {
+        std::unique_ptr<Item> newItem;
+
+        if (type == "Pastry") {
+            // Create a Pastry
+            newItem = std::make_unique<Pastry>(
+                name, baseIncome, upgradeCost, multiplier, unlockCost, sf::seconds(durationSec)
+            );
+        }
+        // FUTURE EXPANSION:
+        // else if (type == "Beverage") {
+        //     newItem = std::make_unique<Beverage>(...args...);
+        // }
+        else {
+            // Fallback to Pastry if unknown
+            newItem = std::make_unique<Pastry>(
+                 name, baseIncome, upgradeCost, multiplier, unlockCost, sf::seconds(durationSec)
+            );
+        }
+
+        items.push_back(std::move(newItem));
+        deliveries.emplace_back(courierName, unlockDeliveryCost);
+
+        // Reset buffers
+        name.clear(); courierName.clear(); type = "Pastry";
+        baseIncome = upgradeCost = multiplier = unlockCost = unlockDeliveryCost = 0;
+        durationSec = 2.0;
     };
 
-    // Parse each line of the file
     while (std::getline(file, line)) {
-        // Empty line indicates end of current food item definition
         if (line.empty()) {
-            if (!foodName.empty()) {
-                // Create food item and delivery from parsed data
-                foodItems.emplace_back(
-                    foodName,
-                    baseIncome,
-                    upgradeCost,
-                    incomeMultiplier,
-                    upgradeMultiplier,
-                    unlockFoodCost
-                );
-
-                deliveries.emplace_back(courierName,unlockDeliveryCost);
-
-                reset_fields();
-            }
+            if (!name.empty()) create_and_add_item();
             continue;
         }
 
@@ -102,99 +193,41 @@ GameManager GameManager::loadFromFile(const std::string &fileName, Player &playe
         if (std::getline(iss, key, ':')) {
             std::string value;
             std::getline(iss, value);
+            if (!value.empty() && value[0] == ' ') value.erase(0, 1);
 
-            // Remove space if present
-            if (!value.empty() && value[0] == ' ')
-                value.erase(0, 1);
-
-            // Parse different property types
-            if (key == "foodName") foodName = value;
+            if (key == "type") type = value; // Allows file to specify "Beverage"
+            else if (key == "foodName" || key == "name") name = value;
+            else if (key == "courierName") courierName = value;
             else if (key == "baseIncome") baseIncome = std::stod(value);
             else if (key == "upgradeCost") upgradeCost = std::stod(value);
-            else if (key == "upgradeMultiplier") upgradeMultiplier = std::stod(value);
-            else if (key == "incomeMultiplier") incomeMultiplier = std::stod(value);
-            else if (key == "unlockFoodCost") unlockFoodCost = std::stod(value);
-            else if (key == "courierName") courierName = value;
+            else if (key == "upgradeMultiplier" || key == "multiplier") multiplier = std::stod(value);
+            else if (key == "unlockFoodCost" || key == "unlockCost") unlockCost = std::stod(value);
             else if (key == "unlockDeliveryCost") unlockDeliveryCost = std::stod(value);
+            else if (key == "duration") durationSec = std::stod(value);
         }
     }
 
-    // Handle last item if file doesn't end with empty line
-    if (!foodName.empty()) {
-        foodItems.emplace_back(
-            foodName,
-            baseIncome,
-            upgradeCost,
-            incomeMultiplier,
-            upgradeMultiplier,
-            unlockFoodCost
-        );
+    if (!name.empty()) create_and_add_item();
 
-        deliveries.emplace_back(courierName, unlockDeliveryCost);
-    }
-
-        // Display loaded items for verification
-        std::cout << "Loaded " << foodItems.size() << " food items and couriers:\n";
-        for (size_t i = 0; i < foodItems.size(); ++i) {
-            const auto& food = foodItems[i];
-            const auto& delivery = deliveries[i];
-
-            std::cout << "=======================================================\n";
-            std::cout << "Food Name: " << food.getFoodName() << "\n"
-                      << "  Base Income: " << food.getBaseIncome() << "\n"
-                      << "  Upgrade Cost: " << food.getUpgradeCost() << "\n"
-                      << "  Unlock Food Cost: " << food.getUnlockCost() << "\n"
-                      << "  Delivery Unlock Cost: " << delivery.getUnlockCost() << "\n"
-                      << "  Delivery Interval: " << delivery.getTimeInterval().asSeconds() << "s\n";
-        }
-             std::cout<< "=======================================================\n";
-
-    return { player, std::move(foodItems), std::move(deliveries) };
-}
-
-void GameManager::sell(const FoodItem &foodItem) const {
-    player.setMoney(player.getMoney() + foodItem.getBaseIncome());
-}
-
-void GameManager::upgrade(FoodItem &foodItem) const {
-    if (player.getMoney() >= foodItem.getUpgradeCost()) {
-        player.setMoney(player.getMoney() - foodItem.getUpgradeCost());
-        foodItem.update();
-    }
-}
-
-void GameManager::startDelivery(FoodItem &foodItem, Delivery &delivery, const int index) {
-    if (!deliveryRunning[index-1] && delivery.canUnlock(player)) {
-        player.setMoney(player.getMoney() - delivery.getUnlockCost());
-        deliveryRunning[index-1] = true;
-        runDeliveryLoop(foodItem, delivery, index-1);
-    }
-}
-
-void GameManager::stopAllDeliveries() {
-    for (size_t i = 0; i < deliveryRunning.size(); ++i) {
-        deliveryRunning[i] = false;
-    }
+    std::cout << "Loaded " << items.size() << " items.\n";
+    return { player, std::move(items), std::move(deliveries) };
 }
 
 void GameManager::saveGame() const {
     std::ofstream file("resources/savegame.txt");
-    if (!file.is_open()) {
-        file.open("savegame.txt");
-        if (!file.is_open()) {
-            std::cerr << "Warning: Could not save game progress\n";
-            return;
-        }
-    }
+    if (!file.is_open()) return;
 
     file << player.getMoney() << "\n";
-    file << foodItems.size() << "\n";
-    for (size_t i = 0; i < foodItems.size(); ++i) {
-        const auto& food = foodItems[i];
-        file << food.getFoodName() << "\n";
-        file << food.getBaseIncome() << "\n";
-        file << food.getUpgradeCost() << "\n";
-        file << deliveryRunning[i] << "\n";  // Save delivery state per food item
+    file << items.size() << "\n";
+
+    for (size_t i = 0; i < items.size(); ++i) {
+        // NOTE: If you have different types, you might want to save the "Type" here too
+        // file << "type: " << "Pastry" << "\n";
+
+        file << items[i]->getName() << "\n";
+        file << items[i]->getBaseIncome() << "\n";
+        file << items[i]->getUpgradeCost() << "\n";
+        file << deliveryRunning[i] << "\n";
     }
 
     file.close();
@@ -203,54 +236,47 @@ void GameManager::saveGame() const {
 
 bool GameManager::loadSavedGame() {
     std::ifstream file("resources/savegame.txt");
-    if (!file.is_open()) {
-        file.open("savegame.txt");
-        if (!file.is_open()) {
-            return false;
-        }
-    }
+    if (!file.is_open()) return false;
+
     try {
         double savedMoney;
         file >> savedMoney;
         player.setMoney(savedMoney);
-        std::cout << "Loaded saved game with " << savedMoney << " RON\n";
 
-        int foodCount;
-        file >> foodCount;
-        bool deliveryState;
+        int count;
+        file >> count;
 
-        for (size_t i = 0; i < foodItems.size() && i < static_cast<size_t>(foodCount); ++i) {
-            auto& food = foodItems[i];
-            std::string foodName;
-            double baseIncome, upgradeCost;
+        for (size_t i = 0; i < items.size() && i < static_cast<size_t>(count); ++i) {
+            std::string tempName;
+            double savedIncome, savedUpCost;
+            bool isRunning;
 
-            file >> foodName;
-            file >> baseIncome;
-            file >> upgradeCost;
-            file >> deliveryState;
+            // Simple reading (adjust if your save format changes)
+            file >> tempName;
+            file >> savedIncome;
+            file >> savedUpCost;
+            file >> isRunning;
 
-            food.setBaseIncome(baseIncome);
-            food.setUpgradeCost(upgradeCost);
-            deliveryRunning[i] = deliveryState;
+            items[i]->setBaseIncome(savedIncome);
+            items[i]->setUpgradeCost(savedUpCost);
 
-            // Restart delivery if it was running
+            deliveryRunning[i] = isRunning;
+
             if (deliveryRunning[i]) {
-                runDeliveryLoop(food, deliveries[i], i);
+                runDeliveryLoop(*items[i], deliveries[i], i);
             }
         }
-
         file.close();
         return true;
     } catch (...) {
-        std::cerr << "Error reading save file\n";
         return false;
     }
 }
 
-std::vector<FoodItem> &GameManager::getFoods() {
-    return foodItems;
+std::vector<std::unique_ptr<Item>>& GameManager::getItems() {
+    return items;
 }
 
-std::vector<Delivery> &GameManager::getDelivery() {
+std::vector<Delivery>& GameManager::getDelivery() {
     return deliveries;
 }
