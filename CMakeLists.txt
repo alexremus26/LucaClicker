@@ -75,6 +75,9 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/Pastry.cpp
         src/Pastry.h
         src/Pastry.h
+        src/Beverage.cpp
+        src/Beverage.h
+        src/Beverage.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

@@ -1,26 +1,65 @@
-foodName: Covrig
+type: Pastry
+name: Covrig
 baseIncome: 1
 upgradeCost: 10
-incomeMultiplier: 1.5
-upgradeMultiplier: 5
-unlockFoodCost: 0
+multiplier: 1.5
+unlockCost: 0
+duration: 2
 courierName: Raul
 unlockDeliveryCost: 100
 
-foodName: Merdenea
+type: Pastry
+name: Merdenea
 baseIncome: 50
 upgradeCost: 500
-incomeMultiplier: 2
-upgradeMultiplier: 500
-unlockFoodCost: 100
+multiplier: 2
+unlockCost: 100
+duration: 2
 courierName: Andrei
 unlockDeliveryCost: 500
 
-foodName: Pizza
+type: Pastry
+name: Pizza
 baseIncome: 200
 upgradeCost: 1000
-incomeMultiplier: 1.5
-upgradeMultiplier: 1000
-unlockFoodCost: 500
+multiplier: 1.5
+unlockCost: 500
+duration: 2
 courierName: Denis
 unlockDeliveryCost: 1000
+
+type: Beverage
+name: Latte
+multiplier: 1.0
+unlockCost: 300
+effects: profit_multiplier 1.5 upgrade_discount 0.9
+courierName: None
+unlockDeliveryCost: 0
+target: Covrig
+
+type: Beverage
+name: Ayran
+multiplier: 1.0
+unlockCost: 500
+effects: profit_multiplier 1.5 upgrade_discount 0.9
+courierName: None
+unlockDeliveryCost: 0
+target: Merdenea
+
+type: Beverage
+name: Pepsi
+multiplier: 1.0
+unlockCost: 800
+effects: profit_multiplier 1.5 upgrade_discount 0.9
+courierName: None
+unlockDeliveryCost: 0
+target: Pizza
+
+type: Beverage
+name: Matcha
+multiplier: 1.0
+unlockCost: 1000
+effects: profit_multiplier 2 upgrade_discount 2
+courierName: None
+unlockDeliveryCost: 0
+target: all

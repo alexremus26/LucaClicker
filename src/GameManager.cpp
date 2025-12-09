@@ -1,24 +1,19 @@
 #include "GameManager.h"
 #include "Pastry.h"
+#include "Beverage.h"
 
 #include <iostream>
 #include <thread>
 #include <fstream>
 #include <sstream>
-#include <memory> // For std::unique_ptr
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics.hpp>
-
-// ==========================================
-// CONSTRUCTORS & DESTRUCTORS
-// ==========================================
 
 GameManager::GameManager(Player& player_, std::vector<std::unique_ptr<Item>> items_, std::vector<Delivery> deliveries_)
          : player(player_), items(std::move(items_)), deliveries(std::move(deliveries_)) {
     deliveryRunning.resize(items.size(), false);
 }
 
-// Copy Constructor: DEEP COPY needed for pointers
 GameManager::GameManager(const GameManager& other)
     : player(other.player),
       deliveries(other.deliveries),
@@ -26,7 +21,6 @@ GameManager::GameManager(const GameManager& other)
 
     items.reserve(other.items.size());
     for (const auto& item : other.items) {
-        // CALLS THE VIRTUAL CLONE METHOD (Polymorphism)
         items.push_back(std::unique_ptr<Item>(item->clone()));
     }
 }
@@ -42,10 +36,7 @@ GameManager& GameManager::operator=(const GameManager& other) {
         deliveries = other.deliveries;
         deliveryRunning = other.deliveryRunning;
 
-        // Clear old pointers
         items.clear();
-
-        // Deep copy new ones
         items.reserve(other.items.size());
         for (const auto& item : other.items) {
             items.push_back(std::unique_ptr<Item>(item->clone()));
@@ -59,83 +50,81 @@ std::ostream &operator<<(std::ostream &ostream, const GameManager &manager) {
     ostream << "Player: " << manager.player << " RON\n";
     ostream << "Items:\n";
     for (const auto& item : manager.items)
-        ostream << "  " << *item; // Dereference pointer to print
+        ostream << "  " << *item;
     return ostream;
 }
 
-// ==========================================
-// GAME LOGIC
-// ==========================================
+// Game logic
 
-void GameManager::runDeliveryLoop(Item &item, Delivery &delivery, int index) {
-    std::thread([this, &item, &delivery, index]() {
+void GameManager::runDeliveryLoop(Item &item, std::size_t index) {
+    std::thread([this, &item, index]() {
         sf::Clock clock;
 
-        // LOOP CONDITION: Checks if the "Delivery" (Automation) is active.
-        // If deliveryRunning[index] becomes false, the automation stops.
         while (index < deliveryRunning.size() && deliveryRunning[index]) {
-
-            // TIMING CONDITION: Uses the ITEM'S duration.
-            // Example: A Croissant takes 2.0 seconds to bake/sell.
             if (clock.getElapsedTime() >= item.getDuration()) {
-
-                // REVENUE: Uses the ITEM'S revenue calculation.
-                player.setMoney(player.getMoney() + item.calculateRevenue());
-
-                // Reset the timer for the next product
+                player.setMoney(player.getMoney() + item.getBaseIncome());
                 clock.restart();
             }
 
-            // Sleep to save CPU usage
             using namespace std::chrono_literals;
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }).detach();
 }
+
 void GameManager::sell(const Item &item) const {
-    player.setMoney(player.getMoney() + item.calculateRevenue());
+    player.setMoney(player.getMoney() + item.getBaseIncome());
 }
 
 void GameManager::upgrade(Item &item) const {
     if (player.getMoney() >= item.getUpgradeCost()) {
         player.setMoney(player.getMoney() - item.getUpgradeCost());
-        item.upgrade(); // Polymorphic call
+        item.upgrade();
     }
 }
 
-void GameManager::startDelivery(Item &item, Delivery &delivery, const int index) {
-    // Safety check for index bounds
-    if (index < 0 || index >= deliveryRunning.size()) return;
+void GameManager::applyAllBeverageEffects() const {
+    for (auto& item : items) {
+        if (const auto* bev = dynamic_cast<Beverage*>(item.get())) {
 
-    // 1. Check if automation is NOT already running
-    // 2. Check if player has enough money to buy this specific Automation/Courier
-    if (!deliveryRunning[index] && delivery.canUnlock(player)) {
+            if (bev->getTarget() == "ALL") {
+                for (auto& targetPtr : items)
+                    bev->applyToOne(*targetPtr);
+            }
+            else {
+                for (auto& targetPtr : items)
+                    if (targetPtr->getName() == bev->getTarget())
+                        bev->applyToOne(*targetPtr);
+            }
+        }
+    }
+}
 
-        // Deduct the cost of the Automation (One-time purchase)
+
+void GameManager::applyBeverageToItem(const Beverage& bev, Item& target) {
+    bev.applyToOne(target);
+}
+
+void GameManager::startDelivery(Item &item, const Delivery &delivery, int index) {
+    if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size()) return;
+
+    if (!deliveryRunning[static_cast<std::size_t>(index)] && delivery.canUnlock(player)) {
         player.setMoney(player.getMoney() - delivery.getUnlockCost());
-
-        // Turn the switch ON
-        deliveryRunning[index] = true;
-
-        // Spin up the thread that does the work for us
-        runDeliveryLoop(item, delivery, index);
-
+        deliveryRunning[static_cast<std::size_t>(index)] = true;
+        runDeliveryLoop(item, static_cast<std::size_t>(index));
         std::cout << "Automation purchased for " << item.getName() << "!\n";
     }
 }
 
 void GameManager::stopAllDeliveries() {
-    for (size_t i = 0; i < deliveryRunning.size(); ++i) {
-        deliveryRunning[i] = false;
+    for (auto && i : deliveryRunning) {
+        i = false;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
-// ==========================================
-// FILE I/O (FACTORY PATTERN)
-// ==========================================
-
 GameManager GameManager::loadFromFile(const std::string &fileName, Player &player) {
+
     std::ifstream file(fileName);
     if (!file.is_open())
         throw std::runtime_error("Error: Unable to open file " + fileName);
@@ -145,41 +134,47 @@ GameManager GameManager::loadFromFile(const std::string &fileName, Player &playe
 
     std::string line;
 
-    // Data buffers
-    std::string type = "Pastry"; // Default type
+    std::string type = "Pastry";
     std::string name, courierName;
     double baseIncome = 0, upgradeCost = 0, multiplier = 0;
     double unlockCost = 0, unlockDeliveryCost = 0;
     double durationSec = 2.0;
 
-    // Lambda to create objects based on 'type'
+    std::vector<BeverageEffect> beverageEffects;
+    std::string targetName = "ALL";
+
+    auto reset_buffers = [&]() {
+        type = "Pastry";
+        name.clear();
+        courierName.clear();
+        baseIncome = upgradeCost = multiplier = unlockCost = unlockDeliveryCost = 0;
+        durationSec = 2.0;
+        beverageEffects.clear();
+        targetName = "ALL";
+    };
+
     auto create_and_add_item = [&]() {
         std::unique_ptr<Item> newItem;
 
         if (type == "Pastry") {
-            // Create a Pastry
             newItem = std::make_unique<Pastry>(
-                name, baseIncome, upgradeCost, multiplier, unlockCost, sf::seconds(durationSec)
+                name, multiplier, unlockCost,
+                baseIncome, upgradeCost,
+                sf::seconds(static_cast<float>(durationSec))
             );
         }
-        // FUTURE EXPANSION:
-        // else if (type == "Beverage") {
-        //     newItem = std::make_unique<Beverage>(...args...);
-        // }
-        else {
-            // Fallback to Pastry if unknown
-            newItem = std::make_unique<Pastry>(
-                 name, baseIncome, upgradeCost, multiplier, unlockCost, sf::seconds(durationSec)
+        else if (type == "Beverage") {
+            newItem = std::make_unique<Beverage>(
+                name, multiplier, unlockCost,
+                beverageEffects,
+                targetName
             );
         }
 
         items.push_back(std::move(newItem));
         deliveries.emplace_back(courierName, unlockDeliveryCost);
 
-        // Reset buffers
-        name.clear(); courierName.clear(); type = "Pastry";
-        baseIncome = upgradeCost = multiplier = unlockCost = unlockDeliveryCost = 0;
-        durationSec = 2.0;
+        reset_buffers();
     };
 
     while (std::getline(file, line)) {
@@ -190,28 +185,49 @@ GameManager GameManager::loadFromFile(const std::string &fileName, Player &playe
 
         std::istringstream iss(line);
         std::string key;
+
         if (std::getline(iss, key, ':')) {
+
             std::string value;
             std::getline(iss, value);
-            if (!value.empty() && value[0] == ' ') value.erase(0, 1);
+            if (!value.empty() && value[0] == ' ')
+                value.erase(0, 1);
 
-            if (key == "type") type = value; // Allows file to specify "Beverage"
-            else if (key == "foodName" || key == "name") name = value;
+            if (key == "type") type = value;
+            else if (key == "name") name = value;
             else if (key == "courierName") courierName = value;
             else if (key == "baseIncome") baseIncome = std::stod(value);
             else if (key == "upgradeCost") upgradeCost = std::stod(value);
-            else if (key == "upgradeMultiplier" || key == "multiplier") multiplier = std::stod(value);
-            else if (key == "unlockFoodCost" || key == "unlockCost") unlockCost = std::stod(value);
+            else if (key == "multiplier") multiplier = std::stod(value);
+            else if (key == "unlockCost") unlockCost = std::stod(value);
             else if (key == "unlockDeliveryCost") unlockDeliveryCost = std::stod(value);
             else if (key == "duration") durationSec = std::stod(value);
+
+            else if (key == "effects") {
+                beverageEffects.clear();
+                std::istringstream ev(value);
+                std::string eType;
+                double eValue;
+                while (ev >> eType >> eValue) {
+                    beverageEffects.push_back({ eType, eValue });
+                }
+            }
+
+            else if (key == "target") {
+                targetName = value;
+            }
         }
     }
 
     if (!name.empty()) create_and_add_item();
 
     std::cout << "Loaded " << items.size() << " items.\n";
-    return { player, std::move(items), std::move(deliveries) };
+
+    GameManager gm(player, std::move(items), std::move(deliveries));
+    gm.applyAllBeverageEffects();
+    return gm;
 }
+
 
 void GameManager::saveGame() const {
     std::ofstream file("resources/savegame.txt");
@@ -220,21 +236,36 @@ void GameManager::saveGame() const {
     file << player.getMoney() << "\n";
     file << items.size() << "\n";
 
-    for (size_t i = 0; i < items.size(); ++i) {
-        // NOTE: If you have different types, you might want to save the "Type" here too
-        // file << "type: " << "Pastry" << "\n";
+    for (std::size_t i = 0; i < items.size(); ++i) {
 
-        file << items[i]->getName() << "\n";
-        file << items[i]->getBaseIncome() << "\n";
-        file << items[i]->getUpgradeCost() << "\n";
+        if (auto bev = dynamic_cast<Beverage*>(items[i].get())) {
+            file << "Beverage\n";
+            file << bev->getName() << "\n";
+
+            const auto& effects = bev->getEffects();
+            file << effects.size() << "\n";
+            for (const auto& e : effects)
+                file << e.type << " " << e.value << " ";
+            file << "\n";
+
+            file << bev->getTarget() << "\n";
+        }
+        else if (auto pastry = dynamic_cast<Pastry*>(items[i].get())) {
+            file << "Pastry\n";
+            file << pastry->getName() << "\n";
+            file << pastry->getBaseIncome() << "\n";
+            file << pastry->getUpgradeCost() << "\n";
+        }
+
         file << deliveryRunning[i] << "\n";
     }
 
-    file.close();
-    std::cout << "Game progress saved automatically\n";
+    std::cout << "Game saved.\n";
 }
 
+
 bool GameManager::loadSavedGame() {
+
     std::ifstream file("resources/savegame.txt");
     if (!file.is_open()) return false;
 
@@ -246,29 +277,62 @@ bool GameManager::loadSavedGame() {
         int count;
         file >> count;
 
-        for (size_t i = 0; i < items.size() && i < static_cast<size_t>(count); ++i) {
+        for (std::size_t i = 0; i < items.size() && i < static_cast<std::size_t>(count); i++) {
+
+            std::string type;
+            file >> type;
+
             std::string tempName;
-            double savedIncome, savedUpCost;
-            bool isRunning;
-
-            // Simple reading (adjust if your save format changes)
             file >> tempName;
-            file >> savedIncome;
-            file >> savedUpCost;
-            file >> isRunning;
 
-            items[i]->setBaseIncome(savedIncome);
-            items[i]->setUpgradeCost(savedUpCost);
+            if (type == "Pastry") {
 
-            deliveryRunning[i] = isRunning;
+                double savedIncome, savedUpCost;
+                bool running;
+                file >> savedIncome >> savedUpCost >> running;
 
-            if (deliveryRunning[i]) {
-                runDeliveryLoop(*items[i], deliveries[i], i);
+                items[i]->setBaseIncome(savedIncome);
+                items[i]->setUpgradeCost(savedUpCost);
+                deliveryRunning[i] = running;
             }
+
+            else if (type == "Beverage") {
+
+                int nEffects;
+                file >> nEffects;
+
+                std::vector<BeverageEffect> effects;
+                effects.reserve(nEffects);
+
+                for (int j = 0; j < nEffects; j++) {
+                    std::string eType;
+                    double eVal;
+                    file >> eType >> eVal;
+                    effects.push_back({ eType, eVal });
+                }
+
+                std::string target;
+                file >> target;
+
+                bool running;
+                file >> running;
+
+                if (auto bev = dynamic_cast<Beverage*>(items[i].get())) {
+                    bev->setEffects(effects);
+                    bev->setTarget(target);
+                }
+
+                deliveryRunning[i] = running;
+            }
+
+            if (deliveryRunning[i])
+                runDeliveryLoop(*items[i], i);
         }
-        file.close();
+
+        applyAllBeverageEffects();
         return true;
-    } catch (...) {
+    }
+    catch (...) {
         return false;
     }
 }

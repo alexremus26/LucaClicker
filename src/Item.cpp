@@ -2,20 +2,16 @@
 #include <iostream>
 
 
-Item::Item(std::string name_, const double baseIncome_, const double upgradeCost_, const double unlockCost_, double multiplier_, sf::Time duration_)
-    : name(std::move(name_)), baseIncome(baseIncome_), upgradeCost(upgradeCost_),
-      unlockCost(unlockCost_), multiplier(multiplier_), level(1), duration(duration_){}
+Item::Item(std::string name_, const double multiplier_, const double unlockCost_)
+    : name(std::move(name_)), multiplier(multiplier_), unlockCost(unlockCost_), level(1){}
 Item::Item(const Item& other)
-    : name(other.name), baseIncome(other.baseIncome), upgradeCost(other.upgradeCost),
-      unlockCost(other.unlockCost), multiplier(other.multiplier), level(other.level), duration(other.duration) {}
+    : name(other.name),  multiplier(other.multiplier), unlockCost(other.unlockCost), level(other.level){}
 Item::~Item() {
     std::cout << "Item-ul " << name << " a fost distrus!\n";
 }
 Item& Item::operator=(const Item& other) {
     if (this != &other) {
         name = other.name;
-        baseIncome = other.baseIncome;
-        upgradeCost = other.upgradeCost;
         unlockCost = other.unlockCost;
         level = other.level;
     }
@@ -38,28 +34,9 @@ const std::string& Item::getName() const {
     return name;
 }
 
-double Item::getUpgradeCost() const {
-    return upgradeCost;
-}
 
 int Item::getLevel() const {
     return level;
-}
-
-double Item::getBaseIncome() const {
-    return baseIncome;
-}
-
-void Item::setBaseIncome(const double newBaseIncome) {
-    baseIncome = newBaseIncome;
-}
-
-void Item::setUpgradeCost(const double newUpgradeCost) {
-    upgradeCost = newUpgradeCost;
-}
-
-void Item::applyEffect() const {
-    doApplyEffect();
 }
 
 void Item::applyMultiplier(const double mult) {
@@ -70,18 +47,31 @@ void Item::upgrade() {
     doUpgrade();
 }
 
-double Item::calculateRevenue() const {
-    return doCalculateRevenue();
-}
-
 sf::Time Item::getDuration() const {
     return doGetDuration();
 }
+
+double Item::getBaseIncome() const {
+    return doGetBaseIncome();
+}
+
+double Item::getUpgradeCost() const {
+    return doGetUpgradeCost();
+}
+
+
 
 std::string Item::getEffectDescription() const {
     return doGetEffectDescription();
 }
 
+void Item::setBaseIncome(double newBaseIncome) {
+    doSetBaseIncome(newBaseIncome);
+}
+
+void Item::setUpgradeCost(double newUpgradeCost) {
+    doSetUpgradeCost(newUpgradeCost);
+}
 
 
 

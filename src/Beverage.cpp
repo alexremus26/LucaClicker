@@ -1,5 +1,102 @@
-//
-// Created by Stoici on 12/8/2025.
-//
-
 #include "Beverage.h"
+#include "GameManager.h"
+#include "Pastry.h"
+#include <iostream>
+#include <sstream>
+
+Beverage::Beverage(std::string name_, double multiplier_, double unlockCost_,
+                   std::vector<BeverageEffect> effects_,
+                   std::string targetName_)
+    : Item(std::move(name_), multiplier_, unlockCost_),
+      effects(std::move(effects_)),
+      targetName(std::move(targetName_)) {}
+
+Beverage::Beverage(const Beverage& other)
+    : Item(other),
+      effects(other.effects),
+      targetName(other.targetName) {}
+
+Beverage::~Beverage() {
+    std::cout << "Beverage " << name << " destroyed\n";
+}
+
+Beverage& Beverage::operator=(const Beverage& other) {
+    if (this != &other) {
+        Item::operator=(other);
+        effects = other.effects;
+        targetName = other.targetName;
+    }
+    return *this;
+}
+
+Item* Beverage::clone() const {
+    return new Beverage(*this);
+}
+
+const std::vector<BeverageEffect>& Beverage::getEffects() const {
+    return effects;
+}
+
+void Beverage::doPrint(std::ostream& os) const {
+    os << "Beverage: " << name
+       << " | Multiplier: " << multiplier
+       << " | Unlock cost: " << unlockCost
+       << " | Level: " << level
+       << " | Target: " << targetName
+       << " | Effects: " << getEffectDescription();
+}
+
+void Beverage::doApplyMultiplier(const double mult) {
+    multiplier *= mult;
+}
+
+void Beverage::doUpgrade() {
+    level++;
+    multiplier *= 1.1;
+}
+
+sf::Time Beverage::doGetDuration() const {
+    return sf::seconds(0.f);
+}
+
+std::string Beverage::doGetEffectDescription() const {
+    std::ostringstream os;
+    bool first = true;
+
+    for (auto& e : effects) {
+        if (!first) os << ", ";
+        first = false;
+
+        if (e.type == "profit_multiplier")
+            os << "Profit x" << e.value;
+        else if (e.type == "upgrade_discount")
+            os << "Upgrade cost x" << e.value;
+        else
+            os << e.type << "(" << e.value << ")";
+    }
+
+    if (first) os << "No effects";
+
+    return os.str();
+}
+
+double Beverage::doGetBaseIncome() const { return 0.0; }
+double Beverage::doGetUpgradeCost() const { return 0.0; }
+void Beverage::doSetBaseIncome(double) {}
+void Beverage::doSetUpgradeCost(double) {}
+
+void Beverage::setEffects(const std::vector<BeverageEffect>& newEffects) {
+    effects = newEffects;
+}
+
+void Beverage::applyToOne(Item& item) const {
+    const auto pastry = dynamic_cast<Pastry*>(&item);
+    if (!pastry) return;
+
+    for (const auto&[type, value] : effects) {
+        if (type == "profit_multiplier")
+            pastry->applyMultiplier(value);
+        else if (type == "upgrade_discount")
+            pastry->setUpgradeCost(pastry->getUpgradeCost() * value);
+    }
+}
