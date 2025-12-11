@@ -78,6 +78,12 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/Beverage.cpp
         src/Beverage.h
         src/Beverage.h
+        src/DeliveryPlatform.cpp
+        src/DeliveryPlatform.h
+        src/GlovoPlatform.cpp
+        src/GlovoPlatform.h
+        src/WoltPlatform.cpp
+        src/WoltPlatform.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

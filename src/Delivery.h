@@ -1,26 +1,33 @@
 #ifndef OOP_DELIVERY_H
 #define OOP_DELIVERY_H
 
+#include <memory>
+#include <string>
 #include <SFML/System/Time.hpp>
-#include "Player.h"
+#include "DeliveryPlatform.h"
 
 class Delivery {
-    std::string deliveryName;
+private:
+    std::string name;
     double unlockDeliveryCost;
-    sf::Time timeInterval = sf::seconds(2.0f);
     bool running = false;
 
-public:
-    Delivery(std::string  name, const double& unlockDeliveryCost_);
-    Delivery(const Delivery& delivery);
-    ~Delivery();
-    Delivery& operator=(const Delivery& delivery);
-    friend std::ostream& operator<<(std::ostream& ostream, const Delivery& delivery);
+    std::unique_ptr<DeliveryPlatform> platform;
 
-    [[nodiscard]] bool canUnlock(const Player& player) const;
-    [[nodiscard]] sf::Time getTimeInterval() const;
-    [[nodiscard]] const double& getUnlockCost() const;
+public:
+    Delivery(std::string name_, double unlockCost_);
+    Delivery(const Delivery& other);
+    Delivery& operator=(Delivery other);
+    ~Delivery();
+    friend void swap(Delivery& a, Delivery& b) noexcept;
+    friend std::ostream& operator<<(std::ostream& os, const Delivery& d);
+
+    [[nodiscard]] const std::string& getName() const;
+    [[nodiscard]] double getUnlockCost() const;
+    [[nodiscard]] DeliveryPlatform& getPlatform() const;
+
+    void setRunning(bool r);
+    [[nodiscard]] bool isRunning() const;
 };
 
-
-#endif //OOP_DELIVERY_H
+#endif // OOP_DELIVERY_H

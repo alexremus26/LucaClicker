@@ -5,11 +5,9 @@
 #include <SFML/System/Time.hpp>
 #include <vector>
 #include <string>
+#include <tuple>
 
-struct BeverageEffect {
-    std::string type;   // "profit_multiplier", "upgrade_discount"
-    double value;       // ex 1.5, 0.9
-};
+using BeverageEffect = std::tuple<std::string, double>;
 
 class Beverage final : public Item {
 private:
@@ -28,7 +26,8 @@ private:
 
 public:
     Beverage(std::string name_, double multiplier_, double unlockCost_,
-            std::vector<BeverageEffect> effects_, std::string targetName_ = "ALL");
+             std::vector<BeverageEffect> effects_,
+             std::string targetName_ = "ALL");
     Beverage(const Beverage& other);
     ~Beverage() override;
     Beverage& operator=(const Beverage& other);
@@ -39,7 +38,7 @@ public:
     [[nodiscard]] const std::vector<BeverageEffect>& getEffects() const;
     [[nodiscard]] const std::string& getTarget() const { return targetName; }
     void setTarget(const std::string& newTarget) { targetName = newTarget; }
-
 };
 
 #endif // OOP_BEVERAGE_H
+    

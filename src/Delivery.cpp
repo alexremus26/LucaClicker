@@ -1,43 +1,79 @@
 #include "Delivery.h"
+#include "GlovoPlatform.h"
+#include "WoltPlatform.h"
 #include <iostream>
+#include <utility>
 
-Delivery::Delivery(std::string name, const double &unlockDeliveryCost_)
-    : deliveryName(std::move(name)), unlockDeliveryCost(unlockDeliveryCost_) {
+Delivery::Delivery(std::string name_, double unlockCost_)
+    : name(std::move(name_)),
+      unlockDeliveryCost(unlockCost_),
+      platform(nullptr)
+{
+    std::cout << "Delivery \"" << name << "\" created!\n";
+
+    if (name == "Glovo") {
+        platform = std::make_unique<GlovoPlatform>();
+    }
+    else if (name == "Wolt") {
+        platform = std::make_unique<WoltPlatform>();
+    }
+    else {
+        std::cout << "Warning: Unknown platform \"" << name
+                  << "\". Defaulting to Glovo.\n";
+        platform = std::make_unique<GlovoPlatform>();
+    }
 }
 
-Delivery::Delivery(const Delivery &delivery)
-    : deliveryName(delivery.deliveryName),
-      unlockDeliveryCost(delivery.unlockDeliveryCost),
-      timeInterval(delivery.timeInterval),
-      running(delivery.running) {
+Delivery::Delivery(const Delivery& other)
+    : name(other.name),
+      unlockDeliveryCost(other.unlockDeliveryCost),
+      running(other.running),
+      platform(other.platform ? other.platform->clone() : nullptr)
+{
+    std::cout << "Delivery \"" << name << "\" copied!\n";
 }
-Delivery::~Delivery() { std::cout << "Curierul " << deliveryName << " a fost distrus! \n"; }
 
-Delivery &Delivery::operator=(const Delivery &delivery) {
-    deliveryName = delivery.deliveryName;
-    timeInterval = delivery.timeInterval;
-    unlockDeliveryCost = delivery.unlockDeliveryCost;
+Delivery& Delivery::operator=(Delivery other) {
+    swap(*this, other);
     return *this;
 }
-std::ostream &operator<<(std::ostream &ostream, const Delivery &delivery) {
-    ostream << "Delivery:" << delivery.deliveryName << "Unlock Cost:" << delivery.unlockDeliveryCost << "  SaleRate:" <<
-            delivery.timeInterval.asSeconds() << std::endl;
-    return ostream;
+
+Delivery::~Delivery() {
+    std::cout << "Delivery \"" << name << "\" destroyed!\n";
 }
 
-const double &Delivery::getUnlockCost() const {
+void swap(Delivery& a, Delivery& b) noexcept {
+    using std::swap;
+    swap(a.name, b.name);
+    swap(a.unlockDeliveryCost, b.unlockDeliveryCost);
+    swap(a.running, b.running);
+    swap(a.platform, b.platform);
+}
+
+const std::string& Delivery::getName() const {
+    return name;
+}
+
+double Delivery::getUnlockCost() const {
     return unlockDeliveryCost;
 }
 
-sf::Time Delivery::getTimeInterval() const {
-    return timeInterval;
+DeliveryPlatform& Delivery::getPlatform() const {
+    return *platform;
 }
 
-bool Delivery::canUnlock(const Player &player) const {
-    return player.getMoney() >= unlockDeliveryCost;
+void Delivery::setRunning(bool r) {
+    running = r;
 }
 
+bool Delivery::isRunning() const {
+    return running;
+}
 
-
-
-
+std::ostream& operator<<(std::ostream& os, const Delivery& d) {
+    os << "Delivery [" << d.name
+       << " | unlock: " << d.unlockDeliveryCost
+       << " | running: " << (d.running ? "YES" : "NO")
+       << "]";
+    return os;
+}

@@ -2,192 +2,269 @@
 #include "Beverage.h"
 #include <iostream>
 #include <sstream>
-#include <algorithm>
 
-Display::Display(GameManager &gm, Player &p) : gameManager(gm), player(p) {
-
-    for (const auto& item : gameManager.getItems())
-        unlocked.push_back(player.getMoney() >= item->getUnlockCost());
-
-    if (!unlocked.empty()) unlocked[0] = true;
-
+Display::Display(GameManager &gm, Player &p)
+    : gameManager(gm), player(p)
+{
     const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-    const unsigned int width = desktop.size.x;
-    const unsigned int height = desktop.size.y;
-
-    window.create(sf::VideoMode({width, height}, desktop.bitsPerPixel),
-        "Luca Clicker", sf::Style::Default, sf::State::Windowed);
+    window.create(
+        sf::VideoMode({desktop.size.x, desktop.size.y}, desktop.bitsPerPixel),
+        "Luca Clicker", sf::Style::Default, sf::State::Windowed
+    );
 
     window.setFramerateLimit(30);
 
-    if (!font.openFromFile("resources/font/MightySouly-lxggD.ttf")) {
+    if (!font.openFromFile("resources/font/MightySouly-lxggD.ttf"))
         std::cerr << "Failed to load font!\n";
-    }
 }
 
-Display::Display(const Display &other) : gameManager(other.gameManager), player(other.player) {}
+Display::Display(const Display &other)
+    : gameManager(other.gameManager), player(other.player)
+{}
 
-Display::~Display() {
-    std::cout << "Display destroyed!\n";
-}
+Display::~Display() {}
 
-Display &Display::operator=(const Display &other) {
+Display& Display::operator=(const Display &other) {
     if (this != &other) {
         gameManager = other.gameManager;
         player = other.player;
-        lastAction = other.lastAction;
         selectedIndex = other.selectedIndex;
+        lastAction = other.lastAction;
     }
     return *this;
 }
 
-std::ostream &operator<<(std::ostream &os, const Display &d) {
+std::ostream& operator<<(std::ostream &os, const Display &d) {
     os << d.gameManager << " " << d.player;
     return os;
 }
 
-void Display::run() {
+void Display::handleUnlock(std::size_t index)
+{
+    switch (gameManager.unlockItem(index))
+    {
+        case 0:
+            warningMessage =
+                "Unlocked " + gameManager.getItems()[index]->getName() + "!";
+            break;
 
-    sf::Text text(font,"");
-    text.setCharacterSize(50);
-    text.setFillColor(sf::Color::White);
+        case 1:
+            warningMessage = "Item already unlocked!";
+            break;
 
-    sf::Text warningText(font,"");
-    warningText.setCharacterSize(50);
-    warningText.setFillColor(sf::Color::Red);
+        case 2:
+            warningMessage = "Not enough money to unlock!";
+            break;
 
-    while (window.isOpen()) {
+        case 3:
+            warningMessage = "Invalid item index!";
+            break;
 
-        while (const auto event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
+        default:
+            warningMessage = "Unknown unlock error!";
+            break;
+    }
+
+    warningClock.restart();
+}
+
+
+void Display::run()
+{
+    sf::Text mainText(font, "");
+    mainText.setCharacterSize(50);
+    mainText.setFillColor(sf::Color::White);
+
+    sf::Text warnText(font, "");
+    warnText.setCharacterSize(50);
+    warnText.setFillColor(sf::Color::Red);
+
+    while (window.isOpen())
+    {
+
+        while (const auto event = window.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
                 window.close();
-            }
 
-            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            if (const auto* key = event->getIf<sf::Event::KeyPressed>())
+            {
                 using Scan = sf::Keyboard::Scan;
-                switch (keyPressed->scancode) {
+
+                switch (key->scancode)
+                {
                     case Scan::Q: gameManager.saveGame(); window.close(); break;
+
                     case Scan::S: lastAction = 's'; break;
                     case Scan::U: lastAction = 'u'; break;
                     case Scan::D: lastAction = 'd'; break;
+                    case Scan::B: lastAction = 'b'; break;
+                    case Scan::Z: lastAction = 'z'; break;
+
+                    // SELECT 1–9
                     case Scan::Num1: case Scan::Num2: case Scan::Num3:
                     case Scan::Num4: case Scan::Num5: case Scan::Num6:
                     case Scan::Num7: case Scan::Num8: case Scan::Num9:
-                        selectedIndex = std::min(
-                            (static_cast<int>(keyPressed->scancode) - static_cast<int>(Scan::Num1) + 1),
-                            static_cast<int>(gameManager.getItems().size()));
+                        selectedIndex =
+                            static_cast<int>(key->scancode) -
+                            static_cast<int>(Scan::Num1) + 1;
                         break;
-                    default: break;
+
+                    default:
+                        break;
                 }
             }
         }
-        if (lastAction != ' ') {
-            if (selectedIndex > 0 && static_cast<size_t>(selectedIndex) <= gameManager.getItems().size()) {
-                Item& item = *gameManager.getItems()[selectedIndex - 1];
-                if (unlocked[selectedIndex - 1]) {
-                    Delivery& delivery = gameManager.getDelivery()[selectedIndex - 1];
-                    switch (lastAction) {
-                        case 's':
+
+        if (lastAction != ' ')
+        {
+            if (selectedIndex > 0 &&
+                selectedIndex <= static_cast<int>(gameManager.getItems().size()))
+            {
+                auto idx = static_cast<std::size_t>(selectedIndex - 1);
+                Item& item = *gameManager.getItems()[idx];
+                Delivery& delivery = gameManager.getDelivery()[idx];
+
+                if (lastAction == 'z')
+                {
+                    handleUnlock(idx);
+                }
+                else if (gameManager.isUnlocked(idx))
+                {
+                    switch (lastAction)
+                    {
+                        case 's': // SELL
                             gameManager.sell(item);
                             break;
 
-                        case 'u':
+                        case 'u': // UPGRADE
                             gameManager.upgrade(item);
                             break;
 
-                        case 'd':
-                            gameManager.startDelivery(item, delivery, selectedIndex - 1);
+                        case 'd': // DELIVERY AUTOMATION
+                            gameManager.startDelivery(item, delivery,
+                                    static_cast<int>(idx));
                             break;
 
-                        default: break;
+                        case 'b': // BEVERAGE
+                        {
+                            auto* bev = dynamic_cast<Beverage*>(&item);
+
+                            if (!bev)
+                            {
+                                warningMessage = "Not a beverage!";
+                                warningClock.restart();
+                                break;
+                            }
+
+                            double cost = bev->getUnlockCost() * 0.5;
+                            if (player.getMoney() < cost)
+                            {
+                                warningMessage = "Not enough money!";
+                                warningClock.restart();
+                                break;
+                            }
+
+                            player.setMoney(player.getMoney() - cost);
+
+                            if (bev->getTarget() == "ALL")
+                            {
+                                for (auto& it : gameManager.getItems())
+                                    bev->applyToOne(*it);
+                            }
+                            else
+                            {
+                                for (auto& it : gameManager.getItems())
+                                    if (it->getName() == bev->getTarget())
+                                        bev->applyToOne(*it);
+                            }
+
+                            warningMessage = "Beverage used!";
+                            warningClock.restart();
+                            break;
+                        }
+
+                        default:
+                            break;
                     }
-                    warningMessage.clear();
                 }
-                else {
-                    warningMessage = "Cannot sell or upgrade '" + item.getName() +
-                                     "' (unlock cost: " +
-                                     std::to_string(static_cast<int>(item.getUnlockCost())) +
-                                     " RON)";
+                else
+                {
+                    warningMessage =
+                        "Locked! Press Z to unlock (" +
+                        std::to_string(static_cast<int>(item.getUnlockCost())) +
+                        " RON)";
                     warningClock.restart();
                 }
             }
+
             lastAction = ' ';
         }
-        // UNLOCK ITEMS WHEN PLAYER HAS ENOUGH MONEY
-        for (size_t i = 0; i < unlocked.size(); ++i)
-            if (!unlocked[i] && player.getMoney() >= gameManager.getItems()[i]->getUnlockCost())
-                unlocked[i] = true;
+                std::ostringstream buffer;
 
-        // BUILD DISPLAY BUFFER
-        std::ostringstream buffer;
         buffer << "================ Luca Clicker =========================\n";
-        buffer << "Controls: [S] Sell | [U] Upgrade | [D] Delivery | [Q] Quit\n";
-        buffer << "Use [1-" << static_cast<int>(gameManager.getItems().size()) << "] to select an item.\n";
+        buffer << "Controls: [S] Sell | [U] Upgrade | [D] Delivery | [B] Beverage\n";
+        buffer << "[Z] Unlock | [Q] Quit\n";
         buffer << "======================================================\n";
         buffer << "Money: " << player.getMoney() << " RON\n";
-        buffer << "Currently selected item: " << selectedIndex << "\n\n";
+        buffer << "Selected item: " << selectedIndex << "\n\n";
 
-        // DISPLAY ITEMS
-        for (size_t i = 0; i < gameManager.getItems().size(); ++i) {
-
+        for (std::size_t i = 0; i < gameManager.getItems().size(); ++i)
+        {
             Item& item = *gameManager.getItems()[i];
             Delivery& delivery = gameManager.getDelivery()[i];
 
-            const bool isBeverage = (dynamic_cast<Beverage*>(&item) != nullptr);
+            bool isBeverage = (dynamic_cast<Beverage*>(&item) != nullptr);
 
-            if (unlocked[i]) {
-
+            if (gameManager.isUnlocked(i))
+            {
                 buffer << "[" << i + 1 << "] " << item.getName();
 
+                buffer << (isBeverage ? " (Beverage)\n" : " (Pastry)\n");
+
                 if (isBeverage)
-                    buffer << " (Beverage)\n";
-                else
-                    buffer << " (Pastry)\n";
-
-                if (isBeverage) {
-
-                    buffer << "     Price: " << item.getUnlockCost() << " RON\n";
+                {
+                    buffer << "     Price: " << item.getUnlockCost() << "\n";
                     buffer << "     Effects: " << item.getEffectDescription() << "\n";
-
-                } else {
-
+                }
+                else
+                {
                     buffer << "     Income: " << item.getBaseIncome()
                            << " | Upgrade: " << item.getUpgradeCost()
                            << " | Delivery: " << delivery.getUnlockCost() << "\n";
                 }
-
-            } else {
-                buffer << "[" << i + 1 << "] (LOCKED - unlock at "
+            }
+            else
+            {
+                buffer << "[" << i + 1 << "] (LOCKED — Unlock cost: "
                        << item.getUnlockCost() << " RON)\n";
             }
         }
 
-        text.setString(buffer.str());
-        text.setPosition(sf::Vector2f(20.f, 20.f));
+        mainText.setString(buffer.str());
+        mainText.setPosition({20.f, 20.f});
 
-        // WARNING MESSAGE
-        if (!warningMessage.empty()) {
-            warningText.setString(warningMessage);
-            const sf::FloatRect bounds = warningText.getLocalBounds();
-            const float textHeight = bounds.position.y + bounds.size.y;
-            const float winHeight = static_cast<float>(window.getSize().y);
-            warningText.setPosition({20.f, winHeight - textHeight - 250.f});
+        if (!warningMessage.empty())
+        {
+            warnText.setString(warningMessage);
+            warnText.setPosition({50.f, static_cast<float>(window.getSize().y) - 150.f});
         }
 
         if (!warningMessage.empty() &&
             warningClock.getElapsedTime().asSeconds() > 3)
+        {
             warningMessage.clear();
+        }
 
-        // DRAW FRAME
+        // draw
         window.clear(sf::Color(20, 20, 20));
-        window.draw(text);
+        window.draw(mainText);
+
         if (!warningMessage.empty())
-            window.draw(warningText);
+            window.draw(warnText);
+
         window.display();
 
-        sf::sleep(sf::milliseconds(50));
+        sf::sleep(sf::milliseconds(40));
     }
-
-    gameManager.stopAllDeliveries();
-    std::cout << "Exiting game...\n";
 }

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-Beverage::Beverage(std::string name_, double multiplier_, double unlockCost_,
+Beverage::Beverage(std::string name_, const double multiplier_, const double unlockCost_,
                    std::vector<BeverageEffect> effects_,
                    std::string targetName_)
     : Item(std::move(name_), multiplier_, unlockCost_),
@@ -63,20 +63,21 @@ std::string Beverage::doGetEffectDescription() const {
     std::ostringstream os;
     bool first = true;
 
-    for (auto& e : effects) {
+    for (const auto& effect : effects) {
+        const auto& [type, value] = effect;
+
         if (!first) os << ", ";
         first = false;
 
-        if (e.type == "profit_multiplier")
-            os << "Profit x" << e.value;
-        else if (e.type == "upgrade_discount")
-            os << "Upgrade cost x" << e.value;
+        if (type == "profit_multiplier")
+            os << "Profit x" << value;
+        else if (type == "upgrade_discount")
+            os << "Upgrade cost x" << value;
         else
-            os << e.type << "(" << e.value << ")";
+            os << type << "(" << value << ")";
     }
 
     if (first) os << "No effects";
-
     return os.str();
 }
 
@@ -90,12 +91,15 @@ void Beverage::setEffects(const std::vector<BeverageEffect>& newEffects) {
 }
 
 void Beverage::applyToOne(Item& item) const {
-    const auto pastry = dynamic_cast<Pastry*>(&item);
+    auto* pastry = dynamic_cast<Pastry*>(&item);
     if (!pastry) return;
 
-    for (const auto&[type, value] : effects) {
+    for (const auto& effect : effects) {
+        const auto& [type, value] = effect;
+
         if (type == "profit_multiplier")
             pastry->applyMultiplier(value);
+
         else if (type == "upgrade_discount")
             pastry->setUpgradeCost(pastry->getUpgradeCost() * value);
     }

@@ -14,6 +14,7 @@ Item& Item::operator=(const Item& other) {
         name = other.name;
         unlockCost = other.unlockCost;
         level = other.level;
+        multiplier = other.multiplier;
     }
     return *this;
 }

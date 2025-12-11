@@ -1,31 +1,36 @@
-#ifndef OOP_DISPLAY_H
-#define OOP_DISPLAY_H
+#ifndef DISPLAY_H
+#define DISPLAY_H
+
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <string>
+
 #include "GameManager.h"
+#include "Player.h"
 
 class Display {
+private:
+    GameManager& gameManager;
+    Player& player;
 
     sf::RenderWindow window;
     sf::Font font;
 
-    GameManager& gameManager;
-    Player& player;
-
-    std::vector<bool> unlocked;
+    int selectedIndex = 0;
     char lastAction = ' ';
-    int selectedIndex = 1;
+
     std::string warningMessage;
     sf::Clock warningClock;
 
-public:
-    Display(GameManager& gm, Player& p);
-    Display(const Display& other);
-    ~Display();
-    Display& operator=(const Display& other);
-    friend std::ostream& operator<<(std::ostream& os, const Display& d);
-    void run();
-};
+    void handleUnlock(std::size_t index); // NEW
 
-#endif //OOP_DISPLAY_H
+public:
+    explicit Display(GameManager& gm, Player& p);
+    Display(const Display& other);
+    Display& operator=(const Display& other);
+    ~Display();
+    friend std::ostream& operator<<(std::ostream& os, const Display& d);
+
+    void run();
+
+
+#endif

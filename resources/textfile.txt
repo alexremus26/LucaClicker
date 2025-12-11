@@ -5,7 +5,7 @@ upgradeCost: 10
 multiplier: 1.5
 unlockCost: 0
 duration: 2
-courierName: Raul
+deliveryName: Glovo
 unlockDeliveryCost: 100
 
 type: Pastry
@@ -15,7 +15,7 @@ upgradeCost: 500
 multiplier: 2
 unlockCost: 100
 duration: 2
-courierName: Andrei
+deliveryName: Wolt
 unlockDeliveryCost: 500
 
 type: Pastry
@@ -25,7 +25,7 @@ upgradeCost: 1000
 multiplier: 1.5
 unlockCost: 500
 duration: 2
-courierName: Denis
+deliveryName: Glovo
 unlockDeliveryCost: 1000
 
 type: Beverage
@@ -33,7 +33,7 @@ name: Latte
 multiplier: 1.0
 unlockCost: 300
 effects: profit_multiplier 1.5 upgrade_discount 0.9
-courierName: None
+deliveryName: None
 unlockDeliveryCost: 0
 target: Covrig
 
@@ -42,7 +42,7 @@ name: Ayran
 multiplier: 1.0
 unlockCost: 500
 effects: profit_multiplier 1.5 upgrade_discount 0.9
-courierName: None
+deliveryName: None
 unlockDeliveryCost: 0
 target: Merdenea
 
@@ -51,7 +51,7 @@ name: Pepsi
 multiplier: 1.0
 unlockCost: 800
 effects: profit_multiplier 1.5 upgrade_discount 0.9
-courierName: None
+deliveryName: None
 unlockDeliveryCost: 0
 target: Pizza
 
@@ -60,6 +60,6 @@ name: Matcha
 multiplier: 1.0
 unlockCost: 1000
 effects: profit_multiplier 2 upgrade_discount 2
-courierName: None
+deliveryName: None
 unlockDeliveryCost: 0
 target: all
