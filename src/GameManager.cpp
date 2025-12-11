@@ -160,7 +160,6 @@ void GameManager::startDelivery(Item& item, const Delivery& delivery, int index)
 }
 
 void GameManager::stopAllDeliveries() {
-    std::ranges::fill(deliveryRunning, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 

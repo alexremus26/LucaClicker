@@ -46,7 +46,7 @@ public:
 
     // Delivery logic
     void startDelivery(Item& item, const Delivery& delivery, int index);
-    void stopAllDeliveries();
+    static void stopAllDeliveries();
 
     // Beverage effects
     void applyAllBeverageEffects() const;
