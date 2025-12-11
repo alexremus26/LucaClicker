@@ -4,12 +4,12 @@
 #include <sstream>
 
 Display::Display(GameManager &gm, Player &p)
-    : gameManager(gm), player(p)
+        : gameManager(gm), player(p)
 {
     const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.create(
-        sf::VideoMode({desktop.size.x, desktop.size.y}, desktop.bitsPerPixel),
-        "Luca Clicker", sf::Style::Default, sf::State::Windowed
+            sf::VideoMode({desktop.size.x, desktop.size.y}, desktop.bitsPerPixel),
+            "Luca Clicker", sf::Style::Default, sf::State::Windowed
     );
 
     window.setFramerateLimit(30);
@@ -19,10 +19,10 @@ Display::Display(GameManager &gm, Player &p)
 }
 
 Display::Display(const Display &other)
-    : gameManager(other.gameManager), player(other.player)
+        : gameManager(other.gameManager), player(other.player)
 {}
 
-Display::~Display() {}
+Display::~Display() = default;
 
 Display& Display::operator=(const Display &other) {
     if (this != &other) {
@@ -44,8 +44,7 @@ void Display::handleUnlock(std::size_t index)
     switch (gameManager.unlockItem(index))
     {
         case 0:
-            warningMessage =
-                "Unlocked " + gameManager.getItems()[index]->getName() + "!";
+            warningMessage = "Unlocked " + gameManager.getItems()[index]->getName() + "!";
             break;
 
         case 1:
@@ -57,17 +56,16 @@ void Display::handleUnlock(std::size_t index)
             break;
 
         case 3:
-            warningMessage = "Invalid item index!";
+            warningMessage = "Invalid index!";
             break;
 
         default:
-            warningMessage = "Unknown unlock error!";
+            warningMessage = "Unknown error!";
             break;
     }
 
     warningClock.restart();
 }
-
 
 void Display::run()
 {
@@ -81,7 +79,6 @@ void Display::run()
 
     while (window.isOpen())
     {
-
         while (const auto event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
@@ -101,7 +98,6 @@ void Display::run()
                     case Scan::B: lastAction = 'b'; break;
                     case Scan::Z: lastAction = 'z'; break;
 
-                    // SELECT 1–9
                     case Scan::Num1: case Scan::Num2: case Scan::Num3:
                     case Scan::Num4: case Scan::Num5: case Scan::Num6:
                     case Scan::Num7: case Scan::Num8: case Scan::Num9:
@@ -110,8 +106,7 @@ void Display::run()
                             static_cast<int>(Scan::Num1) + 1;
                         break;
 
-                    default:
-                        break;
+                    default: break;
                 }
             }
         }
@@ -121,7 +116,8 @@ void Display::run()
             if (selectedIndex > 0 &&
                 selectedIndex <= static_cast<int>(gameManager.getItems().size()))
             {
-                auto idx = static_cast<std::size_t>(selectedIndex - 1);
+                std::size_t idx = selectedIndex - 1;
+
                 Item& item = *gameManager.getItems()[idx];
                 Delivery& delivery = gameManager.getDelivery()[idx];
 
@@ -133,33 +129,29 @@ void Display::run()
                 {
                     switch (lastAction)
                     {
-                        case 's': // SELL
+                        case 's':
                             gameManager.sell(item);
                             break;
 
-                        case 'u': // UPGRADE
+                        case 'u':
                             gameManager.upgrade(item);
                             break;
 
-                        case 'd': // DELIVERY AUTOMATION
-                            gameManager.startDelivery(item, delivery,
-                                    static_cast<int>(idx));
+                        case 'd':
+                            gameManager.startDelivery(item, delivery, static_cast<int>(idx));
                             break;
 
-                        case 'b': // BEVERAGE
+                        case 'b':
                         {
                             auto* bev = dynamic_cast<Beverage*>(&item);
-
-                            if (!bev)
-                            {
-                                warningMessage = "Not a beverage!";
+                            if (!bev) {
+                                warningMessage = "This is not a beverage!";
                                 warningClock.restart();
                                 break;
                             }
 
                             double cost = bev->getUnlockCost() * 0.5;
-                            if (player.getMoney() < cost)
-                            {
+                            if (player.getMoney() < cost) {
                                 warningMessage = "Not enough money!";
                                 warningClock.restart();
                                 break;
@@ -200,14 +192,16 @@ void Display::run()
 
             lastAction = ' ';
         }
-                std::ostringstream buffer;
 
-        buffer << "================ Luca Clicker =========================\n";
-        buffer << "Controls: [S] Sell | [U] Upgrade | [D] Delivery | [B] Beverage\n";
-        buffer << "[Z] Unlock | [Q] Quit\n";
-        buffer << "======================================================\n";
-        buffer << "Money: " << player.getMoney() << " RON\n";
-        buffer << "Selected item: " << selectedIndex << "\n\n";
+        std::ostringstream out;
+
+        out << "================ Luca Clicker =========================\n";
+        out << "Controls:\n";
+        out << " [S] Sell | [U] Upgrade | [D] Delivery | [B] Beverage\n";
+        out << " [Z] Unlock | [Q] Quit\n";
+        out << "=======================================================\n";
+        out << "Money: " << player.getMoney() << "\n";
+        out << "Selected item: " << selectedIndex << "\n\n";
 
         for (std::size_t i = 0; i < gameManager.getItems().size(); ++i)
         {
@@ -218,36 +212,34 @@ void Display::run()
 
             if (gameManager.isUnlocked(i))
             {
-                buffer << "[" << i + 1 << "] " << item.getName();
-
-                buffer << (isBeverage ? " (Beverage)\n" : " (Pastry)\n");
+                out << "[" << i + 1 << "] " << item.getName()
+                    << (isBeverage ? " (Beverage)\n" : " (Pastry)\n");
 
                 if (isBeverage)
                 {
-                    buffer << "     Price: " << item.getUnlockCost() << "\n";
-                    buffer << "     Effects: " << item.getEffectDescription() << "\n";
+                    out << "   Effects: " << item.getEffectDescription() << "\n";
                 }
                 else
                 {
-                    buffer << "     Income: " << item.getBaseIncome()
-                           << " | Upgrade: " << item.getUpgradeCost()
-                           << " | Delivery: " << delivery.getUnlockCost() << "\n";
+                    out << "   Income: " << item.getBaseIncome()
+                        << " | Upgrade: " << item.getUpgradeCost()
+                        << " | Delivery: " << delivery.getUnlockCost() << "\n";
                 }
             }
             else
             {
-                buffer << "[" << i + 1 << "] (LOCKED — Unlock cost: "
-                       << item.getUnlockCost() << " RON)\n";
+                out << "[" << i + 1 << "] LOCKED (Unlock cost: "
+                    << item.getUnlockCost() << " RON)\n";
             }
         }
 
-        mainText.setString(buffer.str());
+        mainText.setString(out.str());
         mainText.setPosition({20.f, 20.f});
 
         if (!warningMessage.empty())
         {
             warnText.setString(warningMessage);
-            warnText.setPosition({50.f, static_cast<float>(window.getSize().y) - 150.f});
+            warnText.setPosition({50.f, window.getSize().y - 200.f});
         }
 
         if (!warningMessage.empty() &&
@@ -256,15 +248,12 @@ void Display::run()
             warningMessage.clear();
         }
 
-        // draw
-        window.clear(sf::Color(20, 20, 20));
+        window.clear(sf::Color(25, 25, 25));
         window.draw(mainText);
 
         if (!warningMessage.empty())
             window.draw(warnText);
 
         window.display();
-
-        sf::sleep(sf::milliseconds(40));
     }
 }

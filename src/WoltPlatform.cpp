@@ -1,4 +1,5 @@
 #include "WoltPlatform.h"
+#include <iostream>
 
 WoltPlatform::WoltPlatform() {
     std::cout << "WoltPlatform created!\n";
