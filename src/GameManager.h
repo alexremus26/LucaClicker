@@ -19,6 +19,8 @@ private:
 
     std::vector<bool> deliveryRunning;
     std::vector<bool> itemUnlocked;
+    std::vector<float> sellProgress; // 0–1 progress
+
 
     void runDeliveryLoop(Item& item, std::size_t index);
 
@@ -37,12 +39,15 @@ public:
 
     // Unlock system
     int unlockItem(std::size_t index);
-    bool isUnlocked(std::size_t index) const;
-    const std::vector<bool>& getUnlocked() const;
+    [[nodiscard]] bool isUnlocked(std::size_t index) const;
+    [[nodiscard]] const std::vector<bool>& getUnlocked() const;
 
     // Item logic
     void sell(const Item& item) const;
+    void runSellingLoop (Item& item, std::size_t index);
     void upgrade(Item& item) const;
+    [[nodiscard]] float getSellProgress(std::size_t index) const;
+
 
     // Delivery logic
     void startDelivery(Item& item, const Delivery& delivery, int index);
@@ -52,7 +57,6 @@ public:
     void applyAllBeverageEffects() const;
     static void applyBeverageToItem(const Beverage& bev, Item& target);
 
-    // Accessors
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();
 

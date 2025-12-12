@@ -18,6 +18,7 @@ GameManager::GameManager(Player& player_,
 {
     deliveryRunning.resize(items.size(), false);
     itemUnlocked.resize(items.size(), false);
+    sellProgress.resize(items.size(), 0.f);
 
     if (!items.empty())
         itemUnlocked[0] = true;
@@ -112,6 +113,34 @@ void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
         }
     }).detach();
 }
+void GameManager::runSellingLoop(Item &item, std::size_t index) {
+    std::thread([this, &item, index]() {
+        sf::Clock clock;
+        const sf::Time duration = item.getDuration();
+
+        while (true) {
+
+            const float t = clock.getElapsedTime().asSeconds();
+            const float total = duration.asSeconds();
+
+            if (t >= total) break;
+
+            sellProgress[index] = t / total;  // 0 - 1
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        }
+
+        // finished
+        sell(item);
+        sellProgress[index] = 1.f;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+
+        sellProgress[index] = 0.f;
+        clock.restart();
+
+    }).detach();
+}
+
 
 void GameManager::sell(const Item& item) const {
     player.setMoney(player.getMoney() + item.getBaseIncome());
@@ -122,6 +151,10 @@ void GameManager::upgrade(Item& item) const {
         player.setMoney(player.getMoney() - item.getUpgradeCost());
         item.upgrade();
     }
+}
+
+[[nodiscard]] float GameManager::getSellProgress(const std::size_t index) const {
+    return sellProgress[index];
 }
 
 void GameManager::applyAllBeverageEffects() const {

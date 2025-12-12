@@ -14,7 +14,7 @@ baseIncome: 50
 upgradeCost: 500
 multiplier: 2
 unlockCost: 100
-duration: 2
+duration: 10
 deliveryName: Wolt
 unlockDeliveryCost: 500
 
@@ -24,7 +24,7 @@ baseIncome: 200
 upgradeCost: 1000
 multiplier: 1.5
 unlockCost: 500
-duration: 2
+duration: 30
 deliveryName: Glovo
 unlockDeliveryCost: 1000
 

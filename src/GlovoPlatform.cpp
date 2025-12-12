@@ -1,4 +1,5 @@
 #include "GlovoPlatform.h"
+#include <iostream>
 
 GlovoPlatform::GlovoPlatform() {
     std::cout << "GlovoPlatform created!\n";

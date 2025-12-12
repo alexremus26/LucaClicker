@@ -30,6 +30,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Display& d);
 
+    void drawProgressBar(float progress, sf::Vector2f barPos, sf::Vector2f backgroundSize);
     void run();
 };
 

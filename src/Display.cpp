@@ -67,8 +67,23 @@ void Display::handleUnlock(std::size_t index)
     warningClock.restart();
 }
 
-void Display::run()
-{
+void Display::drawProgressBar(float progress, const sf::Vector2f barPos, const sf::Vector2f backgroundSize) {
+    // background
+    sf::RectangleShape background(backgroundSize);
+    background.setFillColor(sf::Color(80, 80, 80));
+    background.setPosition(barPos);
+
+    // filled part
+    sf::RectangleShape fill(sf::Vector2f(backgroundSize.x * progress, backgroundSize.y));
+    fill.setFillColor(sf::Color(0, 180, 0)); // green
+    fill.setPosition(barPos);
+
+    window.draw(background);
+    window.draw(fill);
+}
+
+
+void Display::run() {
     sf::Text mainText(font, "");
     mainText.setCharacterSize(50);
     mainText.setFillColor(sf::Color::White);
@@ -77,8 +92,7 @@ void Display::run()
     warnText.setCharacterSize(50);
     warnText.setFillColor(sf::Color::Red);
 
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         while (const auto event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
@@ -116,7 +130,7 @@ void Display::run()
             if (selectedIndex > 0 &&
                 selectedIndex <= static_cast<int>(gameManager.getItems().size()))
             {
-                std::size_t idx = selectedIndex - 1;
+                const std::size_t idx = selectedIndex - 1;
 
                 Item& item = *gameManager.getItems()[idx];
                 Delivery& delivery = gameManager.getDelivery()[idx];
@@ -130,7 +144,8 @@ void Display::run()
                     switch (lastAction)
                     {
                         case 's':
-                            gameManager.sell(item);
+                            if (item.getDuration().asSeconds() >= gameManager.getSellProgress(idx))
+                            gameManager.runSellingLoop(item,idx);
                             break;
 
                         case 'u':
@@ -239,7 +254,7 @@ void Display::run()
         if (!warningMessage.empty())
         {
             warnText.setString(warningMessage);
-            warnText.setPosition({50.f, window.getSize().y - 200.f});
+            warnText.setPosition({50.f, static_cast<float>(window.getSize().y) - 200.f});
         }
 
         if (!warningMessage.empty() &&
@@ -254,6 +269,17 @@ void Display::run()
         if (!warningMessage.empty())
             window.draw(warnText);
 
+        if (selectedIndex > 0) {
+            float p = gameManager.getSellProgress(selectedIndex - 1);
+            if (p > 0.f) {
+                sf::Vector2f barPos{50.f,static_cast<float>(window.getSize().y) - 120.f};
+                sf::Vector2f barBackground{400.f,25.f};
+                drawProgressBar(p,barPos,barBackground);
+            }
+        }
+
         window.display();
+        }
     }
-}
+
+
