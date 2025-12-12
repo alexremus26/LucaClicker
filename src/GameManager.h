@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 #include <ranges>
+#include <thread>
+#include <atomic>
 #include "Player.h"
 #include "Item.h"
 #include "Beverage.h"
@@ -19,10 +21,18 @@ private:
 
     std::vector<bool> deliveryRunning;
     std::vector<bool> itemUnlocked;
-    std::vector<float> sellProgress; // 0–1 progress
+    std::vector<std::atomic<float>> sellProgress; // 0–1 progress
+
+    std::vector<std::thread> sellingWorkers;
+    std::vector<std::atomic_bool> sellingActive;
+    std::vector<std::atomic_bool> stopSellingWorkers;
+    std::vector<std::atomic<int>> pendingSales;
 
 
     void runDeliveryLoop(Item& item, std::size_t index);
+    void sellingWorker(std::size_t index);
+    void initializeRuntimeState();
+    void stopSellingThreads();
 
 public:
     GameManager(Player& player_,
@@ -44,7 +54,7 @@ public:
 
     // Item logic
     void sell(const Item& item) const;
-    void runSellingLoop (Item& item, std::size_t index);
+    bool runSellingLoop (Item& item, std::size_t index);
     void upgrade(Item& item) const;
     [[nodiscard]] float getSellProgress(std::size_t index) const;
 

@@ -144,8 +144,10 @@ void Display::run() {
                     switch (lastAction)
                     {
                         case 's':
-                            if (item.getDuration().asSeconds() >= gameManager.getSellProgress(idx))
-                            gameManager.runSellingLoop(item,idx);
+                            if (!gameManager.runSellingLoop(item, idx)) {
+                                warningMessage = "Cannot start sale for this item.";
+                                warningClock.restart();
+                            }
                             break;
 
                         case 'u':

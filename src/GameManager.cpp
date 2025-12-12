@@ -3,10 +3,11 @@
 #include "Beverage.h"
 
 #include <iostream>
-#include <thread>
 #include <fstream>
 #include <sstream>
 #include <ranges>
+#include <algorithm>
+#include <thread>
 #include <SFML/System/Clock.hpp>
 
 GameManager::GameManager(Player& player_,
@@ -16,12 +17,7 @@ GameManager::GameManager(Player& player_,
       items(std::move(items_)),
       deliveries(std::move(deliveries_))
 {
-    deliveryRunning.resize(items.size(), false);
-    itemUnlocked.resize(items.size(), false);
-    sellProgress.resize(items.size(), 0.f);
-
-    if (!items.empty())
-        itemUnlocked[0] = true;
+    initializeRuntimeState();
 }
 
 GameManager::GameManager(const GameManager& other)
@@ -33,10 +29,14 @@ GameManager::GameManager(const GameManager& other)
     items.reserve(other.items.size());
     for (const auto& item : other.items)
         items.push_back(std::unique_ptr<Item>(item->clone()));
+
+    initializeRuntimeState();
 }
 
 GameManager& GameManager::operator=(const GameManager& other) {
     if (this != &other) {
+        stopSellingThreads();
+
         player = other.player;
         deliveries = other.deliveries;
         deliveryRunning = other.deliveryRunning;
@@ -46,13 +46,65 @@ GameManager& GameManager::operator=(const GameManager& other) {
         items.reserve(other.items.size());
         for (const auto& item : other.items)
             items.push_back(std::unique_ptr<Item>(item->clone()));
+
+        initializeRuntimeState();
     }
     return *this;
 }
 
 GameManager::~GameManager() {
+    stopSellingThreads();
     stopAllDeliveries();
     std::cout << "GameManager destroyed!\n";
+}
+
+void GameManager::initializeRuntimeState() {
+    deliveryRunning.resize(items.size(), false);
+    itemUnlocked.resize(items.size(), false);
+    sellProgress.clear();
+    sellProgress.resize(items.size());
+
+    sellingActive.clear();
+    sellingActive.resize(items.size());
+    stopSellingWorkers.clear();
+    stopSellingWorkers.resize(items.size());
+    pendingSales.clear();
+    pendingSales.resize(items.size());
+
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        sellingActive[i] = false;
+        stopSellingWorkers[i] = false;
+        pendingSales[i] = 0;
+    }
+
+    if (!items.empty())
+        itemUnlocked[0] = true;
+
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        sellProgress[i] = 0.f;
+    }
+
+    sellingWorkers.clear();
+    sellingWorkers.reserve(items.size());
+
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        sellingWorkers.emplace_back([this, i]() { sellingWorker(i); });
+    }
+}
+
+void GameManager::stopSellingThreads() {
+    if (sellingWorkers.empty())
+        return;
+
+    for (auto& stopFlag : stopSellingWorkers)
+        stopFlag = true;
+
+    for (auto& worker : sellingWorkers) {
+        if (worker.joinable())
+            worker.join();
+    }
+
+    sellingWorkers.clear();
 }
 
 std::ostream& operator<<(std::ostream& os, const GameManager& manager)
@@ -113,32 +165,51 @@ void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
         }
     }).detach();
 }
-void GameManager::runSellingLoop(Item &item, std::size_t index) {
-    std::thread([this, &item, index]() {
-        sf::Clock clock;
-        const sf::Time duration = item.getDuration();
+void GameManager::sellingWorker(std::size_t index) {
+    while (index < items.size()) {
+        if (stopSellingWorkers[index])
+            break;
 
-        while (true) {
+        if (pendingSales[index] > 0 && !sellingActive[index]) {
+            pendingSales[index]--;
+            sellingActive[index] = true;
+            sellProgress[index] = 0.f;
 
-            const float t = clock.getElapsedTime().asSeconds();
-            const float total = duration.asSeconds();
+            sf::Clock clock;
+            const sf::Time duration = items[index]->getDuration();
 
-            if (t >= total) break;
+            while (clock.getElapsedTime() < duration && !stopSellingWorkers[index]) {
+                const float t = clock.getElapsedTime().asSeconds();
+                const float total = duration.asSeconds();
 
-            sellProgress[index] = t / total;  // 0 - 1
-            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+                sellProgress[index] = std::min(t / total, 1.f);
+                std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            }
+
+            if (!stopSellingWorkers[index]) {
+                sell(*items[index]);
+                sellProgress[index] = 1.f;
+                std::this_thread::sleep_for(std::chrono::milliseconds(80));
+            }
+
+            sellProgress[index] = 0.f;
+            sellingActive[index] = false;
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
+    }
+}
 
-        // finished
-        sell(item);
-        sellProgress[index] = 1.f;
+bool GameManager::runSellingLoop(Item &item, std::size_t index) {
+    (void)item;
+    if (index >= items.size())
+        return false;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+    if (sellingActive[index] || pendingSales[index] > 0)
+        return false;
 
-        sellProgress[index] = 0.f;
-        clock.restart();
-
-    }).detach();
+    pendingSales[index]++;
+    return true;
 }
 
 
@@ -154,6 +225,9 @@ void GameManager::upgrade(Item& item) const {
 }
 
 [[nodiscard]] float GameManager::getSellProgress(const std::size_t index) const {
+    if (index >= sellProgress.size())
+        return 0.f;
+
     return sellProgress[index];
 }
 
