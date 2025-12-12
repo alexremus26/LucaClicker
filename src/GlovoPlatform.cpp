@@ -10,7 +10,6 @@ GlovoPlatform::~GlovoPlatform() {
 }
 
 double GlovoPlatform::doComputeIncome(const Item& item) const {
-    // Glovo gives  income bonus
     return item.getBaseIncome();
 }
 

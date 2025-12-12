@@ -19,7 +19,8 @@ private:
 
     std::vector<bool> deliveryRunning;
     std::vector<bool> itemUnlocked;
-    std::vector<float> sellProgress; // 0–1 progress
+    std::vector<float> sellProgress;
+    std::vector<bool> sellingRunning;
 
 
     void runDeliveryLoop(Item& item, std::size_t index);
@@ -37,30 +38,25 @@ public:
 
     static GameManager loadFromFile(const std::string& fileName, Player& player);
 
-    // Unlock system
     int unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
     [[nodiscard]] const std::vector<bool>& getUnlocked() const;
 
-    // Item logic
     void sell(const Item& item) const;
     void runSellingLoop (Item& item, std::size_t index);
     void upgrade(Item& item) const;
     [[nodiscard]] float getSellProgress(std::size_t index) const;
+    bool isSelling(std::size_t index) const;
 
-
-    // Delivery logic
     void startDelivery(Item& item, const Delivery& delivery, int index);
     static void stopAllDeliveries();
 
-    // Beverage effects
     void applyAllBeverageEffects() const;
     static void applyBeverageToItem(const Beverage& bev, Item& target);
 
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();
 
-    // Save/load
     void saveGame() const;
     bool loadSavedGame();
 };
