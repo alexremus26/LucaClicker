@@ -2,23 +2,18 @@
 #include <ostream>
 
 Sandwich::Sandwich(std::string name,
-                   double unlockCost,
-                   double baseIncome,
-                   double upgradeCost,
-                   double fastMult,
-                   double slowMult,
-                   double fastChance,
-                   sf::Time duration)
+                   const double unlockCost,
+                   const double fastMult,
+                   const double slowMult,
+                   const double fastChance,
+                   const sf::Time baseDuration)
     : Item(std::move(name), 1.0, unlockCost),
       fastMultiplier(fastMult),
       slowMultiplier(slowMult),
       fastChance(fastChance),
-      baseDuration(duration),
+      baseDuration(baseDuration),
       rng(std::random_device{}())
-{
-    multiplier = baseIncome;
-    unlockCost = upgradeCost;
-}
+{}
 
 Sandwich::Sandwich(const Sandwich& other)
     : Item(other),
@@ -27,15 +22,14 @@ Sandwich::Sandwich(const Sandwich& other)
       fastChance(other.fastChance),
       baseDuration(other.baseDuration),
       rng(std::random_device{}())
-{
-}
+{}
 
 Item* Sandwich::clone() const {
     return new Sandwich(*this);
 }
 
 bool Sandwich::rollFastEffect() const {
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    std::uniform_real_distribution dist(0.0, 1.0);
     return dist(rng) < fastChance;
 }
 
@@ -80,6 +74,6 @@ std::string Sandwich::doGetEffectDescription() const {
            " or slow x" + std::to_string(slowMultiplier);
 }
 
-void Sandwich::doApplyMultiplier(double mult) {
+void Sandwich::doApplyMultiplier(const double mult) {
     multiplier *= mult;
 }

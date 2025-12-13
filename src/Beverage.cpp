@@ -1,5 +1,4 @@
 #include "Beverage.h"
-#include "GameManager.h"
 #include "Pastry.h"
 #include <iostream>
 #include <sstream>

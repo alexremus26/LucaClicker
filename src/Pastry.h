@@ -26,8 +26,16 @@ public:
            double baseIncome_, double upgradeCost_, sf::Time duration_);
     Pastry(const Pastry& other);
     ~Pastry() override;
-    Pastry& operator=(const Pastry& other);
     [[nodiscard]] Item* clone() const override;
+
+    Pastry& operator=(Pastry other) {
+        if (this != &other) {
+            using std::swap;
+            swap(*this, other);
+            return *this;
+        }
+        return *this;
+    }
 
     friend void swap(Pastry &lhs, Pastry &rhs) noexcept {
         using std::swap;
@@ -36,6 +44,7 @@ public:
         swap(lhs.upgradeCost, rhs.upgradeCost);
         swap(lhs.duration, rhs.duration);
     }
+
 
     [[nodiscard]] double getBaseIncome() const;
     [[nodiscard]] double getUpgradeCost() const;

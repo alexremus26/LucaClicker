@@ -66,7 +66,7 @@ void Display::handleUnlock(std::size_t index)
     warningClock.restart();
 }
 
-void Display::drawProgressBar(float progress, float x, float y)
+void Display::drawProgressBar(const float progress, float x, float y)
 {
     sf::RectangleShape back({ PROGRESS_WIDTH, PROGRESS_HEIGHT });
     back.setFillColor(sf::Color(70, 70, 70));
@@ -215,7 +215,6 @@ void Display::run()
         for (std::size_t i = 0; i < gameManager.getItems().size(); ++i)
         {
             Item& item = *gameManager.getItems()[i];
-            Delivery& delivery = gameManager.getDelivery()[i];
             bool isBeverage = dynamic_cast<Beverage*>(&item) != nullptr;
 
             sf::Text title(font);

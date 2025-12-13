@@ -158,7 +158,7 @@ void GameManager::upgrade(Item& item) const{
 }
 
 
-float GameManager::getSellProgress(std::size_t index) const {
+float GameManager::getSellProgress(const std::size_t index) const {
     return (index < sellProgress.size()) ? sellProgress[index] : 0.f;
 }
 
@@ -182,7 +182,7 @@ void GameManager::applyBeverageToItem(const Beverage& bev, Item& target) {
     bev.applyToOne(target);
 }
 
-void GameManager::startDelivery(Item& item, const Delivery& delivery, int index) {
+void GameManager::startDelivery(Item& item, const Delivery& delivery, const int index) {
     if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size())
         return;
 

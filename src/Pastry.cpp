@@ -20,15 +20,6 @@ Pastry::~Pastry() {
     std::cout << "Pastry " << getName() << " a fost distrus!\n";
 }
 
-Pastry &Pastry::operator=(const Pastry &other) {
-    if (this != &other) {
-        Item::operator=(other);
-        baseIncome = other.baseIncome;
-        upgradeCost = other.upgradeCost;
-        duration = other.duration;
-    }
-    return *this;
-}
 
 Item *Pastry::clone() const {
     return new Pastry(*this);

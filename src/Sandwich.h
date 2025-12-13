@@ -20,7 +20,7 @@ private:
     double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
     void doUpgrade() override;
-    void doApplyMultiplier(double multiplier) override;
+    void doApplyMultiplier(double mult) override;
     [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doSetBaseIncome(double) override {}
@@ -29,8 +29,6 @@ private:
 public:
     Sandwich(std::string name,
              double unlockCost,
-             double baseIncome,
-             double upgradeCost,
              double fastMult,
              double slowMult,
              double fastChance,

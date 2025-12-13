@@ -4,7 +4,7 @@
 #include <iostream>
 #include <utility>
 
-Delivery::Delivery(std::string name_, double unlockCost_)
+Delivery::Delivery(std::string name_, const double unlockCost_)
     : name(std::move(name_)),
       unlockDeliveryCost(unlockCost_),
       platform(nullptr)
@@ -62,7 +62,7 @@ DeliveryPlatform& Delivery::getPlatform() const {
     return *platform;
 }
 
-void Delivery::setRunning(bool r) {
+void Delivery::setRunning(const bool r) {
     running = r;
 }
 
