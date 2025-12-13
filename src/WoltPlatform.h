@@ -14,8 +14,8 @@ private:
 public:
     WoltPlatform();
     ~WoltPlatform() override;
-
     [[nodiscard]] WoltPlatform* clone() const override;
+
 };
 
 #endif //OOP_WOLTPLATFORM_H

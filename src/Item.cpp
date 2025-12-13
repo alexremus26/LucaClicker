@@ -2,6 +2,10 @@
 #include <iostream>
 
 
+double Item::produceIncome() const {
+
+}
+
 Item::Item(std::string name_, const double multiplier_, const double unlockCost_)
     : name(std::move(name_)), multiplier(multiplier_), unlockCost(unlockCost_), level(1){}
 Item::Item(const Item& other)
@@ -9,19 +13,13 @@ Item::Item(const Item& other)
 Item::~Item() {
     std::cout << "Item-ul " << name << " a fost distrus!\n";
 }
-Item& Item::operator=(const Item& other) {
-    if (this != &other) {
-        name = other.name;
-        unlockCost = other.unlockCost;
-        level = other.level;
-        multiplier = other.multiplier;
-    }
-    return *this;
-}
+
+
 std::ostream& operator<<(std::ostream& ostream, const Item& item) {
     item.print(ostream);
     return ostream;
 }
+
 
 void Item::print(std::ostream& os) const {
     doPrint(os);

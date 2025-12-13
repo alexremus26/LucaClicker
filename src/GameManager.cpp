@@ -56,16 +56,16 @@ GameManager::~GameManager() {
     std::cout << "GameManager destroyed!\n";
 }
 
-std::ostream& operator<<(std::ostream& os, const GameManager& manager)
+std::ostream& operator<<(std::ostream& ostream, const GameManager& manager)
 {
-    os << "=== Game Manager ===\n";
-    os << "Player money: " << manager.player.getMoney() << "\n";
-    os << "Items:\n";
+    ostream << "=== Game Manager ===\n";
+    ostream << "Player money: " << manager.player.getMoney() << "\n";
+    ostream << "Items:\n";
 
     for (const auto& item : manager.items)
-        os << "  " << *item << "\n";
+        ostream << "  " << *item << "\n";
 
-    return os;
+    return ostream;
 }
 
 int GameManager::unlockItem(const std::size_t index) {
@@ -74,13 +74,14 @@ int GameManager::unlockItem(const std::size_t index) {
         return 1; // already unlocked
 
     const double cost = items[index]->getUnlockCost();
-    if (player.getMoney() < cost)
+    if (!player.enoughMoney(cost))
         return 2; // not enough money
 
     if (index >= items.size())
         return 3; // invalid index
+    if (!player.tryPay(items[index]->getUnlockCost()))
+        return 2;
 
-    player.setMoney(player.getMoney() - cost);
     itemUnlocked[index] = true;
 
     return 0; // success
@@ -105,8 +106,8 @@ void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
             if (DeliveryPlatform& platform = delivery.getPlatform();
                 clock.getElapsedTime() >= platform.computeSpeed(item))
             {
-                double income = platform.computeIncome(item);
-                player.setMoney(player.getMoney() + income);
+                const double income = platform.computeIncome(item);
+                player.earn(income);
                 clock.restart();
             }
 
@@ -145,15 +146,15 @@ void GameManager::runSellingLoop(Item& item, std::size_t index)
 
 
 void GameManager::sell(const Item& item) const {
-    player.setMoney(player.getMoney() + item.getBaseIncome());
+    player.earn(item.getBaseIncome());
 }
 
 void GameManager::upgrade(Item& item) const {
-    if (player.getMoney() >= item.getUpgradeCost()) {
-        player.setMoney(player.getMoney() - item.getUpgradeCost());
+    if (player.tryPay(item.getUpgradeCost())) {
         item.upgrade();
     }
 }
+
 
 float GameManager::getSellProgress(std::size_t index) const {
     return (index < sellProgress.size()) ? sellProgress[index] : 0.f;
@@ -184,15 +185,14 @@ void GameManager::startDelivery(Item& item, const Delivery& delivery, int index)
         return;
 
     if (!deliveryRunning[index] &&
-        player.getMoney() >= delivery.getUnlockCost())
+        player.tryPay(delivery.getUnlockCost()))
     {
-        player.setMoney(player.getMoney() - delivery.getUnlockCost());
-        deliveryRunning[index] = true;
+            deliveryRunning[index] = true;
+        }
 
         runDeliveryLoop(item, index);
         std::cout << "Automation purchased for " << item.getName() << "!\n";
     }
-}
 
 void GameManager::stopAllDeliveries() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -222,7 +222,7 @@ GameManager GameManager::loadFromFile(const std::string& fileName, Player& playe
         name.clear();
         deliveryName.clear();
         baseIncome = upgradeCost = multiplier = unlockCost = unlockDeliveryCost = 0;
-        durationSec = 2.0;
+        durationSec = 0;
         beverageEffects.clear();
         targetName = "ALL";
     };
@@ -356,7 +356,7 @@ bool GameManager::loadSavedGame() {
 
     auto getKV = [&](std::string& key, std::string& value) {
         std::getline(file, line);
-        std::size_t pos = line.find(':');
+        const std::size_t pos = line.find(':');
         if (pos == std::string::npos) return false;
 
         key = line.substr(0, pos);
@@ -448,7 +448,7 @@ bool GameManager::loadSavedGame() {
     return true;
 }
 
-bool GameManager::isSelling(std::size_t index) const {
+bool GameManager::isSelling(const std::size_t index) const {
     return index < sellingRunning.size() && sellingRunning[index];
 }
 

@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <ranges>
 #include "Player.h"
 #include "Item.h"
 #include "Beverage.h"

@@ -72,3 +72,4 @@ std::string Pastry::doGetEffectDescription() const {
 
 void Pastry::doSetBaseIncome(const double newBaseIncome) { baseIncome = newBaseIncome; }
 void Pastry::doSetUpgradeCost(const double newUpgradeCost) { upgradeCost = newUpgradeCost; }
+

@@ -14,22 +14,40 @@ protected:
 private:
     // NVI
     virtual void doPrint(std::ostream& os) const = 0;
-    virtual void doUpgrade() = 0;
-    virtual void doApplyMultiplier(double mult) = 0;
-    [[nodiscard]] virtual sf::Time doGetDuration() const = 0;    // DE ADAUGAT DURATA DE SELL
-    [[nodiscard]] virtual std::string doGetEffectDescription() const = 0; // folosit principal de bev pe viitor la extra
+    virtual void doUpgrade() = 0; // de implementat upgrade pentru beverage si sandwich
+    virtual void doApplyMultiplier(double multiplier) = 0;
+    [[nodiscard]] virtual sf::Time doGetDuration() const = 0;
+    [[nodiscard]] virtual std::string doGetEffectDescription() const = 0; // folosit principal de bev pe viitor la sandwich
     [[nodiscard]] virtual double doGetBaseIncome() const = 0;
     [[nodiscard]] virtual double doGetUpgradeCost() const = 0;
     virtual void doSetBaseIncome(double newBaseIncome) = 0;
     virtual void doSetUpgradeCost(double newUpgradeCost) = 0;
+    [[nodiscard]] double produceIncome() const;
+
 
 public:
     Item(std::string name_, double multiplier_, double unlockCost_);
     Item(const Item& other);
     virtual ~Item();
-    Item& operator=(const Item& other);
     friend std::ostream& operator<<(std::ostream& ostream, const Item& item);
     [[nodiscard]] virtual Item* clone() const = 0;
+
+    friend void swap(Item &lhs, Item &rhs) noexcept {
+        using std::swap;
+        swap(lhs.name, rhs.name);
+        swap(lhs.multiplier, rhs.multiplier);
+        swap(lhs.unlockCost, rhs.unlockCost);
+        swap(lhs.level, rhs.level);
+    }
+
+    Item& operator=(const Item& other) {
+        if (this != &other) {
+            const auto copy = other.clone();
+            using std::swap;
+            swap(*this, *copy);
+        }
+        return *this;
+    }
 
     // NVI
     void print(std::ostream& os) const;
@@ -44,6 +62,8 @@ public:
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] const std::string& getName() const;
     [[nodiscard]] int getLevel() const;
+
+
 };
 
 #endif //OOP_ITEM_H

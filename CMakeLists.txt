@@ -84,6 +84,8 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/GlovoPlatform.h
         src/WoltPlatform.cpp
         src/WoltPlatform.h
+        src/Sandwich.cpp
+        src/Sandwich.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

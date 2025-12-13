@@ -30,8 +30,22 @@ public:
              std::string targetName_ = "ALL");
     Beverage(const Beverage& other);
     ~Beverage() override;
-    Beverage& operator=(const Beverage& other);
     [[nodiscard]] Item* clone() const override;
+
+    friend void swap(Beverage &lhs, Beverage &rhs) noexcept {
+        using std::swap;
+        swap(static_cast<Item &>(lhs), static_cast<Item &>(rhs));
+        swap(lhs.effects, rhs.effects);
+        swap(lhs.targetName, rhs.targetName);
+    }
+
+    Beverage & operator=(Beverage other) {
+        if (this != &other) {
+            using std::swap;
+            swap(*this, other);
+        }
+        return *this;
+    }
 
     void applyToOne(Item& item) const;
     void setEffects(const std::vector<BeverageEffect>& newEffects);

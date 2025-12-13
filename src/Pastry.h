@@ -4,7 +4,7 @@
 #include "Item.h"
 #include <SFML/System/Time.hpp>
 
-class Pastry final : public Item {
+class Pastry : public Item {
 private:
     double baseIncome;
     double upgradeCost;
@@ -28,6 +28,13 @@ public:
     Pastry& operator=(const Pastry& other);
     [[nodiscard]] Item* clone() const override;
 
+    friend void swap(Pastry &lhs, Pastry &rhs) noexcept {
+        using std::swap;
+        swap(static_cast<Item &>(lhs), static_cast<Item &>(rhs));
+        swap(lhs.baseIncome, rhs.baseIncome);
+        swap(lhs.upgradeCost, rhs.upgradeCost);
+        swap(lhs.duration, rhs.duration);
+    }
 };
 
 #endif // OOP_PASTRY_H

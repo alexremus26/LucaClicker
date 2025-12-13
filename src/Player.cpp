@@ -21,3 +21,24 @@ std::ostream &operator<<(std::ostream &os, const Player &player) {
 const double &Player::getMoney() const { return money; }
 void Player::setMoney(double const money_) { money = money_; }
 
+bool Player::tryPay(const double amount) {
+    if (money < amount) return false;
+    money -= amount;
+    return true;
+}
+
+void Player::earn(const double amount) {
+    money += amount;
+}
+
+bool Player::enoughMoney(const double amount) const {
+    if (money >= amount) {
+        return true;
+    }
+    else return false;
+}
+
+double Player::moneyForUI() const {
+    return money;
+}
+

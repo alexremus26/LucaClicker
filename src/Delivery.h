@@ -13,7 +13,6 @@ private:
     bool running = false;
 
     std::unique_ptr<DeliveryPlatform> platform;
-
 public:
     Delivery(std::string name_, double unlockCost_);
     Delivery(const Delivery& other);

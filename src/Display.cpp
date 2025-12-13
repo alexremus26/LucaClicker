@@ -254,9 +254,9 @@ void Display::run()
                     details.setString("   Effects: " + item.getEffectDescription());
                 } else {
                     details.setString(
-                        "   Income: " + std::to_string((int)item.getBaseIncome()) +
-                        " | Upgrade: " + std::to_string((int)item.getUpgradeCost()) +
-                        " | Delivery: " + std::to_string((int)delivery.getUnlockCost())
+                        "   Income: " + std::to_string(static_cast<int>(item.getBaseIncome())) +
+                        " | Upgrade: " + std::to_string(static_cast<int>(item.getUpgradeCost())) +
+                        " | Delivery: " + std::to_string(static_cast<int>(delivery.getUnlockCost()))
                     );
                 }
             } else {

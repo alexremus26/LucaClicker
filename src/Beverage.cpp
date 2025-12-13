@@ -20,14 +20,6 @@ Beverage::~Beverage() {
     std::cout << "Beverage " << name << " destroyed\n";
 }
 
-Beverage& Beverage::operator=(const Beverage& other) {
-    if (this != &other) {
-        Item::operator=(other);
-        effects = other.effects;
-        targetName = other.targetName;
-    }
-    return *this;
-}
 
 Item* Beverage::clone() const {
     return new Beverage(*this);
