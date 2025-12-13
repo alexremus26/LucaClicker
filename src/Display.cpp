@@ -248,16 +248,14 @@ void Display::run()
             sf::Text details(font);
             details.setCharacterSize(DETAIL_SIZE);
             details.setFillColor(sf::Color(200, 200, 200));
+            std::ostringstream oss;
+            item.print(oss);
 
             if (gameManager.isUnlocked(i)) {
                 if (isBeverage) {
                     details.setString("   Effects: " + item.getEffectDescription());
                 } else {
-                    details.setString(
-                        "   Income: " + std::to_string(static_cast<int>(item.getBaseIncome())) +
-                        " | Upgrade: " + std::to_string(static_cast<int>(item.getUpgradeCost())) +
-                        " | Delivery: " + std::to_string(static_cast<int>(delivery.getUnlockCost()))
-                    );
+                    details.setString(oss.str());
                 }
             } else {
                 details.setString("   Press Z to unlock");

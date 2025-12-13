@@ -29,6 +29,18 @@ const std::vector<BeverageEffect>& Beverage::getEffects() const {
     return effects;
 }
 
+sf::Time Beverage::doSellDuration() const {
+    return sf::seconds(0.0f);
+}
+
+double Beverage::doSellPayout() const {
+    return 0.0;
+}
+
+double Beverage::doDeliveryPayout() const {
+    return 0.0;
+}
+
 void Beverage::doPrint(std::ostream& os) const {
     os << "Beverage: " << name
        << " | Multiplier: " << multiplier
@@ -47,7 +59,7 @@ void Beverage::doUpgrade() {
     multiplier *= 1.1;
 }
 
-sf::Time Beverage::doGetDuration() const {
+sf::Time Beverage::doComputeDuration() const {
     return sf::seconds(0.f);
 }
 
@@ -73,8 +85,6 @@ std::string Beverage::doGetEffectDescription() const {
     return os.str();
 }
 
-double Beverage::doGetBaseIncome() const { return 0.0; }
-double Beverage::doGetUpgradeCost() const { return 0.0; }
 void Beverage::doSetBaseIncome(double) {}
 void Beverage::doSetUpgradeCost(double) {}
 

@@ -34,9 +34,20 @@ Item *Pastry::clone() const {
     return new Pastry(*this);
 }
 
+sf::Time Pastry::doSellDuration() const {
+    return duration;
+}
+
+double Pastry::doSellPayout() const {
+    return baseIncome;
+}
+
+double Pastry::doDeliveryPayout() const {
+    return baseIncome;
+}
+
 void Pastry::doPrint(std::ostream &os) const {
-    os << "Pastry: " << name
-            << " | Income: " << baseIncome
+        os  << "  Income: " << baseIncome
             << " | Upgrade Cost: " << upgradeCost
             << " | Level: " << level
             << " | Multiplier: " << multiplier;
@@ -48,21 +59,23 @@ void Pastry::doApplyMultiplier(const double mult) {
 }
 
 void Pastry::doUpgrade() {
-    level++;
-    baseIncome *= 1.15;
-    upgradeCost *= 1.5;
+    {
+        level++;
+        baseIncome *= 1.15;
+        upgradeCost *= 1.5;
+    }
 }
 
 
-sf::Time Pastry::doGetDuration() const {
-    return sf::seconds(2.0f + static_cast<float>(getUnlockCost()) / 100.0f);
+sf::Time Pastry::doComputeDuration() const {
+    return sf::seconds(2.0f + static_cast<float>(unlockCost) / 100.0f);
 }
 
-double Pastry::doGetBaseIncome() const {
+double Pastry::getBaseIncome() const {
     return baseIncome;
 }
 
-double Pastry::doGetUpgradeCost() const {
+double Pastry::getUpgradeCost() const {
     return upgradeCost;
 }
 

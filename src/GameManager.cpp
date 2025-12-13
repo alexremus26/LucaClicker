@@ -146,12 +146,14 @@ void GameManager::runSellingLoop(Item& item, std::size_t index)
 
 
 void GameManager::sell(const Item& item) const {
-    player.earn(item.getBaseIncome());
+    player.earn(item.sellPayout());
 }
 
-void GameManager::upgrade(Item& item) const {
-    if (player.tryPay(item.getUpgradeCost())) {
-        item.upgrade();
+void GameManager::upgrade(Item& item) const{
+    if (auto* pastry = dynamic_cast<Pastry*>(&item)) {
+        if (player.tryPay(pastry->getUpgradeCost())) {
+            pastry->upgrade();
+        }
     }
 }
 

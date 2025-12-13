@@ -41,7 +41,7 @@ public:
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
     [[nodiscard]] const std::vector<bool>& getUnlocked() const;
 
-    void sell(const Item& item) const;
+    void sell(const Item &item) const;
     void runSellingLoop (Item& item, std::size_t index);
     void upgrade(Item& item) const;
     [[nodiscard]] float getSellProgress(std::size_t index) const;

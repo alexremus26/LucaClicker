@@ -15,13 +15,14 @@ private:
 
     bool rollFastEffect() const;
 
+    double doSellPayout() const override;
+    sf::Time doSellDuration() const override;
+    double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
     void doUpgrade() override;
     void doApplyMultiplier(double multiplier) override;
-    [[nodiscard]] sf::Time doGetDuration() const override;
+    [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
-    [[nodiscard]] double doGetBaseIncome() const override;
-    [[nodiscard]] double doGetUpgradeCost() const override;
     void doSetBaseIncome(double) override {}
     void doSetUpgradeCost(double) override {}
 

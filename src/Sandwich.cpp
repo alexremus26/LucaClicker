@@ -39,6 +39,18 @@ bool Sandwich::rollFastEffect() const {
     return dist(rng) < fastChance;
 }
 
+double Sandwich::doSellPayout() const {
+    return 0;
+}
+
+sf::Time Sandwich::doSellDuration() const {
+    return sf::seconds(0.0f);
+}
+
+double Sandwich::doDeliveryPayout() const {
+    return 0.0;
+}
+
 void Sandwich::doPrint(std::ostream& os) const {
     os << "Sandwich: " << name
        << " | Level: " << level
@@ -55,18 +67,13 @@ void Sandwich::doUpgrade() {
     slowMultiplier += 0.05;
 }
 
-sf::Time Sandwich::doGetDuration() const {
+sf::Time Sandwich::doComputeDuration() const {
     if (rollFastEffect())
         return baseDuration * static_cast<float>(slowMultiplier);
     else
         return baseDuration * static_cast<float>(fastMultiplier);
 }
 
-double Sandwich::doGetBaseIncome() const {
-}
-
-double Sandwich::doGetUpgradeCost() const {
-}
 
 std::string Sandwich::doGetEffectDescription() const {
     return "Random speed: fast x" + std::to_string(fastMultiplier) +

@@ -2,10 +2,6 @@
 #include <iostream>
 
 
-double Item::produceIncome() const {
-
-}
-
 Item::Item(std::string name_, const double multiplier_, const double unlockCost_)
     : name(std::move(name_)), multiplier(multiplier_), unlockCost(unlockCost_), level(1){}
 Item::Item(const Item& other)
@@ -20,6 +16,18 @@ std::ostream& operator<<(std::ostream& ostream, const Item& item) {
     return ostream;
 }
 
+
+double Item::sellPayout() const {
+    return doSellPayout();
+}
+
+sf::Time Item::sellDuration() const {
+    return doSellDuration();
+}
+
+double Item::deliveryPayout() const {
+    return doDeliveryPayout();
+}
 
 void Item::print(std::ostream& os) const {
     doPrint(os);
@@ -47,15 +55,7 @@ void Item::upgrade() {
 }
 
 sf::Time Item::getDuration() const {
-    return doGetDuration();
-}
-
-double Item::getBaseIncome() const {
-    return doGetBaseIncome();
-}
-
-double Item::getUpgradeCost() const {
-    return doGetUpgradeCost();
+    return doComputeDuration();
 }
 
 
@@ -64,11 +64,11 @@ std::string Item::getEffectDescription() const {
     return doGetEffectDescription();
 }
 
-void Item::setBaseIncome(double newBaseIncome) {
+void Item::setBaseIncome(const double newBaseIncome) {
     doSetBaseIncome(newBaseIncome);
 }
 
-void Item::setUpgradeCost(double newUpgradeCost) {
+void Item::setUpgradeCost(const double newUpgradeCost) {
     doSetUpgradeCost(newUpgradeCost);
 }
 

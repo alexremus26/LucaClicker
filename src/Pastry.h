@@ -10,13 +10,14 @@ private:
     double upgradeCost;
     sf::Time duration;
 
+    sf::Time doSellDuration() const override;
+    double doSellPayout() const override;
+    double doDeliveryPayout() const override;
     void doPrint(std::ostream &os) const override;
     void doApplyMultiplier(double mult) override;
     void doUpgrade() override;
-    [[nodiscard]] sf::Time doGetDuration() const override;
+    [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
-    [[nodiscard]] double doGetBaseIncome() const override;
-    [[nodiscard]] double doGetUpgradeCost() const override;
     void doSetBaseIncome(double newBaseIncome) override;
     void doSetUpgradeCost(double newUpgradeCost) override;
 
@@ -35,6 +36,9 @@ public:
         swap(lhs.upgradeCost, rhs.upgradeCost);
         swap(lhs.duration, rhs.duration);
     }
+
+    [[nodiscard]] double getBaseIncome() const;
+    [[nodiscard]] double getUpgradeCost() const;
 };
 
 #endif // OOP_PASTRY_H

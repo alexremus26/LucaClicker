@@ -10,11 +10,11 @@ GlovoPlatform::~GlovoPlatform() {
 }
 
 double GlovoPlatform::doComputeIncome(const Item& item) const {
-    return item.getBaseIncome();
+    return item.deliveryPayout();
 }
 
 sf::Time GlovoPlatform::doComputeSpeed(const Item& item) const {
-    const double seconds = MIN_DURATION + item.getBaseIncome() * DURATION_SCALE;
+    const double seconds = MIN_DURATION + item.deliveryPayout() * DURATION_SCALE;
     return sf::seconds(static_cast<float>(seconds));
 }
 

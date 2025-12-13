@@ -13,16 +13,17 @@ protected:
 
 private:
     // NVI
+    virtual double doSellPayout() const = 0;
+    virtual sf::Time doSellDuration() const = 0;
+    virtual double doDeliveryPayout() const = 0;
+
     virtual void doPrint(std::ostream& os) const = 0;
     virtual void doUpgrade() = 0; // de implementat upgrade pentru beverage si sandwich
     virtual void doApplyMultiplier(double multiplier) = 0;
-    [[nodiscard]] virtual sf::Time doGetDuration() const = 0;
+    [[nodiscard]] virtual sf::Time doComputeDuration() const = 0;
     [[nodiscard]] virtual std::string doGetEffectDescription() const = 0; // folosit principal de bev pe viitor la sandwich
-    [[nodiscard]] virtual double doGetBaseIncome() const = 0;
-    [[nodiscard]] virtual double doGetUpgradeCost() const = 0;
     virtual void doSetBaseIncome(double newBaseIncome) = 0;
     virtual void doSetUpgradeCost(double newUpgradeCost) = 0;
-    [[nodiscard]] double produceIncome() const;
 
 
 public:
@@ -50,12 +51,13 @@ public:
     }
 
     // NVI
+    double sellPayout() const;
+    sf::Time sellDuration() const;
+    [[nodiscard]] double deliveryPayout() const;
     void print(std::ostream& os) const;
     void applyMultiplier(double mult);
     void upgrade();
     [[nodiscard]] sf::Time getDuration() const;
-    [[nodiscard]] double getBaseIncome() const;
-    [[nodiscard]] double getUpgradeCost() const;
     void setBaseIncome(double newBaseIncome);
     void setUpgradeCost(double newUpgradeCost);
     [[nodiscard]] std::string getEffectDescription() const;

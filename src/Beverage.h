@@ -14,13 +14,14 @@ private:
     std::vector<BeverageEffect> effects;
     std::string targetName;
 
+    sf::Time doSellDuration() const override;
+    double doSellPayout() const override;
+    double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
     void doUpgrade() override;
     void doApplyMultiplier(double mult) override;
-    [[nodiscard]] sf::Time doGetDuration() const override;
+    [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
-    [[nodiscard]] double doGetBaseIncome() const override;
-    [[nodiscard]] double doGetUpgradeCost() const override;
     void doSetBaseIncome(double newBaseIncome) override;
     void doSetUpgradeCost(double newUpgradeCost) override;
 
@@ -46,7 +47,6 @@ public:
         }
         return *this;
     }
-
     void applyToOne(Item& item) const;
     void setEffects(const std::vector<BeverageEffect>& newEffects);
     [[nodiscard]] const std::vector<BeverageEffect>& getEffects() const;
