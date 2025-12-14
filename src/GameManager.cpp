@@ -91,9 +91,6 @@ bool GameManager::isUnlocked(const std::size_t index) const {
     return index < itemUnlocked.size() && itemUnlocked[index];
 }
 
-const std::vector<bool>& GameManager::getUnlocked() const {
-    return itemUnlocked;
-}
 
 void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
     std::thread([this, &item, index]() {
@@ -160,26 +157,6 @@ void GameManager::upgrade(Item& item) const{
 
 float GameManager::getSellProgress(const std::size_t index) const {
     return (index < sellProgress.size()) ? sellProgress[index] : 0.f;
-}
-
-void GameManager::applyAllBeverageEffects() const {
-    for (auto& item : items) {
-        if (const auto* bev = dynamic_cast<Beverage*>(item.get())) {
-
-            if (bev->getTarget() == "ALL") {
-                for (auto& target : items)
-                    bev->applyToOne(*target);
-            } else {
-                for (auto& target : items)
-                    if (target->getName() == bev->getTarget())
-                        bev->applyToOne(*target);
-            }
-        }
-    }
-}
-
-void GameManager::applyBeverageToItem(const Beverage& bev, Item& target) {
-    bev.applyToOne(target);
 }
 
 void GameManager::startDelivery(Item& item, const Delivery& delivery, const int index) {

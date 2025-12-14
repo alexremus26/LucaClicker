@@ -37,9 +37,6 @@ double Sandwich::doSellPayout() const {
     return 0;
 }
 
-sf::Time Sandwich::doSellDuration() const {
-    return sf::seconds(0.0f);
-}
 
 double Sandwich::doDeliveryPayout() const {
     return 0.0;

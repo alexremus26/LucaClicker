@@ -25,9 +25,6 @@ Item *Pastry::clone() const {
     return new Pastry(*this);
 }
 
-sf::Time Pastry::doSellDuration() const {
-    return duration;
-}
 
 double Pastry::doSellPayout() const {
     return baseIncome;

@@ -39,7 +39,6 @@ public:
 
     int unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
-    [[nodiscard]] const std::vector<bool>& getUnlocked() const;
 
     void sell(const Item &item) const;
     void runSellingLoop (Item& item, std::size_t index);
@@ -49,9 +48,6 @@ public:
 
     void startDelivery(Item& item, const Delivery& delivery, int index);
     static void stopAllDeliveries();
-
-    void applyAllBeverageEffects() const;
-    static void applyBeverageToItem(const Beverage& bev, Item& target);
 
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();

@@ -14,7 +14,6 @@ protected:
 private:
     // NVI
     virtual double doSellPayout() const = 0;
-    virtual sf::Time doSellDuration() const = 0;
     virtual double doDeliveryPayout() const = 0;
 
     virtual void doPrint(std::ostream& os) const = 0;
@@ -52,7 +51,6 @@ public:
 
     // NVI
     double sellPayout() const;
-    sf::Time sellDuration() const;
     [[nodiscard]] double deliveryPayout() const;
     void print(std::ostream& os) const;
     void applyMultiplier(double mult);
@@ -63,7 +61,6 @@ public:
     [[nodiscard]] std::string getEffectDescription() const;
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] const std::string& getName() const;
-    [[nodiscard]] int getLevel() const;
 
 
 };

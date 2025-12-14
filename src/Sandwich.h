@@ -14,9 +14,7 @@ private:
     mutable std::mt19937 rng;
 
     bool rollFastEffect() const;
-
     double doSellPayout() const override;
-    sf::Time doSellDuration() const override;
     double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
     void doUpgrade() override;

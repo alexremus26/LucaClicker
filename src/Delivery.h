@@ -25,8 +25,6 @@ public:
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] DeliveryPlatform& getPlatform() const;
 
-    void setRunning(bool r);
-    [[nodiscard]] bool isRunning() const;
 };
 
 #endif // OOP_DELIVERY_H

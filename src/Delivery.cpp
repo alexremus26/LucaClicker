@@ -62,13 +62,6 @@ DeliveryPlatform& Delivery::getPlatform() const {
     return *platform;
 }
 
-void Delivery::setRunning(const bool r) {
-    running = r;
-}
-
-bool Delivery::isRunning() const {
-    return running;
-}
 
 std::ostream& operator<<(std::ostream& os, const Delivery& d) {
     os << "Delivery [" << d.name

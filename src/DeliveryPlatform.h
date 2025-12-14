@@ -13,9 +13,6 @@ private:
 public:
     virtual ~DeliveryPlatform();
     [[nodiscard]] virtual DeliveryPlatform* clone() const = 0;
-
-    [[nodiscard]] double getIncome(const Item& item) const { return doComputeIncome(item); }
-    [[nodiscard]] sf::Time getSpeed(const Item& item) const { return doComputeSpeed(item); }
     // NVI
     [[nodiscard]] double computeIncome(const Item&) const;
     [[nodiscard]] sf::Time computeSpeed(const Item&) const;

@@ -28,10 +28,6 @@ const std::vector<BeverageEffect>& Beverage::getEffects() const {
     return effects;
 }
 
-sf::Time Beverage::doSellDuration() const {
-    return sf::seconds(0.0f);
-}
-
 double Beverage::doSellPayout() const {
     return 0.0;
 }

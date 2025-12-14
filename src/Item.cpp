@@ -16,14 +16,10 @@ std::ostream& operator<<(std::ostream& ostream, const Item& item) {
     return ostream;
 }
 
-
 double Item::sellPayout() const {
     return doSellPayout();
 }
 
-sf::Time Item::sellDuration() const {
-    return doSellDuration();
-}
 
 double Item::deliveryPayout() const {
     return doDeliveryPayout();
@@ -41,10 +37,6 @@ const std::string& Item::getName() const {
     return name;
 }
 
-
-int Item::getLevel() const {
-    return level;
-}
 
 void Item::applyMultiplier(const double mult) {
     doApplyMultiplier(mult);

@@ -38,7 +38,4 @@ bool Player::enoughMoney(const double amount) const {
     else return false;
 }
 
-double Player::moneyForUI() const {
-    return money;
-}
 

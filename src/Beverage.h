@@ -14,9 +14,8 @@ private:
     std::vector<BeverageEffect> effects;
     std::string targetName;
 
-    sf::Time doSellDuration() const override;
-    double doSellPayout() const override;
-    double doDeliveryPayout() const override;
+    [[nodiscard]] double doSellPayout() const override;
+    [[nodiscard]] double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
     void doUpgrade() override;
     void doApplyMultiplier(double mult) override;

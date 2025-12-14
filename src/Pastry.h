@@ -10,7 +10,6 @@ private:
     double upgradeCost;
     sf::Time duration;
 
-    sf::Time doSellDuration() const override;
     double doSellPayout() const override;
     double doDeliveryPayout() const override;
     void doPrint(std::ostream &os) const override;

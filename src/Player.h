@@ -18,8 +18,9 @@ public:
     void setMoney(double money_);
     bool tryPay(double amount);
     void earn(double amount);
-    bool enoughMoney(double amount) const;
-    [[nodiscard]] double moneyForUI() const;};
+    [[nodiscard]] bool enoughMoney(double amount) const;
+};
+
 
 
 #endif //OOP_PLAYER_H
