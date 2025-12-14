@@ -127,6 +127,8 @@ void Display::run()
                 }
             }
         }
+        const std::size_t idx = selectedIndex - 1;
+        Delivery& delivery = gameManager.getDelivery()[idx];
 
         // actions
         if (lastAction != ' ')
@@ -134,9 +136,7 @@ void Display::run()
             if (selectedIndex > 0 &&
                 selectedIndex <= static_cast<int>(gameManager.getItems().size()))
             {
-                const std::size_t idx = selectedIndex - 1;
                 Item& item = *gameManager.getItems()[idx];
-                Delivery& delivery = gameManager.getDelivery()[idx];
 
                 if (lastAction == 'z') {
                     handleUnlock(idx);
@@ -150,7 +150,7 @@ void Display::run()
 
                         case 'b':
                         {
-                            auto* bev = dynamic_cast<Beverage*>(&item);
+                            auto* const bev = dynamic_cast<Beverage*>(&item);
                             if (!bev) {
                                 warningMessage = "Not a beverage!";
                                 warningClock.restart();
