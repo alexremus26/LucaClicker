@@ -177,6 +177,7 @@ void GameManager::stopAllDeliveries() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
+// de adaugat level pt save si load
 GameManager GameManager::loadFromFile(const std::string& fileName, Player& player) {
     std::ifstream file(fileName);
     if (!file.is_open())
@@ -427,9 +428,6 @@ bool GameManager::loadSavedGame() {
     return true;
 }
 
-bool GameManager::isSelling(const std::size_t index) const {
-    return index < sellingRunning.size() && sellingRunning[index];
-}
 
 std::vector<std::unique_ptr<Item>>& GameManager::getItems() {
     return items;

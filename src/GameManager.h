@@ -44,7 +44,6 @@ public:
     void runSellingLoop (Item& item, std::size_t index);
     void upgrade(Item& item) const;
     [[nodiscard]] float getSellProgress(std::size_t index) const;
-    bool isSelling(std::size_t index) const;
 
     void startDelivery(Item& item, const Delivery& delivery, int index);
     static void stopAllDeliveries();

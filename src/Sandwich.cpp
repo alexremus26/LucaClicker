@@ -53,7 +53,7 @@ void Sandwich::doPrint(std::ostream& os) const {
 void Sandwich::doUpgrade() {
     ++level;
 
-    fastChance = std::min(1.0, fastChance + 0.02);
+    // fastChance = std::min(1.0, fastChance + 0.02);
     fastMultiplier += 0.1;
     slowMultiplier += 0.05;
 }
