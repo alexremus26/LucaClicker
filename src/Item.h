@@ -13,8 +13,8 @@ protected:
 
 private:
     // NVI
-    virtual double doSellPayout() const = 0;
-    virtual double doDeliveryPayout() const = 0;
+    [[nodiscard]] virtual double doSellPayout() const = 0;
+    [[nodiscard]] virtual double doDeliveryPayout() const = 0;
 
     virtual void doPrint(std::ostream& os) const = 0;
     virtual void doUpgrade() = 0; // de implementat upgrade pentru beverage si sandwich
@@ -50,7 +50,7 @@ public:
     }
 
     // NVI
-    double sellPayout() const;
+    [[nodiscard]] double sellPayout() const;
     [[nodiscard]] double deliveryPayout() const;
     void print(std::ostream& os) const;
     void applyMultiplier(double mult);

@@ -77,11 +77,6 @@ int GameManager::unlockItem(const std::size_t index) {
     if (!player.enoughMoney(cost))
         return 2; // not enough money
 
-    if (index > items.size())
-        return 3; // invalid index
-    if (!player.tryPay(items[index]->getUnlockCost()))
-        return 2;
-
     itemUnlocked[index] = true;
 
     return 0; // success
@@ -98,7 +93,7 @@ void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
         sf::Clock clock;
 
         while (index < deliveryRunning.size() && deliveryRunning[index]) {
-            Delivery& delivery = deliveries[index];
+            const Delivery& delivery = deliveries[index];
 
             if (const DeliveryPlatform& platform = delivery.getPlatform();
                 clock.getElapsedTime() >= platform.computeSpeed(item))

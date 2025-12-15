@@ -52,7 +52,7 @@ std::ostream& operator<<(std::ostream& os, const Display& d)
 
 
 
-void Display::handleUnlock(std::size_t index)
+void Display::handleUnlock(const std::size_t index)
 {
     switch (gameManager.unlockItem(index))
     {
@@ -127,30 +127,30 @@ void Display::run()
                 }
             }
         }
-        const std::size_t idx = selectedIndex - 1;
-        Delivery& delivery = gameManager.getDelivery()[idx];
-
         // actions
         if (lastAction != ' ')
         {
             if (selectedIndex > 0 &&
                 selectedIndex <= static_cast<int>(gameManager.getItems().size()))
             {
+                const std::size_t idx = selectedIndex - 1;
                 Item& item = *gameManager.getItems()[idx];
 
                 if (lastAction == 'z') {
                     handleUnlock(idx);
                 }
                 else if (gameManager.isUnlocked(idx)) {
+                    Delivery& delivery = gameManager.getDelivery()[idx];
                     switch (lastAction)
                     {
+
                         case 's': gameManager.runSellingLoop(item, idx); break;
                         case 'u': gameManager.upgrade(item); break;
                         case 'd': gameManager.startDelivery(item, delivery, static_cast<int>(idx)); break;
 
                         case 'b':
                         {
-                            auto* const bev = dynamic_cast<Beverage*>(&item);
+                            const auto* const bev = dynamic_cast<Beverage*>(&item);
                             if (!bev) {
                                 warningMessage = "Not a beverage!";
                                 warningClock.restart();
