@@ -62,21 +62,15 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/Player.h
         src/Delivery.cpp
         src/Delivery.h
-        src/Delivery.h
         src/GameManager.cpp
-        src/GameManager.h
         src/GameManager.h
         src/Display.cpp
         src/Display.h
-        src/Display.h
         src/Item.cpp
-        src/Item.h
         src/Item.h
         src/Pastry.cpp
         src/Pastry.h
-        src/Pastry.h
         src/Beverage.cpp
-        src/Beverage.h
         src/Beverage.h
         src/DeliveryPlatform.cpp
         src/DeliveryPlatform.h
