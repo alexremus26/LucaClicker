@@ -59,7 +59,7 @@ type: Beverage
 name: Matcha
 multiplier: 1.0
 unlockCost: 1000
-effects: profit_multiplier 2 upgrade_discount 2
+effects: profit_multiplier 2 upgrade_discount 0.8
 deliveryName: None
 unlockDeliveryCost: 0
 target: all

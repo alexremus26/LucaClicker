@@ -53,9 +53,11 @@ void Sandwich::doPrint(std::ostream& os) const {
 void Sandwich::doUpgrade() {
     ++level;
 
-    // fastChance = std::min(1.0, fastChance + 0.02);
-    fastMultiplier += 0.1;
-    slowMultiplier += 0.05;
+    // Each upgrade makes fast sales more likely and faster
+    fastChance = std::min(1.0, fastChance + 0.01); // Increase chance by 1%
+    fastMultiplier += 0.05; // Make fast sales a little bit faster
+    if(slowMultiplier > 0.1)
+        slowMultiplier -= 0.01; // Make slow sales a little bit less slow
 }
 
 sf::Time Sandwich::doComputeDuration() const {
@@ -73,4 +75,8 @@ std::string Sandwich::doGetEffectDescription() const {
 
 void Sandwich::doApplyMultiplier(const double mult) {
     multiplier *= mult;
+}
+
+std::string Sandwich::getType() const {
+    return "Sandwich";
 }

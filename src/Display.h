@@ -34,13 +34,12 @@ private:
 
     static constexpr float WARNING_Y_OFFSET = 80.f;
 
-    void handleUnlock(std::size_t index);
     void drawProgressBar(float progress, float x, float y);
 
 public:
     explicit Display(GameManager& gm, Player& p);
-    Display(const Display& other);
-    Display& operator=(const Display& other);
+    Display(const Display& other) = delete;
+    Display& operator=(const Display& other) = delete;
     ~Display();
 
     friend std::ostream& operator<<(std::ostream& os, const Display& display);

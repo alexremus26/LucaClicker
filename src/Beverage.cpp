@@ -8,12 +8,15 @@ Beverage::Beverage(std::string name_, const double multiplier_, const double unl
                    std::string targetName_)
     : Item(std::move(name_), multiplier_, unlockCost_),
       effects(std::move(effects_)),
-      targetName(std::move(targetName_)) {}
+      targetName(std::move(targetName_)) {
+    useCost = unlockCost / 2;
+}
 
 Beverage::Beverage(const Beverage& other)
     : Item(other),
       effects(other.effects),
-      targetName(other.targetName) {}
+      targetName(other.targetName),
+      useCost(other.useCost) {}
 
 Beverage::~Beverage() {
     std::cout << "Beverage " << name << " destroyed\n";
@@ -37,9 +40,7 @@ double Beverage::doDeliveryPayout() const {
 }
 
 void Beverage::doPrint(std::ostream& os) const {
-    os << "Beverage: " << name
-       << " | Multiplier: " << multiplier
-       << " | Unlock cost: " << unlockCost
+    os << "Use Cost: " << useCost
        << " | Level: " << level
        << " | Target: " << targetName
        << " | Effects: " << getEffectDescription();
@@ -51,7 +52,7 @@ void Beverage::doApplyMultiplier(const double mult) {
 
 void Beverage::doUpgrade() {
     level++;
-    multiplier *= 1.1;
+    useCost *= 2.0;
 }
 
 sf::Time Beverage::doComputeDuration() const {
@@ -99,4 +100,20 @@ void Beverage::applyToOne(Item& item) const {
 
         else if (type == "upgrade_discount")
             pastry->applyUpgradeDiscount(value);    }
+}
+
+void Beverage::activate(const std::vector<std::unique_ptr<Item>>& allItems) {
+    if (targetName == "all") {
+        for (auto& it : allItems)
+            applyToOne(*it);
+    } else {
+        for (auto& it : allItems)
+            if (it->getName() == targetName)
+                applyToOne(*it);
+    }
+    upgrade();
+}
+
+std::string Beverage::getType() const {
+    return "Beverage";
 }

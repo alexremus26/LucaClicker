@@ -6,9 +6,10 @@
 #include <string>
 #include "Player.h"
 #include "Item.h"
-#include "Beverage.h"
 #include "Delivery.h"
 #include <SFML/Graphics.hpp>
+#include <queue>
+#include <mutex>
 
 class GameManager {
 private:
@@ -18,8 +19,11 @@ private:
 
     std::vector<bool> deliveryRunning;
     std::vector<bool> itemUnlocked;
-    std::vector<float> sellProgress;
+    std::vector<float> progress;
     std::vector<bool> sellingRunning;
+
+    std::queue<std::string> eventMessages;
+    std::mutex eventMutex;
 
 
     void runDeliveryLoop(Item& item, std::size_t index);
@@ -37,22 +41,29 @@ public:
 
     static GameManager loadFromFile(const std::string& fileName, Player& player);
 
-    int unlockItem(std::size_t index);
+    void saveGame() const;
+    bool loadSavedGame();
+
+    void pushEventMessage(const std::string& message);
+    std::string popEventMessage();
+
+    std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
 
     void sell(const Item &item) const;
     void runSellingLoop (Item& item, std::size_t index);
     void upgrade(Item& item) const;
-    [[nodiscard]] float getSellProgress(std::size_t index) const;
+    [[nodiscard]] float getProgress(std::size_t index) const;
 
     void startDelivery(Item& item, const Delivery& delivery, int index);
     static void stopAllDeliveries();
 
+    std::string useBeverage(std::size_t index);
+
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();
-
-    void saveGame() const;
-    bool loadSavedGame();
+    Player& getPlayer();
+    [[nodiscard]] double getPlayerMoney() const;
 };
 
 #endif

@@ -31,6 +31,7 @@ public:
     virtual ~Item();
     friend std::ostream& operator<<(std::ostream& ostream, const Item& item);
     [[nodiscard]] virtual Item* clone() const = 0;
+    [[nodiscard]] virtual std::string getType() const = 0;
 
     friend void swap(Item &lhs, Item &rhs) noexcept {
         using std::swap;

@@ -1,7 +1,7 @@
 #include "GlovoPlatform.h"
 #include <iostream>
 
-GlovoPlatform::GlovoPlatform() {
+GlovoPlatform::GlovoPlatform() : DeliveryPlatform(0.10, 3.0) {
     std::cout << "GlovoPlatform created!\n";
 }
 
@@ -9,8 +9,14 @@ GlovoPlatform::~GlovoPlatform() {
     std::cout << "GlovoPlatform destroyed!\n";
 }
 
-double GlovoPlatform::doComputeIncome(const Item& item) const {
-    return item.deliveryPayout();
+IncomeResult GlovoPlatform::doComputeIncome(const Item& item) const {
+    double income = item.deliveryPayout();
+    std::string message;
+    if (rollCrit()) {
+        message = "CRITICAL DELIVERY!";
+        income *= critMultiplier;
+    }
+    return {income, message};
 }
 
 sf::Time GlovoPlatform::doComputeSpeed(const Item& item) const {

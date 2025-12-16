@@ -13,6 +13,7 @@ class Beverage final : public Item {
 private:
     std::vector<BeverageEffect> effects;
     std::string targetName;
+    double useCost;
 
     [[nodiscard]] double doSellPayout() const override;
     [[nodiscard]] double doDeliveryPayout() const override;
@@ -23,6 +24,7 @@ private:
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doSetBaseIncome(double newBaseIncome) override;
     void doSetUpgradeCost(double newUpgradeCost) override;
+    [[nodiscard]] std::string getType() const override;
 
 public:
     Beverage(std::string name_, double multiplier_, double unlockCost_,
@@ -37,6 +39,7 @@ public:
         swap(static_cast<Item &>(lhs), static_cast<Item &>(rhs));
         swap(lhs.effects, rhs.effects);
         swap(lhs.targetName, rhs.targetName);
+        swap(lhs.useCost, rhs.useCost);
     }
 
     Beverage & operator=(Beverage other) {
@@ -46,11 +49,13 @@ public:
         }
         return *this;
     }
+    void activate(const std::vector<std::unique_ptr<Item>>& allItems);
     void applyToOne(Item& item) const;
     void setEffects(const std::vector<BeverageEffect>& newEffects);
     [[nodiscard]] const std::vector<BeverageEffect>& getEffects() const;
     [[nodiscard]] const std::string& getTarget() const { return targetName; }
     void setTarget(const std::string& newTarget) { targetName = newTarget; }
+    [[nodiscard]] double getUseCost() const { return useCost; }
 };
 
 #endif // OOP_BEVERAGE_H

@@ -19,6 +19,7 @@ private:
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doSetBaseIncome(double newBaseIncome) override;
     void doSetUpgradeCost(double newUpgradeCost) override;
+    [[nodiscard]] std::string getType() const override;
 
 public:
     Pastry(std::string name_, double multiplier_, double unlockCost_,

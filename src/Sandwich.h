@@ -23,6 +23,7 @@ private:
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doSetBaseIncome(double) override {}
     void doSetUpgradeCost(double) override {}
+    [[nodiscard]] std::string getType() const override;
 
 public:
     Sandwich(std::string name,

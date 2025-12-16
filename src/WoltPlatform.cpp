@@ -1,7 +1,7 @@
 #include "WoltPlatform.h"
 #include <iostream>
 
-WoltPlatform::WoltPlatform() {
+WoltPlatform::WoltPlatform() : DeliveryPlatform(0.05, 7.0) { // 5% crit chance, 7x multiplier
     std::cout << "WoltPlatform created!\n";
 }
 
@@ -9,8 +9,14 @@ WoltPlatform::~WoltPlatform() {
     std::cout << "WoltPlatform was destroyed!\n";
 }
 
-double WoltPlatform::doComputeIncome(const Item& item) const {
-    return item.deliveryPayout() * 1.4;   // +40% income
+IncomeResult WoltPlatform::doComputeIncome(const Item& item) const {
+    double income = item.deliveryPayout() * 1.4;   // +40% income
+    std::string message;
+    if (rollCrit()) {
+        message = "MEGA CRITICAL DELIVERY!";
+        income *= critMultiplier;
+    }
+    return {income, message};
 }
 
 sf::Time WoltPlatform::doComputeSpeed(const Item& item) const {

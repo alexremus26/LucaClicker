@@ -36,7 +36,7 @@ double Pastry::doDeliveryPayout() const {
 
 void Pastry::doPrint(std::ostream &os) const {
         os  << "  Income: " << baseIncome
-            << " (x" << multiplier << " = " << doSellPayout() << ")"
+            << " (x" << multiplier << " = " << doSellPayout()*multiplier<< ")"
             << " | Upgrade Cost: " << upgradeCost
             << " | Level: " << level
             << " | Multiplier: " << multiplier;
@@ -48,10 +48,12 @@ void Pastry::doApplyMultiplier(const double mult) {
 }
 
 void Pastry::doUpgrade() {
-    {
-        level++;
-        baseIncome *= multiplier;
-        upgradeCost *= multiplier;
+    level++;
+    baseIncome *= multiplier;
+    upgradeCost *= multiplier;
+
+    if (level == 10 || level == 25 || level == 50 || level == 100) {
+        baseIncome *= 2.0;
     }
 }
 
@@ -75,3 +77,6 @@ std::string Pastry::doGetEffectDescription() const {
 void Pastry::doSetBaseIncome(const double newBaseIncome) { baseIncome = newBaseIncome; }
 void Pastry::doSetUpgradeCost(const double newUpgradeCost) { upgradeCost = newUpgradeCost; }
 
+std::string Pastry::getType() const {
+    return "Pastry";
+}

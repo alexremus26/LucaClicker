@@ -9,7 +9,7 @@
 
 int main() {
     try {
-        Player player("Stoicescu", 0.0);
+        Player player("Stoicescu", 100000);
 
         std::ifstream saveFile("resources/savegame.txt");
         bool saveExists = saveFile.good();
@@ -34,7 +34,7 @@ int main() {
         GameManager gameManager = GameManager::loadFromFile("resources/textfile.txt", player);
 
         if (saveExists) {
-            (void)gameManager.loadSavedGame(); // void for the warning
+            (void)gameManager.loadSavedGame();
         }
 
         Display display(gameManager, player);
@@ -42,11 +42,6 @@ int main() {
     }
     catch (const GameException& e) {
         std::cerr << "Game error: " << e.what() << std::endl;
-        return 1;
-    }
-
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
 }
