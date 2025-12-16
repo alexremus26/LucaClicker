@@ -492,15 +492,12 @@ std::vector<Delivery>& GameManager::getDelivery() {
     return deliveries;
 }
 
-Player& GameManager::getPlayer() {
-    return player;
-}
 
 double GameManager::getPlayerMoney() const {
     return player.getMoney();
 }
 
-std::string GameManager::useBeverage(const std::size_t index) {
+std::string GameManager::useBeverage(const std::size_t index) const {
     if (index >= items.size()) {
         return "Invalid item index!";
     }

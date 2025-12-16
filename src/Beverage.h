@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <tuple>
+#include <memory>
 
 using BeverageEffect = std::tuple<std::string, double>;
 

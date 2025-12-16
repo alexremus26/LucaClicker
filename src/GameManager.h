@@ -58,11 +58,10 @@ public:
     void startDelivery(Item& item, const Delivery& delivery, int index);
     static void stopAllDeliveries();
 
-    std::string useBeverage(std::size_t index);
+    [[nodiscard]] std::string useBeverage(std::size_t index) const;
 
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();
-    Player& getPlayer();
     [[nodiscard]] double getPlayerMoney() const;
 };
 
