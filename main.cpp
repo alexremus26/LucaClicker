@@ -37,8 +37,8 @@ int main() {
             (void)gameManager.loadSavedGame();
         }
 
-        Display display(gameManager, player);
-        display.run();
+        Display game(gameManager);
+        game.run();
     }
     catch (const GameException& e) {
         std::cerr << "Game error: " << e.what() << std::endl;

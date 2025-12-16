@@ -5,8 +5,8 @@
 #include <sstream>
 
 
-Display::Display(GameManager& gm, Player& p)
-    : gameManager(gm), player(p)
+Display::Display(GameManager& manager)
+    : gameManager(manager)
 {
     const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.create(

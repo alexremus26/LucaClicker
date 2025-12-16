@@ -5,12 +5,10 @@
 #include <string>
 
 #include "GameManager.h"
-#include "Player.h"
 
 class Display {
 private:
     GameManager& gameManager;
-    Player& player;
 
     sf::RenderWindow window;
     sf::Font font;
@@ -37,7 +35,7 @@ private:
     void drawProgressBar(float progress, float x, float y);
 
 public:
-    explicit Display(GameManager& gm, Player& p);
+    explicit Display(GameManager& manager);
     Display(const Display& other) = delete;
     Display& operator=(const Display& other) = delete;
     ~Display();
