@@ -412,9 +412,7 @@ bool GameManager::loadSavedGame() {
         if (index >= items.size())
             throw SaveStateException("Saved game contains more items than defined");
 
-        if (index < items.size()) {
-
-            itemUnlocked[index] = unlocked;
+                itemUnlocked[index] = unlocked;
 
             if (auto* pastry = dynamic_cast<Pastry*>(items[index].get())) {
                 if (hasMultiplier) {
@@ -435,7 +433,6 @@ bool GameManager::loadSavedGame() {
             deliveryRunning[index] = running;
             if (running)
                 runDeliveryLoop(*items[index], index);
-        }
 
         (void)type;
         (void)name;
