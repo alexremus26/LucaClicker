@@ -5,6 +5,7 @@
 #include "src/Player.h"
 #include "src/GameManager.h"
 #include "src/Display.h"
+#include "src/GameExceptions.h"
 
 int main() {
     try {
@@ -39,6 +40,11 @@ int main() {
         Display display(gameManager, player);
         display.run();
     }
+    catch (const GameException& e) {
+        std::cerr << "Game error: " << e.what() << std::endl;
+        return 1;
+    }
+
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;

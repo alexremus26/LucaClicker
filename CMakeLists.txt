@@ -86,6 +86,8 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/WoltPlatform.h
         src/Sandwich.cpp
         src/Sandwich.h
+        src/GameExceptions.cpp
+        src/GameExceptions.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

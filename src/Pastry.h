@@ -10,8 +10,8 @@ private:
     double upgradeCost;
     sf::Time duration;
 
-    double doSellPayout() const override;
-    double doDeliveryPayout() const override;
+    [[nodiscard]] double doSellPayout() const override;
+    [[nodiscard]] double doDeliveryPayout() const override;
     void doPrint(std::ostream &os) const override;
     void doApplyMultiplier(double mult) override;
     void doUpgrade() override;
@@ -44,8 +44,7 @@ public:
         swap(lhs.duration, rhs.duration);
     }
 
-
-    [[nodiscard]] double getBaseIncome() const;
+    void applyUpgradeDiscount(double factor);
     [[nodiscard]] double getUpgradeCost() const;
 };
 

@@ -43,7 +43,7 @@ public:
     Display& operator=(const Display& other);
     ~Display();
 
-    friend std::ostream& operator<<(std::ostream& os, const Display& d);
+    friend std::ostream& operator<<(std::ostream& os, const Display& display);
 
     void run();
 };

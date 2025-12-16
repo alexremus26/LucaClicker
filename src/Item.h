@@ -20,7 +20,7 @@ private:
     virtual void doUpgrade() = 0; // de implementat upgrade pentru beverage si sandwich
     virtual void doApplyMultiplier(double multiplier) = 0;
     [[nodiscard]] virtual sf::Time doComputeDuration() const = 0;
-    [[nodiscard]] virtual std::string doGetEffectDescription() const = 0; // folosit principal de bev pe viitor la sandwich
+    [[nodiscard]] virtual std::string doGetEffectDescription() const = 0;
     virtual void doSetBaseIncome(double newBaseIncome) = 0;
     virtual void doSetUpgradeCost(double newUpgradeCost) = 0;
 
@@ -61,6 +61,11 @@ public:
     [[nodiscard]] std::string getEffectDescription() const;
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] const std::string& getName() const;
+
+    [[nodiscard]] double getMultiplier() const { return multiplier; }
+    void setMultiplier(const double newMultiplier) { multiplier = newMultiplier; }
+    [[nodiscard]] int getLevel() const { return level; }
+    void setLevel(const int newLevel) { level = newLevel; }
 
 
 };

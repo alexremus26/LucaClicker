@@ -43,14 +43,11 @@ Display& Display::operator=(const Display& other)
 }
 
 
-std::ostream& operator<<(std::ostream& os, const Display& d)
+std::ostream& operator<<(std::ostream& os, const Display& display)
 {
-    os << d.gameManager;
+    os << display.gameManager;
     return os;
 }
-
-
-
 
 void Display::handleUnlock(const std::size_t index)
 {
@@ -59,7 +56,6 @@ void Display::handleUnlock(const std::size_t index)
         case 0: warningMessage = "Unlocked item!"; break;
         case 1: warningMessage = "Item already unlocked!"; break;
         case 2: warningMessage = "Not enough money!"; break;
-        case 3: warningMessage = "Invalid item index!"; break;
         default: warningMessage = "Unknown error!"; break;
     }
 

@@ -98,6 +98,5 @@ void Beverage::applyToOne(Item& item) const {
             pastry->applyMultiplier(value);
 
         else if (type == "upgrade_discount")
-            pastry->setUpgradeCost(pastry->getUpgradeCost() * value);
-    }
+            pastry->applyUpgradeDiscount(value);    }
 }

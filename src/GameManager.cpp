@@ -1,4 +1,5 @@
 #include "GameManager.h"
+#include "GameExceptions.h"
 #include "Pastry.h"
 #include "Beverage.h"
 
@@ -176,7 +177,7 @@ void GameManager::stopAllDeliveries() {
 GameManager GameManager::loadFromFile(const std::string& fileName, Player& player) {
     std::ifstream file(fileName);
     if (!file.is_open())
-        throw std::runtime_error("Error opening " + fileName);
+        throw FileOpenException(fileName);
 
     std::vector<std::unique_ptr<Item>> items;
     std::vector<Delivery> deliveries;
@@ -218,7 +219,8 @@ GameManager GameManager::loadFromFile(const std::string& fileName, Player& playe
                 beverageEffects,
                 targetName
             );
-        }
+        } else {
+            throw InvalidFormatException("Unknown item type '" + type + "'"); }
 
         items.push_back(std::move(newItem));
         deliveries.emplace_back(deliveryName, unlockDeliveryCost);
@@ -294,10 +296,12 @@ void GameManager::saveGame() const {
 
         file << "item:\n";
         file << "unlocked: " << itemUnlocked[i] << "\n";
+        file << "level: " << items[i]->getLevel() << "\n";
 
         if (const auto* bev = dynamic_cast<Beverage*>(items[i].get())) {
             file << "type: Beverage\n";
             file << "name: " << bev->getName() << "\n";
+            file << "multiplier: " << bev->getMultiplier() << "\n";
 
             const auto& effects = bev->getEffects();
             file << "effectsCount: " << effects.size() << "\n";
@@ -312,7 +316,8 @@ void GameManager::saveGame() const {
         else if (const auto* pastry = dynamic_cast<Pastry*>(items[i].get())) {
             file << "type: Pastry\n";
             file << "name: " << pastry->getName() << "\n";
-            file << "baseIncome: " << pastry->getBaseIncome() << "\n";
+            file << "multiplier: " << pastry->getMultiplier() << "\n";
+            file << "baseIncome: " << pastry->sellPayout() << "\n";
             file << "upgradeCost: " << pastry->getUpgradeCost() << "\n";
         }
 
@@ -341,14 +346,15 @@ bool GameManager::loadSavedGame() {
 
     {
         std::string key, value;
-        if (!getKV(key, value) || key != "money") return false;
+        if (!getKV(key, value) || key != "money")
+            throw SaveStateException("Missing player money entry");
         player.setMoney(std::stod(value));
     }
 
     {
         std::string key, value;
-        if (!getKV(key, value) || key != "items") return false;
-    }
+        if (!getKV(key, value) || key != "items")
+            throw SaveStateException("Missing items count entry");    }
 
     std::size_t index = 0;
 
@@ -363,6 +369,9 @@ bool GameManager::loadSavedGame() {
         std::string type;
         std::string name;
         double baseIncome = 0, upgradeCost = 0;
+        double multiplier = 1.0;
+        bool hasMultiplier = false;
+        int level = 1;
         int effectsCount = 0;
         std::vector<BeverageEffect> effects;
         std::string target;
@@ -380,6 +389,11 @@ bool GameManager::loadSavedGame() {
             else if (key == "name") name = value;
             else if (key == "baseIncome") baseIncome = std::stod(value);
             else if (key == "upgradeCost") upgradeCost = std::stod(value);
+            else if (key == "multiplier") {
+                multiplier = std::stod(value);
+                hasMultiplier = true;
+            }
+            else if (key == "level") level = std::stoi(value);
             else if (key == "effectsCount") {
                 effectsCount = std::stoi(value);
                 effects.reserve(effectsCount);
@@ -395,18 +409,28 @@ bool GameManager::loadSavedGame() {
             else if (key == "deliveryRunning") running = std::stoi(value);
         }
 
+        if (index >= items.size())
+            throw SaveStateException("Saved game contains more items than defined");
+
         if (index < items.size()) {
 
             itemUnlocked[index] = unlocked;
 
             if (auto* pastry = dynamic_cast<Pastry*>(items[index].get())) {
+                if (hasMultiplier) {
+                    pastry->setMultiplier(multiplier);
+                }
                 pastry->setBaseIncome(baseIncome);
                 pastry->setUpgradeCost(upgradeCost);
             }
             else if (auto* bev = dynamic_cast<Beverage*>(items[index].get())) {
+                if (hasMultiplier) {
+                    bev->setMultiplier(multiplier);
+                }
                 if (!effects.empty()) bev->setEffects(effects);
                 if (!target.empty()) bev->setTarget(target);
             }
+            items[index]->setLevel(level);
 
             deliveryRunning[index] = running;
             if (running)
