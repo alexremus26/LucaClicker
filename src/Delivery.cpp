@@ -62,6 +62,46 @@ DeliveryPlatform& Delivery::getPlatform() const {
     return *platform;
 }
 
+void Delivery::save(std::ostream& os) const {
+    os << "deliveryName: " << name << "\n";
+    os << "unlockDeliveryCost: " << unlockDeliveryCost << "\n";
+    os << "running: " << running << "\n";
+}
+
+void Delivery::load(std::istream& is) {
+    std::string line;
+    std::string key;
+    std::string value;
+
+    auto getKV = [&](std::string& k, std::string& v) {
+        if (!std::getline(is, line)) return false;
+        if (line.empty()) return false;
+        size_t pos = line.find(':');
+        if (pos == std::string::npos) return false;
+        k = line.substr(0, pos);
+        v = line.substr(pos + 2);
+        return true;
+    };
+
+    while (getKV(key, value)) {
+        if (key == "deliveryName") {
+            name = value;
+
+            if (name == "Glovo") {
+                platform = std::make_unique<GlovoPlatform>();
+            } else if (name == "Wolt") {
+                platform = std::make_unique<WoltPlatform>();
+            } else {
+                std::cout << "Warning: Unknown platform \"" << name
+                          << "\". Defaulting to Glovo.\n";
+                platform = std::make_unique<GlovoPlatform>();
+            }
+        }
+        else if (key == "unlockDeliveryCost") unlockDeliveryCost = std::stod(value);
+        else if (key == "running") running = std::stoi(value);
+    }
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Delivery& d) {
     os << "Delivery [" << d.name

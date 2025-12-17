@@ -67,6 +67,8 @@ void Pastry::applyUpgradeDiscount(const double factor) {
     upgradeCost *= factor;
 }
 
+void Pastry::doSetUpgradeCost(const double newUpgradeCost) { upgradeCost = newUpgradeCost; }
+
 double Pastry::getUpgradeCost() const {
     return upgradeCost;
 }
@@ -74,9 +76,61 @@ double Pastry::getUpgradeCost() const {
 std::string Pastry::doGetEffectDescription() const {
     return "Generates " + std::to_string(static_cast<int>(doSellPayout())) + " RON";}
 
-void Pastry::doSetBaseIncome(const double newBaseIncome) { baseIncome = newBaseIncome; }
-void Pastry::doSetUpgradeCost(const double newUpgradeCost) { upgradeCost = newUpgradeCost; }
+void Pastry::doSetBaseIncome(const double newBaseIncome) {
+    baseIncome = newBaseIncome;
+}
+
+void Pastry::doUse(std::vector<std::unique_ptr<Item>>& allItems,
+                   std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
+                   std::queue<std::string>& eventMessages,
+                   std::mutex& eventMutex) {
+    (void)allItems;
+    (void)activeSpeedBuffs;
+    (void)eventMessages;
+    (void)eventMutex;
+}
 
 std::string Pastry::getType() const {
     return "Pastry";
+}
+
+void Pastry::doSave(std::ostream& os) const {
+    os << "type: Pastry\n";
+    os << "name: " << name << "\n";
+    os << "multiplier: " << multiplier << "\n";
+    os << "unlockCost: " << unlockCost << "\n";
+    os << "useCost: " << useCost << "\n";
+    os << "level: " << level << "\n";
+    os << "baseIncome: " << baseIncome << "\n";
+    os << "upgradeCost: " << upgradeCost << "\n";
+    os << "duration: " << duration.asSeconds() << "\n";
+}
+
+void Pastry::doLoad(std::istream& is) {
+    std::string line;
+    std::string key;
+    std::string value;
+
+    auto getKV = [&](std::string& k, std::string& v) {
+        if (!std::getline(is, line)) return false;
+        if (line.empty()) return false;
+        const size_t pos = line.find(':');
+        if (pos == std::string::npos) return false;
+        k = line.substr(0, pos);
+        v = line.substr(pos + 2);
+        return true;
+    };
+
+    while (getKV(key, value)) {
+        if (key == "name") name = value;
+        else if (key == "multiplier") multiplier = std::stod(value);
+        else if (key == "unlockCost") unlockCost = std::stod(value);
+        else if (key == "useCost") useCost = std::stod(value);
+        else if (key == "level") level = std::stoi(value);
+        else if (key == "baseIncome") baseIncome = std::stod(value);
+        else if (key == "upgradeCost") upgradeCost = std::stod(value);
+        else if (key == "duration") duration = sf::seconds(std::stof(value));
+        else {
+        }
+    }
 }

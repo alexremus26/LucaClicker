@@ -28,4 +28,9 @@ public:
     explicit SaveStateException(const std::string& detail);
 };
 
+class InvalidIndexException : public GameException {
+public:
+    explicit InvalidIndexException(const std::string& detail);
+};
+
 #endif // OOP_GAMEEXCEPTIONS_H

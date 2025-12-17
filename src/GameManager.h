@@ -4,10 +4,12 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <map>
 #include "Player.h"
 #include "Item.h"
 #include "Delivery.h"
 #include <SFML/Graphics.hpp>
+#include <thread>
 #include <queue>
 #include <mutex>
 
@@ -22,25 +24,26 @@ private:
     std::vector<float> progress;
     std::vector<bool> sellingRunning;
 
+    std::optional<std::tuple<double, sf::Time, sf::Time>> sandwichSpeedBuff;
+
     std::queue<std::string> eventMessages;
     std::mutex eventMutex;
+    std::vector<std::tuple<double, sf::Time, sf::Time>> activeSpeedBuffs;
+    std::vector<std::thread> deliveryThreads;
 
-
-    void runDeliveryLoop(Item& item, std::size_t index);
+    std::thread runDeliveryLoop(Item& item, std::size_t index); // Changed return type
+    static std::unique_ptr<Item> createItemFromConfig(const std::map<std::string, std::string>& config);
 
 public:
     GameManager(Player& player_,
                 std::vector<std::unique_ptr<Item>> items_,
                 std::vector<Delivery> deliveries_);
-
     GameManager(const GameManager& other);
     GameManager& operator=(const GameManager& other);
     ~GameManager();
-
     friend std::ostream& operator<<(std::ostream& ostream, const GameManager& manager);
 
     static GameManager loadFromFile(const std::string& fileName, Player& player);
-
     void saveGame() const;
     bool loadSavedGame();
 
@@ -56,9 +59,11 @@ public:
     [[nodiscard]] float getProgress(std::size_t index) const;
 
     void startDelivery(Item& item, const Delivery& delivery, int index);
-    static void stopAllDeliveries();
+    void stopAllDeliveries();
 
-    [[nodiscard]] std::string useBeverage(std::size_t index) const;
+    void useItem(std::size_t index);
+    void update(sf::Time time);
+    [[nodiscard]] double combinedSpeedMultiplier() const;
 
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();

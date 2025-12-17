@@ -13,6 +13,7 @@ private:
     bool running = false;
 
     std::unique_ptr<DeliveryPlatform> platform;
+
 public:
     Delivery(std::string name_, double unlockCost_);
     Delivery(const Delivery& other);
@@ -24,6 +25,9 @@ public:
     [[nodiscard]] const std::string& getName() const;
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] DeliveryPlatform& getPlatform() const;
+
+    void save(std::ostream& os) const;
+    void load(std::istream& is);
 
 };
 

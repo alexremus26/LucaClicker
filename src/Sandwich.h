@@ -23,6 +23,12 @@ private:
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doSetBaseIncome(double) override {}
     void doSetUpgradeCost(double) override {}
+    void doUse(std::vector<std::unique_ptr<Item>>& allItems,
+               std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
+               std::queue<std::string>& eventMessages,
+               std::mutex& eventMutex) override;
+    void doSave(std::ostream& os) const override;
+    void doLoad(std::istream& is) override;
     [[nodiscard]] std::string getType() const override;
 
 public:
@@ -32,11 +38,11 @@ public:
              double slowMult,
              double fastChance,
              sf::Time baseDuration);
-
     Sandwich(const Sandwich& other);
     ~Sandwich() override = default;
-
     [[nodiscard]] Item* clone() const override;
+
+    [[nodiscard]] double rollMultiplier() const;
 
     friend void swap(Sandwich& lhs, Sandwich& rhs) noexcept {
         using std::swap;
@@ -52,6 +58,7 @@ public:
         swap(*this, other);
         return *this;
     }
+    [[nodiscard]] double getUpgradeCost() const override;
 };
 
 #endif // OOP_SANDWICH_H

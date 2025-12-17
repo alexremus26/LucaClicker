@@ -15,8 +15,7 @@ Beverage::Beverage(std::string name_, const double multiplier_, const double unl
 Beverage::Beverage(const Beverage& other)
     : Item(other),
       effects(other.effects),
-      targetName(other.targetName),
-      useCost(other.useCost) {}
+      targetName(other.targetName) {}
 
 Beverage::~Beverage() {
     std::cout << "Beverage " << name << " destroyed\n";
@@ -25,10 +24,6 @@ Beverage::~Beverage() {
 
 Item* Beverage::clone() const {
     return new Beverage(*this);
-}
-
-const std::vector<BeverageEffect>& Beverage::getEffects() const {
-    return effects;
 }
 
 double Beverage::doSellPayout() const {
@@ -40,7 +35,7 @@ double Beverage::doDeliveryPayout() const {
 }
 
 void Beverage::doPrint(std::ostream& os) const {
-    os << "Use Cost: " << useCost
+    os << "Use Cost: " << getUseCost()
        << " | Level: " << level
        << " | Target: " << targetName
        << " | Effects: " << getEffectDescription();
@@ -84,8 +79,23 @@ std::string Beverage::doGetEffectDescription() const {
 void Beverage::doSetBaseIncome(double) {}
 void Beverage::doSetUpgradeCost(double) {}
 
-void Beverage::setEffects(const std::vector<BeverageEffect>& newEffects) {
-    effects = newEffects;
+void Beverage::doUse(std::vector<std::unique_ptr<Item>>& allItems,
+                   std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
+                   std::queue<std::string>& eventMessages,
+                   std::mutex& eventMutex) {
+
+    if (targetName == "all") {
+        for (auto& it : allItems)
+            applyToOne(*it);
+    } else {
+        for (auto& it : allItems)
+            if (it->getName() == targetName)
+                applyToOne(*it);
+    }
+
+    (void)activeSpeedBuffs;
+    (void)eventMessages;
+    (void)eventMutex;
 }
 
 void Beverage::applyToOne(Item& item) const {
@@ -102,18 +112,62 @@ void Beverage::applyToOne(Item& item) const {
             pastry->applyUpgradeDiscount(value);    }
 }
 
-void Beverage::activate(const std::vector<std::unique_ptr<Item>>& allItems) {
-    if (targetName == "all") {
-        for (auto& it : allItems)
-            applyToOne(*it);
-    } else {
-        for (auto& it : allItems)
-            if (it->getName() == targetName)
-                applyToOne(*it);
-    }
-    upgrade();
-}
-
 std::string Beverage::getType() const {
     return "Beverage";
+}
+
+double Beverage::getUpgradeCost() const {
+    return 0.0;
+}
+
+void Beverage::doSave(std::ostream& os) const {
+    os << "type: Beverage\n";
+    os << "name: " << name << "\n";
+    os << "multiplier: " << multiplier << "\n";
+    os << "unlockCost: " << unlockCost << "\n";
+    os << "useCost: " << useCost << "\n";
+    os << "level: " << level << "\n";
+    os << "effectsCount: " << effects.size() << "\n";
+    os << "effects: ";
+
+    for (const auto& [type, value] : effects)
+        os << type << " " << value << " ";
+
+    os << "\n";
+    os << "target: " << targetName << "\n";
+}
+
+void Beverage::doLoad(std::istream& is) {
+    std::string line;
+    std::string key;
+    std::string value;
+
+    auto getKV = [&](std::string& k, std::string& v) {
+        if (!std::getline(is, line)) return false;
+        if (line.empty()) return false;
+        const size_t pos = line.find(':');
+        if (pos == std::string::npos) return false;
+        k = line.substr(0, pos);
+        v = line.substr(pos + 2);
+        return true;
+    };
+
+    while (getKV(key, value)) {
+        if (key == "name") name = value;
+        else if (key == "multiplier") multiplier = std::stod(value);
+        else if (key == "unlockCost") unlockCost = std::stod(value);
+        else if (key == "useCost") useCost = std::stod(value);
+        else if (key == "level") level = std::stoi(value);
+        else if (key == "effects") {
+            effects.clear();
+            std::istringstream ev(value);
+            std::string eType;
+            double eValue;
+            while (ev >> eType >> eValue)
+                effects.emplace_back(eType, eValue);
+        }
+        else if (key == "target") targetName = value;
+        else {
+        }
+    }
 }

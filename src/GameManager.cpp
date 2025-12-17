@@ -2,13 +2,16 @@
 #include "GameExceptions.h"
 #include "Pastry.h"
 #include "Beverage.h"
+#include "Sandwich.h"
 
 #include <iostream>
 #include <thread>
 #include <fstream>
 #include <sstream>
-#include <ranges>
+#include <map>
+#include <optional>
 #include <SFML/System/Clock.hpp>
+#include <tuple>
 
 GameManager::GameManager(Player& player_,
                          std::vector<std::unique_ptr<Item>> items_,
@@ -70,7 +73,9 @@ std::ostream& operator<<(std::ostream& ostream, const GameManager& manager)
 }
 
 std::string GameManager::unlockItem(const std::size_t index) {
-
+    if (index >= itemUnlocked.size()) {
+        throw InvalidIndexException("Attempted to unlock item at invalid index " + std::to_string(index) + ".");
+    }
     if (itemUnlocked[index])
         return "Item already unlocked!";
 
@@ -88,8 +93,8 @@ bool GameManager::isUnlocked(const std::size_t index) const {
 }
 
 
-void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
-    std::thread([this, &item, index]() {
+std::thread GameManager::runDeliveryLoop(Item& item, std::size_t index) {
+    return std::thread([this, &item, index]() {
         const Delivery& delivery = deliveries[index];
         const DeliveryPlatform& platform = delivery.getPlatform();
 
@@ -98,7 +103,8 @@ void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
             sellingRunning[index] = true;
             {
                 const sf::Clock clock;
-                const sf::Time duration = item.getDuration();
+                const double speedMultiplier = combinedSpeedMultiplier();
+                const sf::Time duration = platform.computeSpeed(item) / static_cast<float>(speedMultiplier);
                 progress[index] = 0.f;
 
                 while (clock.getElapsedTime() < duration) {
@@ -126,7 +132,7 @@ void GameManager::runDeliveryLoop(Item& item, std::size_t index) {
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-    }).detach();
+    });
 }
 void GameManager::runSellingLoop(Item& item, std::size_t index)
 {
@@ -143,7 +149,8 @@ void GameManager::runSellingLoop(Item& item, std::size_t index)
 
         progress[index] = 0.f;
 
-        const sf::Time duration = item.getDuration();
+        const double speedMultiplier = combinedSpeedMultiplier();
+        const sf::Time duration = item.getDuration() / static_cast<float>(speedMultiplier);
 
         while (clock.getElapsedTime() < duration)
         {
@@ -166,10 +173,9 @@ void GameManager::sell(const Item& item) const {
 }
 
 void GameManager::upgrade(Item& item) const{
-    if (auto* pastry = dynamic_cast<Pastry*>(&item)) {
-        if (player.tryPay(pastry->getUpgradeCost())) {
-            pastry->upgrade();
-        }
+    const double cost = item.getUpgradeCost();
+    if (cost > 0 && player.tryPay(cost)) {
+        item.upgrade();
     }
 }
 
@@ -180,7 +186,7 @@ float GameManager::getProgress(const std::size_t index) const {
 
 void GameManager::startDelivery(Item& item, const Delivery& delivery, const int index) {
     if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size())
-        return;
+        throw InvalidIndexException("Delivery index " + std::to_string(index) + " is out of bounds.");
 
     if (sellingRunning[index])
         return;
@@ -189,13 +195,22 @@ void GameManager::startDelivery(Item& item, const Delivery& delivery, const int 
         player.tryPay(delivery.getUnlockCost()))
     {
             deliveryRunning[index] = true;
-            runDeliveryLoop(item, index);
+            deliveryThreads.emplace_back(runDeliveryLoop(item, index));
             std::cout << "Automation purchased for " << item.getName() << "!\n";
     }
 }
 
 void GameManager::stopAllDeliveries() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    for (auto && i : deliveryRunning) {
+        i = false;
+    }
+
+    for (std::thread& t : deliveryThreads) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+    deliveryThreads.clear();
 }
 
 void GameManager::pushEventMessage(const std::string& message) {
@@ -213,6 +228,226 @@ std::string GameManager::popEventMessage() {
     return message;
 }
 
+std::unique_ptr<Item> GameManager::createItemFromConfig(const std::map<std::string, std::string>& config) {
+    std::string type;
+    try {
+        type = config.at("type");
+
+    } catch ([[maybe_unused]] [[maybe_unused]] const std::out_of_range& e) {
+        throw InvalidFormatException("Missing 'type' key in item configuration.");
+    }
+
+    std::string name;
+
+    if (config.contains("name")) {
+        name = config.at("name");
+
+    } else {
+        throw InvalidFormatException("Missing 'name' key for item type '" + type + "'.");
+    }
+
+    double unlockCost;
+    if (config.contains("unlockCost")) {
+
+        try {
+
+            unlockCost = std::stod(config.at("unlockCost"));
+
+        } catch ([[maybe_unused]] [[maybe_unused]] const std::invalid_argument& e) {
+            throw InvalidFormatException("Invalid 'unlockCost' value for item '" + name + "'. Must be a number.");
+
+        } catch ([[maybe_unused]] const std::out_of_range& e) {
+            throw InvalidFormatException(" 'unlockCost' value out of range for item '" + name + "'.");
+        }
+    } else {
+        throw InvalidFormatException("Missing 'unlockCost' key for item '" + name + "'.");
+    }
+
+    if (type == "Pastry") {
+        double multiplier;
+        if (config.contains("multiplier")) {
+
+            try {
+                multiplier = std::stod(config.at("multiplier"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'multiplier' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'multiplier' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'multiplier' key for item '" + name + "'.");
+        }
+
+        double baseIncome;
+
+        if (config.contains("baseIncome")) {
+
+            try {
+                baseIncome = std::stod(config.at("baseIncome"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'baseIncome' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'baseIncome' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'baseIncome' key for item '" + name + "'.");
+        }
+
+        double upgradeCost;
+
+        if (config.contains("upgradeCost")) {
+
+            try {
+
+                upgradeCost = std::stod(config.at("upgradeCost"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'upgradeCost' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'upgradeCost' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'upgradeCost' key for item '" + name + "'.");
+        }
+
+        double durationSec;
+
+        if (config.contains("duration")) {
+
+            try {
+                durationSec = std::stod(config.at("duration"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'duration' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'duration' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'duration' key for item '" + name + "'.");
+        }
+
+        return std::make_unique<Pastry>(name, multiplier, unlockCost, baseIncome, upgradeCost, sf::seconds(static_cast<float>(durationSec)));
+
+    } else if (type == "Beverage") {
+
+        double multiplier;
+        if (config.contains("multiplier")) {
+
+            try {
+                multiplier = std::stod(config.at("multiplier"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'multiplier' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'multiplier' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'multiplier' key for item '" + name + "'.");
+        }
+        std::vector<BeverageEffect> beverageEffects;
+
+        if (config.contains("effects")) {
+            std::istringstream ev(config.at("effects"));
+            std::string eType;
+            std::string eValue_str;
+            while (ev >> eType >> eValue_str) {
+                double eValue_numeric;
+
+                try {
+                    eValue_numeric = std::stod(eValue_str);
+
+                } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                    throw InvalidFormatException("Invalid effect value '" + eValue_str + "' for item '" += name + "'. Must be a number.");
+
+                } catch ([[maybe_unused]] const std::out_of_range& e) {
+                    throw InvalidFormatException("Effect value '" + eValue_str + "' out of range for item '" += name + "'.");
+                }
+                beverageEffects.emplace_back(eType, eValue_numeric);
+            }
+        }
+        std::string targetName = config.contains("target") ? config.at("target") : "ALL";
+        return std::make_unique<Beverage>(name, multiplier, unlockCost, beverageEffects, targetName);
+
+    } else if (type == "Sandwich") {
+        double fastMultiplier;
+
+        if (config.contains("fastMultiplier")) {
+
+            try {
+                fastMultiplier = std::stod(config.at("fastMultiplier"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'fastMultiplier' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'fastMultiplier' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'fastMultiplier' key for item '" + name + "'.");
+        }
+
+        double slowMultiplier;
+
+        if (config.contains("slowMultiplier")) {
+
+            try {
+                slowMultiplier = std::stod(config.at("slowMultiplier"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'slowMultiplier' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'slowMultiplier' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'slowMultiplier' key for item '" + name + "'.");
+        }
+
+        double fastChance;
+        if (config.contains("fastChance")) {
+
+            try {
+                fastChance = std::stod(config.at("fastChance"));
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'fastChance' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'fastChance' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'fastChance' key for item '" + name + "'.");
+        }
+
+        double durationSec;
+        if (config.contains("duration")) {
+
+            try {
+                durationSec = std::stod(config.at("duration"));
+
+            } catch ([[maybe_unused]] [[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'duration' value for item '" + name + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException(" 'duration' value out of range for item '" + name + "'.");
+            }
+        } else {
+            throw InvalidFormatException("Missing 'duration' key for item '" + name + "'.");
+        }
+        return std::make_unique<Sandwich>(name, unlockCost, fastMultiplier, slowMultiplier, fastChance, sf::seconds(static_cast<float>(durationSec)));
+
+    } else {
+        throw InvalidFormatException("Unknown item type '" + type + "'");
+    }
+}
+
 GameManager GameManager::loadFromFile(const std::string& fileName, Player& player) {
     std::ifstream file(fileName);
     if (!file.is_open())
@@ -222,55 +457,24 @@ GameManager GameManager::loadFromFile(const std::string& fileName, Player& playe
     std::vector<Delivery> deliveries;
 
     std::string line;
+    std::map<std::string, std::string> currentItemConfig;
+    std::string deliveryName;
+    double unlockDeliveryCost = 0.0;
 
-    std::string type = "Pastry";
-    std::string name, deliveryName;
-    double baseIncome = 0, upgradeCost = 0, multiplier = 0;
-    double unlockCost = 0, unlockDeliveryCost = 0;
-    double durationSec = 2.0;
+    auto processCurrentItem = [&]() {
+        if (currentItemConfig.empty()) return;
 
-    std::vector<BeverageEffect> beverageEffects;
-    std::string targetName = "ALL";
-
-    auto reset_buffers = [&]() {
-        type = "Pastry";
-        name.clear();
-        deliveryName.clear();
-        baseIncome = upgradeCost = multiplier = unlockCost = unlockDeliveryCost = 0;
-        durationSec = 0;
-        beverageEffects.clear();
-        targetName = "ALL";
-    };
-
-    auto add_item = [&]() {
-        std::unique_ptr<Item> newItem;
-
-        if (type == "Pastry") {
-            newItem = std::make_unique<Pastry>(
-                name, multiplier, unlockCost,
-                baseIncome, upgradeCost,
-                sf::seconds(static_cast<float>(durationSec))
-            );
-        }
-        else if (type == "Beverage") {
-            newItem = std::make_unique<Beverage>(
-                name, multiplier, unlockCost,
-                beverageEffects,
-                targetName
-            );
-        } else {
-            throw InvalidFormatException("Unknown item type '" + type + "'" ); }
-
-        items.push_back(std::move(newItem));
+        items.push_back(createItemFromConfig(currentItemConfig));
         deliveries.emplace_back(deliveryName, unlockDeliveryCost);
 
-        reset_buffers();
+        currentItemConfig.clear();
+        deliveryName.clear();
+        unlockDeliveryCost = 0.0;
     };
 
     while (std::getline(file, line)) {
-
         if (line.empty()) {
-            if (!name.empty()) add_item();
+            processCurrentItem();
             continue;
         }
 
@@ -285,82 +489,45 @@ GameManager GameManager::loadFromFile(const std::string& fileName, Player& playe
         if (!value.empty() && value[0] == ' ')
             value.erase(0, 1);
 
-        if (key == "type") type = value;
-        else if (key == "name") name = value;
-        else if (key == "deliveryName") deliveryName = value;
-        else if (key == "baseIncome") baseIncome = std::stod(value);
-        else if (key == "upgradeCost") upgradeCost = std::stod(value);
-        else if (key == "multiplier") multiplier = std::stod(value);
-        else if (key == "unlockCost") unlockCost = std::stod(value);
-        else if (key == "unlockDeliveryCost") unlockDeliveryCost = std::stod(value);
-        else if (key == "duration") durationSec = std::stod(value);
-
-        else if (key == "effects") {
-            beverageEffects.clear();
-            std::istringstream ev(value);
-            std::string eType;
-            double eValue;
-            while (ev >> eType >> eValue)
-                beverageEffects.emplace_back(eType, eValue);
+        if (key == "deliveryName") {
+            deliveryName = value;
         }
+        else if (key == "unlockDeliveryCost") {
 
-        else if (key == "target") {
-            targetName = value;
+            try {
+                unlockDeliveryCost = std::stod(value);
+
+            } catch ([[maybe_unused]] const std::invalid_argument& e) {
+                throw InvalidFormatException("Invalid 'unlockDeliveryCost' value in file '" + fileName + "'. Must be a number.");
+
+            } catch ([[maybe_unused]] const std::out_of_range& e) {
+                throw InvalidFormatException("'unlockDeliveryCost' value out of range in file '" + fileName + "'.");
+            }
+        } else {
+            currentItemConfig[key] = value;
         }
     }
-
-    if (!name.empty()) {
-        add_item();
-    } else {
-
-        (void)type; (void)name; (void)deliveryName;
-        (void)baseIncome; (void)upgradeCost; (void)multiplier;
-        (void)unlockCost; (void)unlockDeliveryCost;
-        (void)durationSec;
-    }
+    processCurrentItem();
 
     std::cout << "Loaded " << items.size() << " items.\n";
 
-return { player, std::move(items), std::move(deliveries) };
+    return { player, std::move(items), std::move(deliveries) };
 }
 
 void GameManager::saveGame() const {
     std::ofstream file("resources/savegame.txt");
     if (!file.is_open()) return;
 
-    file << "money: " << player.getMoney() << "\n";
-    file << "items: " << items.size() << "\n\n";
+    player.save(file);
+    file << "itemsCount: " << items.size() << "\n\n";
 
     for (std::size_t i = 0; i < items.size(); ++i) {
-
-        file << "item:\n";
+        file << "item_idx: " << i << "\n";
         file << "unlocked: " << itemUnlocked[i] << "\n";
-        file << "level: " << items[i]->getLevel() << "\n";
-
-        if (const auto* bev = dynamic_cast<Beverage*>(items[i].get())) {
-            file << "type: Beverage\n";
-            file << "name: " << bev->getName() << "\n";
-            file << "multiplier: " << bev->getMultiplier() << "\n";
-
-            const auto& effects = bev->getEffects();
-            file << "effectsCount: " << effects.size() << "\n";
-            file << "effects: ";
-
-            for (const auto& [type, value] : effects)
-                file << type << " " << value << " ";
-
-            file << "\n";
-            file << "target: " << bev->getTarget() << "\n";
-        }
-        else if (const auto* pastry = dynamic_cast<Pastry*>(items[i].get())) {
-            file << "type: Pastry\n";
-            file << "name: " << pastry->getName() << "\n";
-            file << "multiplier: " << pastry->getMultiplier() << "\n";
-            file << "baseIncome: " << pastry->sellPayout() << "\n";
-            file << "upgradeCost: " << pastry->getUpgradeCost() << "\n";
-        }
-
-        file << "deliveryRunning: " << deliveryRunning[i] << "\n\n";
+        file << "deliveryRunning: " << deliveryRunning[i] << "\n";
+        items[i]->save(file);
+        deliveries[i].save(file);
+        file << "\n";
     }
 
     std::cout << "Game saved.\n";
@@ -369,115 +536,85 @@ void GameManager::saveGame() const {
 
 bool GameManager::loadSavedGame() {
     std::ifstream file("resources/savegame.txt");
-    if (!file.is_open()) return false;
+    if (!file.is_open())
+        throw FileOpenException("resources/savegame.txt");
+
+    player.load(file);
 
     std::string line;
+    std::string key;
+    std::string value;
 
-    auto getKV = [&](std::string& key, std::string& value) {
-        std::getline(file, line);
-        const std::size_t pos = line.find(':');
+    auto getKV = [&](std::string& k, std::string& v) {
+
+        if (!std::getline(file, line)) return false;
+        if (line.empty()) return false;
+
+        const size_t pos = line.find(':');
+
         if (pos == std::string::npos) return false;
 
-        key = line.substr(0, pos);
-        value = line.substr(pos + 2);
+        k = line.substr(0, pos);
+        v = line.substr(pos + 2);
+
         return true;
     };
 
-    {
-        std::string key, value;
-        if (!getKV(key, value) || key != "money")
-            throw SaveStateException("Missing player money entry");
-        player.setMoney(std::stod(value));
+    if (!getKV(key, value) || key != "itemsCount")
+        throw SaveStateException("Missing itemsCount entry");
+
+    std::size_t savedItemsCount;
+    try {
+        savedItemsCount = std::stoul(value);
+
+    } catch ([[maybe_unused]] const std::invalid_argument &e) {
+        throw SaveStateException("Invalid 'itemsCount' value in save file. Must be a number.");
+    }
+    catch ([[maybe_unused]] const std::out_of_range &e) {
+        throw SaveStateException("'itemsCount' value out of range in save file.");
+    }
+    if (savedItemsCount != items.size()) {
+        std::cerr << "Warning: Saved game has " << savedItemsCount
+                << " items, but current game has " << items.size() << " items.\n";
     }
 
-    {
-        std::string key, value;
-        if (!getKV(key, value) || key != "items")
-            throw SaveStateException("Missing items count entry");    }
+    for (std::size_t i = 0; i < savedItemsCount && i < items.size(); ++i) {
+        if (!getKV(key, value) || key != "item_idx")
+            throw SaveStateException("Missing item_idx entry for item " + std::to_string(i));
 
-    std::size_t index = 0;
 
-    while (std::getline(file, line)) {
+        if (!getKV(key, value) || key != "unlocked")
+            throw SaveStateException("Missing unlocked entry for item " + std::to_string(i));
 
-        if (line != "item:")
-            continue;
+        try {
+            itemUnlocked[i] = static_cast<bool>(std::stoi(value));
 
-        bool unlocked = false;
-        bool running = false;
-
-        std::string type;
-        std::string name;
-        double baseIncome = 0, upgradeCost = 0;
-        double multiplier = 1.0;
-        bool hasMultiplier = false;
-        int level = 1;
-        int effectsCount = 0;
-        std::vector<BeverageEffect> effects;
-        std::string target;
-
-        while (std::getline(file, line) && !line.empty()) {
-
-            std::size_t pos = line.find(':');
-            if (pos == std::string::npos) continue;
-
-            std::string key = line.substr(0, pos);
-            std::string value = line.substr(pos + 2);
-
-            if (key == "unlocked") unlocked = std::stoi(value);
-            else if (key == "type") type = value;
-            else if (key == "name") name = value;
-            else if (key == "baseIncome") baseIncome = std::stod(value);
-            else if (key == "upgradeCost") upgradeCost = std::stod(value);
-            else if (key == "multiplier") {
-                multiplier = std::stod(value);
-                hasMultiplier = true;
-            }
-            else if (key == "level") level = std::stoi(value);
-            else if (key == "effectsCount") {
-                effectsCount = std::stoi(value);
-                effects.reserve(effectsCount);
-            }
-            else if (key == "effects") {
-                std::istringstream ev(value);
-                std::string t;
-                double val;
-                while (ev >> t >> val)
-                    effects.emplace_back(t, val);
-            }
-            else if (key == "target") target = value;
-            else if (key == "deliveryRunning") running = std::stoi(value);
+        } catch ([[maybe_unused]] const std::invalid_argument& e) {
+            throw SaveStateException("Invalid 'unlocked' value for item " + std::to_string(i) + ". Must be 0 or 1.");
+        }
+        catch ([[maybe_unused]] const std::out_of_range& e) {
+            throw SaveStateException("'unlocked' value out of range for item " + std::to_string(i) + ".");
         }
 
-        if (index >= items.size())
-            throw SaveStateException("Saved game contains more items than defined");
+        if (!getKV(key, value) || key != "deliveryRunning")
+            throw SaveStateException("Missing deliveryRunning entry for item " + std::to_string(i));
 
-                itemUnlocked[index] = unlocked;
+        try {
+            deliveryRunning[i] = static_cast<bool>(std::stoi(value));
+        }
+        catch ([[maybe_unused]] const std::invalid_argument& e) {
+            throw SaveStateException("Invalid 'deliveryRunning' value for item " + std::to_string(i) + ". Must be 0 or 1.");
+        }
+        catch ([[maybe_unused]] const std::out_of_range& e) {
+            throw SaveStateException("'deliveryRunning' value out of range for item " + std::to_string(i) + ".");
+        }
 
-            if (auto* pastry = dynamic_cast<Pastry*>(items[index].get())) {
-                if (hasMultiplier) {
-                    pastry->setMultiplier(multiplier);
-                }
-                pastry->setBaseIncome(baseIncome);
-                pastry->setUpgradeCost(upgradeCost);
-            }
-            else if (auto* bev = dynamic_cast<Beverage*>(items[index].get())) {
-                if (hasMultiplier) {
-                    bev->setMultiplier(multiplier);
-                }
-                if (!effects.empty()) bev->setEffects(effects);
-                if (!target.empty()) bev->setTarget(target);
-            }
-            items[index]->setLevel(level);
+        items[i]->load(file);
+        deliveries[i].load(file);
 
-            deliveryRunning[index] = running;
-            if (running)
-                runDeliveryLoop(*items[index], index);
-
-        (void)type;
-        (void)name;
-        (void)effectsCount;
-
-        ++index;
+        if (deliveryRunning[i]) {
+            runDeliveryLoop(*items[i], i);
+        }
     }
 
     return true;
@@ -497,21 +634,83 @@ double GameManager::getPlayerMoney() const {
     return player.getMoney();
 }
 
-std::string GameManager::useBeverage(const std::size_t index) const {
+void GameManager::useItem(const std::size_t index) {
     if (index >= items.size()) {
-        return "Invalid item index!";
+        throw InvalidIndexException("Attempted to use item at invalid index " + std::to_string(index) + ".");
+    }
+    if (!itemUnlocked[index]) {
+        return;
     }
 
-    auto* bev = dynamic_cast<Beverage*>(items[index].get());
-    if (!bev) {
-        return "Not a beverage!";
+    const auto& item = items[index];
+
+    if (dynamic_cast<Pastry*>(item.get())) {
+        pushEventMessage(item->getName() + " cannot be actively used.");
+        return;
     }
 
-    if (!player.tryPay(bev->getUseCost())) {
-        return "Not enough money!";
+    const double cost = item->getUseCost();
+
+    if (cost > 0 && !player.tryPay(cost)) {
+        pushEventMessage("Not enough money to use " + item->getName());
+        return;
     }
 
-    bev->activate(items);
+    if (const auto* sandwich = dynamic_cast<Sandwich*>(item.get())) {
+        const double multiplier = sandwich->rollMultiplier();
+        const sf::Time duration = sandwich->getDuration();
 
-    return "Beverage used!";
+        const std::lock_guard lock(eventMutex);
+
+        if (sandwichSpeedBuff.has_value()) {
+
+            std::get<0>(*sandwichSpeedBuff) = multiplier;
+            std::get<1>(*sandwichSpeedBuff) = duration;
+            std::get<2>(*sandwichSpeedBuff) = duration;
+            eventMessages.push("Refreshed " + item->getName() + "! Speed x" + std::to_string(multiplier) + " for " + std::to_string(duration.asSeconds()) + "s.");
+        } else {
+
+            sandwichSpeedBuff = std::make_tuple(multiplier, duration, duration);
+            eventMessages.push("Used " + item->getName() + "! Speed x" + std::to_string(multiplier) + " for " + std::to_string(duration.asSeconds()) + "s.");
+        }
+        item->upgrade();
+        return;
+    }
+
+    item->use(items, activeSpeedBuffs, eventMessages, eventMutex);
+    item->upgrade();
+}
+
+void GameManager::update(const sf::Time time) {
+
+    for (auto it = activeSpeedBuffs.begin(); it != activeSpeedBuffs.end(); ) {
+        auto& remaining = std::get<2>(*it);
+        remaining -= time;
+        if (remaining <= sf::Time::Zero) {
+            it = activeSpeedBuffs.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    if (sandwichSpeedBuff.has_value()) {
+        auto& remaining = std::get<2>(*sandwichSpeedBuff);
+        remaining -= time;
+        if (remaining <= sf::Time::Zero) {
+            sandwichSpeedBuff.reset(); // buff expired
+        }
+    }
+}
+
+double GameManager::combinedSpeedMultiplier() const {
+
+    double combined = 1.0;
+    for (const auto& buff : activeSpeedBuffs) {
+        combined *= std::get<0>(buff);
+    }
+
+    if (sandwichSpeedBuff.has_value()) {
+        combined *= std::get<0>(*sandwichSpeedBuff);
+    }
+    return combined;
 }

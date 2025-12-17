@@ -19,7 +19,7 @@ std::ostream &operator<<(std::ostream &os, const Player &player) {
 }
 
 const double &Player::getMoney() const { return money; }
-void Player::setMoney(double const money_) { money = money_; }
+
 
 bool Player::tryPay(const double amount) {
     if (money < amount) return false;
@@ -36,6 +36,23 @@ bool Player::enoughMoney(const double amount) const {
         return true;
     }
     else return false;
+}
+
+void Player::save(std::ostream& os) const {
+    os << "money: " << money << "\n";
+}
+
+void Player::load(std::istream& is) {
+    std::string line;
+    std::getline(is, line);
+    size_t pos = line.find(':');
+    if (pos != std::string::npos) {
+        const std::string key = line.substr(0, pos);
+        const std::string value = line.substr(pos + 2);
+        if (key == "money") {
+            money = std::stod(value);
+        }
+    }
 }
 
 

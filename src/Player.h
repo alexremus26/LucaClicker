@@ -15,10 +15,12 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Player& player);
 
     [[nodiscard]] const double& getMoney() const;
-    void setMoney(double money_);
     bool tryPay(double amount);
     void earn(double amount);
     [[nodiscard]] bool enoughMoney(double amount) const;
+
+    void save(std::ostream& os) const;
+    void load(std::istream& is);
 };
 
 

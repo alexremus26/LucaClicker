@@ -19,6 +19,12 @@ private:
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doSetBaseIncome(double newBaseIncome) override;
     void doSetUpgradeCost(double newUpgradeCost) override;
+    void doUse(std::vector<std::unique_ptr<Item>>& allItems,
+               std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
+               std::queue<std::string>& eventMessages,
+               std::mutex& eventMutex) override;
+    void doSave(std::ostream& os) const override;
+    void doLoad(std::istream& is) override;
     [[nodiscard]] std::string getType() const override;
 
 public:
@@ -44,9 +50,8 @@ public:
         swap(lhs.upgradeCost, rhs.upgradeCost);
         swap(lhs.duration, rhs.duration);
     }
-
     void applyUpgradeDiscount(double factor);
-    [[nodiscard]] double getUpgradeCost() const;
+    [[nodiscard]] double getUpgradeCost() const override;
 };
 
 #endif // OOP_PASTRY_H

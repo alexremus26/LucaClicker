@@ -14,7 +14,8 @@ class Beverage final : public Item {
 private:
     std::vector<BeverageEffect> effects;
     std::string targetName;
-    double useCost;
+
+    void applyToOne(Item& item) const;
 
     [[nodiscard]] double doSellPayout() const override;
     [[nodiscard]] double doDeliveryPayout() const override;
@@ -25,6 +26,12 @@ private:
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doSetBaseIncome(double newBaseIncome) override;
     void doSetUpgradeCost(double newUpgradeCost) override;
+    void doUse(std::vector<std::unique_ptr<Item>>& allItems,
+               std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
+               std::queue<std::string>& eventMessages,
+               std::mutex& eventMutex) override;
+    void doSave(std::ostream& os) const override;
+    void doLoad(std::istream& is) override;
     [[nodiscard]] std::string getType() const override;
 
 public:
@@ -40,24 +47,16 @@ public:
         swap(static_cast<Item &>(lhs), static_cast<Item &>(rhs));
         swap(lhs.effects, rhs.effects);
         swap(lhs.targetName, rhs.targetName);
-        swap(lhs.useCost, rhs.useCost);
     }
 
     Beverage & operator=(Beverage other) {
         if (this != &other) {
             using std::swap;
             swap(*this, other);
+            }
+            return *this;
         }
-        return *this;
-    }
-    void activate(const std::vector<std::unique_ptr<Item>>& allItems);
-    void applyToOne(Item& item) const;
-    void setEffects(const std::vector<BeverageEffect>& newEffects);
-    [[nodiscard]] const std::vector<BeverageEffect>& getEffects() const;
-    [[nodiscard]] const std::string& getTarget() const { return targetName; }
-    void setTarget(const std::string& newTarget) { targetName = newTarget; }
-    [[nodiscard]] double getUseCost() const { return useCost; }
-};
+    [[nodiscard]] double getUpgradeCost() const override;};
 
 #endif // OOP_BEVERAGE_H
     

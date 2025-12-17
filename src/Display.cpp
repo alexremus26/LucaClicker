@@ -53,6 +53,8 @@ void Display::drawProgressBar(const float progress, const float x, const float y
 
 void Display::run()
 {
+    sf::Clock deltaClock;
+
     sf::Text header(font);
     header.setCharacterSize(HEADER_SIZE);
     header.setFillColor(sf::Color::White);
@@ -63,6 +65,9 @@ void Display::run()
 
     while (window.isOpen())
     {
+        const sf::Time dt = deltaClock.restart();
+        gameManager.update(dt);
+
         // events
         while (const auto event = window.pollEvent())
         {
@@ -118,7 +123,8 @@ void Display::run()
 
                         case 'b':
                         {
-                            warningMessage = gameManager.useBeverage(idx);
+                            gameManager.useItem(idx);
+                            warningMessage = gameManager.popEventMessage();
                             warningClock.restart();
                             break;
                         }

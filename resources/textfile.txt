@@ -1,6 +1,6 @@
 type: Pastry
 name: Covrig
-baseIncome: 500
+baseIncome: 1
 upgradeCost: 10
 multiplier: 1.5
 unlockCost: 0
@@ -41,7 +41,7 @@ type: Beverage
 name: Ayran
 multiplier: 1.0
 unlockCost: 500
-effects: profit_multiplier 1.5 upgrade_discount 0.9
+effects: profit_multiplier 1.7 upgrade_discount 0.8
 deliveryName: None
 unlockDeliveryCost: 0
 target: Merdenea
@@ -50,7 +50,7 @@ type: Beverage
 name: Pepsi
 multiplier: 1.0
 unlockCost: 800
-effects: profit_multiplier 1.5 upgrade_discount 0.9
+effects: profit_multiplier 2 upgrade_discount 0.7
 deliveryName: None
 unlockDeliveryCost: 0
 target: Pizza
@@ -59,7 +59,27 @@ type: Beverage
 name: Matcha
 multiplier: 1.0
 unlockCost: 1000
-effects: profit_multiplier 2 upgrade_discount 0.8
+effects: profit_multiplier 2.5 upgrade_discount 0.5
 deliveryName: None
 unlockDeliveryCost: 0
 target: all
+
+type: Sandwich
+name: Bussin' Sandwich
+unlockCost: 1500
+fastMultiplier: 5
+slowMultiplier: 0.2
+fastChance: 0.25
+duration: 15
+deliveryName: Wolt
+unlockDeliveryCost: 1200
+
+type: Sandwich
+name: Mid Sandwich
+unlockCost: 1200
+fastMultiplier: 2
+slowMultiplier: 0.5
+fastChance: 0.5
+duration: 10
+deliveryName: Glovo
+unlockDeliveryCost: 1000
