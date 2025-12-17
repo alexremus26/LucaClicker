@@ -364,10 +364,10 @@ std::unique_ptr<Item> GameManager::createItemFromConfig(const std::map<std::stri
                     eValue_numeric = std::stod(eValue_str);
 
                 } catch ([[maybe_unused]] const std::invalid_argument& e) {
-                    throw InvalidFormatException("Invalid effect value '" + eValue_str + "' for item '" += name + "'. Must be a number.");
+                    throw InvalidFormatException("Invalid effect value '" + eValue_str + "' for item '" + name + "'. Must be a number.");
 
                 } catch ([[maybe_unused]] const std::out_of_range& e) {
-                    throw InvalidFormatException("Effect value '" + eValue_str + "' out of range for item '" += name + "'.");
+                    throw InvalidFormatException("Effect value '" + eValue_str + "' out of range for item '" + name + "'.");
                 }
                 beverageEffects.emplace_back(eType, eValue_numeric);
             }
