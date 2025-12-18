@@ -4,14 +4,14 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <map>
-#include "Player.h"
-#include "Item.h"
-#include "Delivery.h"
-#include <SFML/Graphics.hpp>
 #include <thread>
 #include <queue>
 #include <mutex>
+#include <SFML/System/Time.hpp>
+
+#include "Player.h"
+#include "Item.h"
+#include "Delivery.h"
 
 class GameManager {
 private:
@@ -24,23 +24,20 @@ private:
     std::vector<float> progress;
     std::vector<bool> sellingRunning;
 
-    std::optional<std::tuple<double, sf::Time, sf::Time>> sandwichSpeedBuff;
-
     std::queue<std::string> eventMessages;
     std::mutex eventMutex;
-    std::vector<std::tuple<double, sf::Time, sf::Time>> activeSpeedBuffs;
     std::vector<std::thread> deliveryThreads;
 
-    std::thread runDeliveryLoop(Item& item, std::size_t index); // Changed return type
-    static std::unique_ptr<Item> createItemFromConfig(const std::map<std::string, std::string>& config);
+    std::thread runDeliveryLoop(Item& item, std::size_t index);
 
 public:
     GameManager(Player& player_,
                 std::vector<std::unique_ptr<Item>> items_,
                 std::vector<Delivery> deliveries_);
-    GameManager(const GameManager& other);
-    GameManager& operator=(const GameManager& other);
+    GameManager(const GameManager&) = delete;
+    GameManager& operator=(const GameManager&) = delete;
     ~GameManager();
+
     friend std::ostream& operator<<(std::ostream& ostream, const GameManager& manager);
 
     static GameManager loadFromFile(const std::string& fileName, Player& player);
@@ -53,8 +50,8 @@ public:
     std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
 
-    void sell(const Item &item) const;
-    void runSellingLoop (Item& item, std::size_t index);
+    void sell(const Item& item) const;
+    void runSellingLoop(Item& item, std::size_t index);
     void upgrade(Item& item) const;
     [[nodiscard]] float getProgress(std::size_t index) const;
 
@@ -70,4 +67,4 @@ public:
     [[nodiscard]] double getPlayerMoney() const;
 };
 
-#endif
+#endif // OOP_GAMEMANAGER_H

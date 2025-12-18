@@ -31,7 +31,7 @@ int main() {
             }
         }
 
-        GameManager gameManager = GameManager::loadFromFile("resources/textfile.txt", player);
+        GameManager gameManager(GameManager::loadFromFile("../resources/textfile.txt", player));
 
         if (saveExists) {
             (void)gameManager.loadSavedGame();

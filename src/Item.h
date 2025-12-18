@@ -3,9 +3,10 @@
 
 #include <string>
 #include <memory>
-#include <SFML/System/Time.hpp>
+#include <vector>
 #include <queue>
 #include <mutex>
+#include <SFML/System/Time.hpp>
 
 class Item {
 protected:
@@ -16,7 +17,6 @@ protected:
     int level;
 
 private:
-    // NVI
     [[nodiscard]] virtual double doSellPayout() const = 0;
     [[nodiscard]] virtual double doDeliveryPayout() const = 0;
 
@@ -25,12 +25,12 @@ private:
     virtual void doApplyMultiplier(double multiplier) = 0;
     [[nodiscard]] virtual sf::Time doComputeDuration() const = 0;
     [[nodiscard]] virtual std::string doGetEffectDescription() const = 0;
-    virtual void doSetBaseIncome(double newBaseIncome) = 0;
-    virtual void doSetUpgradeCost(double newUpgradeCost) = 0;
+
     virtual void doUse(std::vector<std::unique_ptr<Item>>& allItems,
-                       std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
                        std::queue<std::string>& eventMessages,
                        std::mutex& eventMutex) = 0;
+
+protected:
     virtual void doSave(std::ostream& os) const = 0;
     virtual void doLoad(std::istream& is) = 0;
 
@@ -38,11 +38,13 @@ public:
     Item(std::string name_, double multiplier_, double unlockCost_);
     Item(const Item& other);
     virtual ~Item();
+
     friend std::ostream& operator<<(std::ostream& ostream, const Item& item);
+
     [[nodiscard]] virtual Item* clone() const = 0;
     [[nodiscard]] virtual std::string getType() const = 0;
 
-    friend void swap(Item &lhs, Item &rhs) noexcept {
+    friend void swap(Item& lhs, Item& rhs) noexcept {
         using std::swap;
         swap(lhs.name, rhs.name);
         swap(lhs.multiplier, rhs.multiplier);
@@ -53,35 +55,40 @@ public:
 
     Item& operator=(const Item& other) {
         if (this != &other) {
-            const auto copy = other.clone();
-            using std::swap;
+            std::unique_ptr<Item> copy(other.clone());
             swap(*this, *copy);
         }
         return *this;
     }
 
-    // NVI
     void save(std::ostream& os) const;
     void load(std::istream& is);
+
     [[nodiscard]] double sellPayout() const;
     [[nodiscard]] double deliveryPayout() const;
+
     void print(std::ostream& os) const;
     void applyMultiplier(double mult);
     void upgrade();
+
     [[nodiscard]] sf::Time getDuration() const;
-    void setBaseIncome(double newBaseIncome);
-    void setUpgradeCost(double newUpgradeCost);
+    [[nodiscard]] std::string getEffectDescription() const;
+
     void use(std::vector<std::unique_ptr<Item>>& allItems,
-             std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
              std::queue<std::string>& eventMessages,
              std::mutex& eventMutex);
-    [[nodiscard]] std::string getEffectDescription() const;
+
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] double getUseCost() const;
     [[nodiscard]] virtual double getUpgradeCost() const = 0;
+
     [[nodiscard]] const std::string& getName() const;
 
+    virtual void update(sf::Time time);
+    [[nodiscard]] virtual double getSpeedMultiplier() const;
+    [[nodiscard]] virtual bool isUsable() const;
 
+    virtual void applyEffect(const std::string& type, double value);
 };
 
-#endif //OOP_ITEM_H
+#endif // OOP_ITEM_H

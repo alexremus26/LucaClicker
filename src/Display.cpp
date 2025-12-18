@@ -1,9 +1,10 @@
 #include "Display.h"
 #include "Beverage.h"
+#include "Pastry.h"
+#include "Sandwich.h"
 
 #include <iostream>
 #include <sstream>
-
 
 Display::Display(GameManager& manager)
     : gameManager(manager)
@@ -24,14 +25,11 @@ Display::Display(GameManager& manager)
 
 Display::~Display() = default;
 
-
 std::ostream& operator<<(std::ostream& os, const Display& display)
 {
     os << display.gameManager;
     return os;
 }
-
-
 
 void Display::drawProgressBar(const float progress, const float x, const float y)
 {
@@ -50,6 +48,61 @@ void Display::drawProgressBar(const float progress, const float x, const float y
     window.draw(fill);
 }
 
+float Display::drawItemAndReturnHeight(Item& item,
+                                      size_t realIndex,
+                                      int displayIndex,
+                                      float x,
+                                      float y)
+{
+    sf::Text title(font);
+    title.setCharacterSize(TITLE_SIZE);
+    title.setFillColor(
+        selectedIndex == displayIndex
+        ? sf::Color(255, 220, 120)
+        : sf::Color::White
+    );
+
+    if (gameManager.isUnlocked(realIndex)) {
+        title.setString(
+            "[" + std::to_string(displayIndex) + "] " +
+            item.getName() + " (" + item.getType() + ")"
+        );
+    } else {
+        title.setString(
+            "[" + std::to_string(displayIndex) +
+            "] LOCKED - Cost: " +
+            std::to_string(static_cast<int>(item.getUnlockCost())) + " RON"
+        );
+    }
+
+    sf::Text details(font);
+    details.setCharacterSize(DETAIL_SIZE);
+    details.setFillColor(sf::Color(200, 200, 200));
+    std::ostringstream oss;
+    item.print(oss);
+    details.setString(oss.str());
+
+    title.setPosition({ x, y });
+    window.draw(title);
+
+    float blockHeight = title.getGlobalBounds().size.y;
+
+    details.setPosition({ x, y + blockHeight + 6.f });
+    window.draw(details);
+
+    blockHeight += details.getGlobalBounds().size.y + 6.f;
+
+    if (const float progress = gameManager.getProgress(realIndex); progress > 0.f) {
+        drawProgressBar(
+            progress,
+            x,
+            y + blockHeight + 6.f
+        );
+        blockHeight += PROGRESS_HEIGHT + 6.f;
+    }
+
+    return blockHeight;
+}
 
 void Display::run()
 {
@@ -68,7 +121,6 @@ void Display::run()
         const sf::Time dt = deltaClock.restart();
         gameManager.update(dt);
 
-        // events
         while (const auto event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
@@ -99,13 +151,13 @@ void Display::run()
                 }
             }
         }
-        // actions
+
         if (lastAction != ' ')
         {
             if (selectedIndex > 0 &&
-                selectedIndex <= static_cast<int>(gameManager.getItems().size()))
+                selectedIndex <= static_cast<int>(displayToReal.size()))
             {
-                const std::size_t idx = selectedIndex - 1;
+                const std::size_t idx = displayToReal[selectedIndex - 1];
                 Item& item = *gameManager.getItems()[idx];
 
                 if (lastAction == 'z') {
@@ -116,11 +168,9 @@ void Display::run()
                     Delivery& delivery = gameManager.getDelivery()[idx];
                     switch (lastAction)
                     {
-
                         case 's': gameManager.runSellingLoop(item, idx); break;
                         case 'u': gameManager.upgrade(item); break;
                         case 'd': gameManager.startDelivery(item, delivery, static_cast<int>(idx)); break;
-
                         case 'b':
                         {
                             gameManager.useItem(idx);
@@ -146,10 +196,8 @@ void Display::run()
             lastAction = ' ';
         }
 
-        // draw
         window.clear(sf::Color(25, 25, 25));
 
-        // game messages
         if (const std::string msg = gameManager.popEventMessage(); !msg.empty()) {
             warningMessage = msg;
             warningClock.restart();
@@ -166,62 +214,63 @@ void Display::run()
 
         float y = TOP_MARGIN + header.getGlobalBounds().size.y + 30.f;
 
-        // items
-        for (std::size_t i = 0; i < gameManager.getItems().size(); ++i)
-        {
-            Item& item = *gameManager.getItems()[i];
+        auto& allItems = gameManager.getItems();
+        std::vector<bool> itemDrawn(allItems.size(), false);
+        displayToReal.clear();
+        int displayIndex = 1;
 
-            sf::Text title(font);
-            title.setCharacterSize(TITLE_SIZE);
-            title.setFillColor(
-                selectedIndex == static_cast<int>(i + 1)
-                ? sf::Color(255, 220, 120)
-                : sf::Color::White
-            );
+        for (size_t i = 0; i < allItems.size(); ++i) {
+            if (itemDrawn[i]) continue;
 
-            if (gameManager.isUnlocked(i)) {
-                title.setString(
-                    "[" + std::to_string(i + 1) + "] " +
-                    item.getName() + " (" + item.getType() + ")"
-                );
-            } else {
-                title.setString(
-                    "[" + std::to_string(i + 1) +
-                    "] LOCKED - Cost: " +
-                    std::to_string(static_cast<int>(item.getUnlockCost())) + " RON"
-                );
+            if (auto* pastry = dynamic_cast<Pastry*>(allItems[i].get())) {
+                displayToReal.push_back(i);
+                float pastryHeight =
+                    drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
+                itemDrawn[i] = true;
+
+                size_t beverageIndex = static_cast<size_t>(-1);
+                for (size_t j = 0; j < allItems.size(); ++j) {
+                    if (auto* beverage = dynamic_cast<Beverage*>(allItems[j].get())) {
+                        if (beverage->getTargetName() == pastry->getName()) {
+                            beverageIndex = j;
+                            break;
+                        }
+                    }
+                }
+
+                float beverageHeight = 0.f;
+                if (beverageIndex != static_cast<size_t>(-1)) {
+                    displayToReal.push_back(beverageIndex);
+                    beverageHeight =
+                        drawItemAndReturnHeight(*allItems[beverageIndex],
+                                                beverageIndex,
+                                                displayIndex++,
+                                                window.getSize().x / 2.f,
+                                                y);
+                    itemDrawn[beverageIndex] = true;
+                }
+
+                y += std::max(pastryHeight, beverageHeight) + ITEM_SPACING;
             }
-
-            title.setPosition({ LEFT_MARGIN, y });
-            window.draw(title);
-
-            float blockHeight = title.getGlobalBounds().size.y;
-
-            sf::Text details(font);
-            details.setCharacterSize(DETAIL_SIZE);
-            details.setFillColor(sf::Color(200, 200, 200));
-            std::ostringstream oss;
-            item.print(oss);
-            details.setString(oss.str());
-
-            details.setPosition({ LEFT_MARGIN, y + blockHeight + 6.f });
-            window.draw(details);
-
-            blockHeight += details.getGlobalBounds().size.y + 6.f;
-
-            if (const float progress = gameManager.getProgress(i); progress > 0.f) {
-                drawProgressBar(
-                    progress,
-                    LEFT_MARGIN,
-                    y + blockHeight + 6.f
-                );
-                blockHeight += PROGRESS_HEIGHT + 6.f;
+            else if (dynamic_cast<Sandwich*>(allItems[i].get())) {
+                displayToReal.push_back(i);
+                float sandwichHeight =
+                    drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
+                itemDrawn[i] = true;
+                y += sandwichHeight + ITEM_SPACING;
             }
-
-            y += blockHeight + ITEM_SPACING;
         }
 
-        // warning
+        for (size_t i = 0; i < allItems.size(); ++i) {
+            if (!itemDrawn[i]) {
+                displayToReal.push_back(i);
+                float itemHeight =
+                    drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
+                itemDrawn[i] = true;
+                y += itemHeight + ITEM_SPACING;
+            }
+        }
+
         if (!warningMessage.empty()) {
             warning.setString(warningMessage);
             warning.setPosition({

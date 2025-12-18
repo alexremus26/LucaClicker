@@ -1,5 +1,45 @@
 #include "Pastry.h"
 #include <iostream>
+#include <SFML/System/Time.hpp>
+
+#include "ItemFactory.h"
+#include "GameExceptions.h"
+
+namespace {
+class PastryRegistration {
+public:
+    PastryRegistration() {
+        ItemFactory::getInstance().registerType(
+            "Pastry",
+            [](const std::map<std::string, std::string>& config) -> std::unique_ptr<Item> {
+
+                auto require = [&](const char* key) -> const std::string& {
+                    const auto it = config.find(key);
+                    if (it == config.end()) {
+                        throw InvalidFormatException(std::string("Pastry missing key: '") + key + "'");
+                    }
+                    return it->second;
+                };
+
+                try {
+                    const std::string name = require("name");
+                    const double multiplier = std::stod(require("multiplier"));
+                    const double unlockCost = std::stod(require("unlockCost"));
+                    const double baseIncome = std::stod(require("baseIncome"));
+                    const double upgradeCost = std::stod(require("upgradeCost"));
+                    const sf::Time duration = sf::seconds(std::stof(require("duration")));
+
+                    return std::make_unique<Pastry>(name, multiplier, unlockCost, baseIncome, upgradeCost, duration);
+                } catch (const std::exception& e) {
+                    throw InvalidFormatException(std::string("Pastry parse error: ") + e.what());
+                }
+            }
+        );
+    }
+};
+
+static PastryRegistration pastryRegistration;
+}
 
 Pastry::Pastry(std::string name_, const double multiplier_, const double unlockCost_,
                const double baseIncome_, const double upgradeCost_, const sf::Time duration_)
@@ -20,11 +60,9 @@ Pastry::~Pastry() {
     std::cout << "Pastry " << getName() << " a fost distrus!\n";
 }
 
-
 Item *Pastry::clone() const {
     return new Pastry(*this);
 }
-
 
 double Pastry::doSellPayout() const {
     return baseIncome;
@@ -35,13 +73,12 @@ double Pastry::doDeliveryPayout() const {
 }
 
 void Pastry::doPrint(std::ostream &os) const {
-        os  << "  Income: " << baseIncome
-            << " (x" << multiplier << " = " << doSellPayout()*multiplier<< ")"
-            << " | Upgrade Cost: " << upgradeCost
-            << " | Level: " << level
-            << " | Multiplier: " << multiplier;
+    os  << "  Income: " << baseIncome
+        << " (x" << multiplier << " = " << doSellPayout()*multiplier<< ")"
+        << " | Upgrade Cost: " << upgradeCost
+        << " | Level: " << level
+        << " | Multiplier: " << multiplier;
 }
-
 
 void Pastry::doApplyMultiplier(const double mult) {
     multiplier *= mult;
@@ -57,35 +94,38 @@ void Pastry::doUpgrade() {
     }
 }
 
-
 sf::Time Pastry::doComputeDuration() const {
     return sf::seconds(2.0f + static_cast<float>(unlockCost) / 100.0f);
 }
-
 
 void Pastry::applyUpgradeDiscount(const double factor) {
     upgradeCost *= factor;
 }
 
-void Pastry::doSetUpgradeCost(const double newUpgradeCost) { upgradeCost = newUpgradeCost; }
-
 double Pastry::getUpgradeCost() const {
     return upgradeCost;
 }
 
-std::string Pastry::doGetEffectDescription() const {
-    return "Generates " + std::to_string(static_cast<int>(doSellPayout())) + " RON";}
+bool Pastry::isUsable() const {
+    return false;
+}
 
-void Pastry::doSetBaseIncome(const double newBaseIncome) {
-    baseIncome = newBaseIncome;
+void Pastry::applyEffect(const std::string& type, double value) {
+    if (type == "profit_multiplier") {
+        applyMultiplier(value);
+    } else if (type == "upgrade_discount") {
+        applyUpgradeDiscount(value);
+    }
+}
+
+std::string Pastry::doGetEffectDescription() const {
+    return "Generates " + std::to_string(static_cast<int>(doSellPayout())) + " RON";
 }
 
 void Pastry::doUse(std::vector<std::unique_ptr<Item>>& allItems,
-                   std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
                    std::queue<std::string>& eventMessages,
                    std::mutex& eventMutex) {
     (void)allItems;
-    (void)activeSpeedBuffs;
     (void)eventMessages;
     (void)eventMutex;
 }
@@ -121,7 +161,7 @@ void Pastry::doLoad(std::istream& is) {
         return true;
     };
 
-    while (getKV(key, value)) {
+    for (int i = 0; i < 8 && getKV(key, value); ++i) {
         if (key == "name") name = value;
         else if (key == "multiplier") multiplier = std::stod(value);
         else if (key == "unlockCost") unlockCost = std::stod(value);
@@ -130,7 +170,5 @@ void Pastry::doLoad(std::istream& is) {
         else if (key == "baseIncome") baseIncome = std::stod(value);
         else if (key == "upgradeCost") upgradeCost = std::stod(value);
         else if (key == "duration") duration = sf::seconds(std::stof(value));
-        else {
-        }
     }
 }

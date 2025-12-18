@@ -13,6 +13,8 @@ private:
     sf::Time baseDuration;
     mutable std::mt19937 rng;
 
+    std::optional<std::tuple<double, sf::Time, sf::Time>> currentSpeedBuff;
+
     bool rollFastEffect() const;
     double doSellPayout() const override;
     double doDeliveryPayout() const override;
@@ -21,10 +23,7 @@ private:
     void doApplyMultiplier(double mult) override;
     [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
-    void doSetBaseIncome(double) override {}
-    void doSetUpgradeCost(double) override {}
     void doUse(std::vector<std::unique_ptr<Item>>& allItems,
-               std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
                std::queue<std::string>& eventMessages,
                std::mutex& eventMutex) override;
     void doSave(std::ostream& os) const override;
@@ -43,6 +42,7 @@ public:
     [[nodiscard]] Item* clone() const override;
 
     [[nodiscard]] double rollMultiplier() const;
+    void updateSpeedBuff(sf::Time deltaTime);
 
     friend void swap(Sandwich& lhs, Sandwich& rhs) noexcept {
         using std::swap;
@@ -52,6 +52,7 @@ public:
         swap(lhs.fastChance, rhs.fastChance);
         swap(lhs.baseDuration, rhs.baseDuration);
         swap(lhs.rng, rhs.rng);
+        swap(lhs.currentSpeedBuff, rhs.currentSpeedBuff);
     }
 
     Sandwich& operator=(Sandwich other) {
@@ -59,6 +60,9 @@ public:
         return *this;
     }
     [[nodiscard]] double getUpgradeCost() const override;
+
+    void update(sf::Time time) override;
+    [[nodiscard]] double getSpeedMultiplier() const override;
 };
 
 #endif // OOP_SANDWICH_H

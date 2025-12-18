@@ -5,7 +5,7 @@
 
 class GlovoPlatform : public DeliveryPlatform {
 private:
-    static constexpr double MIN_DURATION = 0.5;
+    static constexpr double MIN_DURATION = 1;
     static constexpr double DURATION_SCALE = 0.12;
 
     [[nodiscard]] IncomeResult doComputeIncome(const Item& item) const override;

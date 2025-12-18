@@ -61,26 +61,29 @@ std::string Item::getEffectDescription() const {
     return doGetEffectDescription();
 }
 
-void Item::setBaseIncome(const double newBaseIncome) {
-    doSetBaseIncome(newBaseIncome);
-}
-
-void Item::setUpgradeCost(const double newUpgradeCost) {
-    doSetUpgradeCost(newUpgradeCost);
-}
-
 double Item::getUseCost() const {
     return useCost;
 }
 
 void Item::use(std::vector<std::unique_ptr<Item>>& allItems,
-             std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
              std::queue<std::string>& eventMessages,
              std::mutex& eventMutex) {
-    doUse(allItems, activeSpeedBuffs, eventMessages, eventMutex);
+    doUse(allItems, eventMessages, eventMutex);
 }
 
+void Item::update(sf::Time time) {
+    (void)time;
+}
 
+double Item::getSpeedMultiplier() const {
+    return 1.0;
+}
 
+bool Item::isUsable() const {
+    return true;
+}
 
-
+void Item::applyEffect(const std::string& type, double value) {
+    (void)type;
+    (void)value;
+}

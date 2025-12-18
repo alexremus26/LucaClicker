@@ -1,6 +1,6 @@
 type: Pastry
 name: Covrig
-baseIncome: 1
+baseIncome: 1442
 upgradeCost: 10
 multiplier: 1.5
 unlockCost: 0
@@ -65,21 +65,21 @@ unlockDeliveryCost: 0
 target: all
 
 type: Sandwich
-name: Bussin' Sandwich
+name: Snitel Sandwich
 unlockCost: 1500
 fastMultiplier: 5
 slowMultiplier: 0.2
 fastChance: 0.25
-duration: 15
+baseDuration: 15
 deliveryName: Wolt
 unlockDeliveryCost: 1200
 
 type: Sandwich
-name: Mid Sandwich
+name: Salam Sandwich
 unlockCost: 1200
 fastMultiplier: 2
 slowMultiplier: 0.5
 fastChance: 0.5
-duration: 10
+baseDuration: 10
 deliveryName: Glovo
 unlockDeliveryCost: 1000

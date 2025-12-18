@@ -19,6 +19,8 @@ private:
     std::string warningMessage;
     sf::Clock   warningClock;
 
+    std::vector<std::size_t> displayToReal;
+
     static constexpr float LEFT_MARGIN   = 40.f;
     static constexpr float TOP_MARGIN    = 20.f;
     static constexpr float ITEM_SPACING  = 40.f;
@@ -33,6 +35,7 @@ private:
     static constexpr float WARNING_Y_OFFSET = 80.f;
 
     void drawProgressBar(float progress, float x, float y);
+    float drawItemAndReturnHeight(Item& item, size_t realIndex, int displayIndex, float x, float y);
 
 public:
     explicit Display(GameManager& manager);

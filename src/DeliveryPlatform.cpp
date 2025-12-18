@@ -1,7 +1,7 @@
 #include "DeliveryPlatform.h"
 #include <iostream>
 
-DeliveryPlatform::DeliveryPlatform(const double critChance, const double critMultiplier)
+DeliveryPlatform::DeliveryPlatform(double critChance, double critMultiplier)
     : critChance(critChance), critMultiplier(critMultiplier), rng(std::random_device{}()) {}
 
 

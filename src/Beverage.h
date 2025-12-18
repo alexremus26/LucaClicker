@@ -8,12 +8,11 @@
 #include <tuple>
 #include <memory>
 
-using BeverageEffect = std::tuple<std::string, double>;
-
 class Beverage final : public Item {
 private:
-    std::vector<BeverageEffect> effects;
+    std::vector<std::tuple<std::string, double>> effects;
     std::string targetName;
+    std::vector<std::tuple<double, sf::Time, sf::Time>> activeBuffs; // Multiplier, Duration, Remaining
 
     void applyToOne(Item& item) const;
 
@@ -24,10 +23,7 @@ private:
     void doApplyMultiplier(double mult) override;
     [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
-    void doSetBaseIncome(double newBaseIncome) override;
-    void doSetUpgradeCost(double newUpgradeCost) override;
     void doUse(std::vector<std::unique_ptr<Item>>& allItems,
-               std::vector<std::tuple<double, sf::Time, sf::Time>>& activeSpeedBuffs,
                std::queue<std::string>& eventMessages,
                std::mutex& eventMutex) override;
     void doSave(std::ostream& os) const override;
@@ -36,7 +32,7 @@ private:
 
 public:
     Beverage(std::string name_, double multiplier_, double unlockCost_,
-             std::vector<BeverageEffect> effects_,
+             std::vector<std::tuple<std::string, double>> effects_,
              std::string targetName_ = "ALL");
     Beverage(const Beverage& other);
     ~Beverage() override;
@@ -47,6 +43,7 @@ public:
         swap(static_cast<Item &>(lhs), static_cast<Item &>(rhs));
         swap(lhs.effects, rhs.effects);
         swap(lhs.targetName, rhs.targetName);
+        swap(lhs.activeBuffs, rhs.activeBuffs);
     }
 
     Beverage & operator=(Beverage other) {
@@ -56,7 +53,14 @@ public:
             }
             return *this;
         }
-    [[nodiscard]] double getUpgradeCost() const override;};
+    [[nodiscard]] double getUpgradeCost() const override;
+    void updateBuffs(sf::Time deltaTime);
+    double getBuffMultiplier() const;
+    [[nodiscard]] std::string getTargetName() const;
+
+    void update(sf::Time time) override;
+    [[nodiscard]] double getSpeedMultiplier() const override;
+};
 
 #endif // OOP_BEVERAGE_H
     

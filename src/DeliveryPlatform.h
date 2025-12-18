@@ -34,4 +34,5 @@ public:
     [[nodiscard]] sf::Time computeSpeed(const Item&) const;
 };
 
+
 #endif //OOP_DELIVERYPLATFORM_H

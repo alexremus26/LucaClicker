@@ -82,6 +82,8 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/Sandwich.h
         src/GameExceptions.cpp
         src/GameExceptions.h
+        src/ItemFactory.cpp
+        src/ItemFactory.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
