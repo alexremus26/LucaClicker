@@ -117,7 +117,7 @@ void Sandwich::doUse(std::vector<std::unique_ptr<Item>>& allItems,
 
     (void)allItems;
 
-    const double multiplier = rollFastEffect() ? fastMultiplier : slowMultiplier;
+    multiplier = rollFastEffect() ? fastMultiplier : slowMultiplier;
 
     const sf::Time duration = getDuration();
 
