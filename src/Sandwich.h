@@ -3,6 +3,7 @@
 
 #include "Item.h"
 #include <random>
+#include <optional>
 
 
 class Sandwich final : public Item {
