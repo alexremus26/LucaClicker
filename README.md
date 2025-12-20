@@ -9,6 +9,27 @@ Players begin with a single unlocked food item. Selling it earns small profits t
 
   - Hire delivery services — Automate production and sales so your income grows passively over time.
 
+## Features
+
+*   **Incremental Gameplay:** Start with a single item and grow your empire.
+*   **Multiple Item Types:** Unlock and manage different types of items like Pastries, Beverages, and Sandwiches.
+*   **Upgrades:** Increase the income and effectiveness of your items by upgrading them.
+*   **Automation:** Hire delivery services (like Wolt and Glovo) to automate your income generation.
+*   **Buffs and Special Effects:** Use special items like Beverages and Sandwiches to apply temporary boosts to your production.
+*   **Save System:** Your progress is automatically saved when you quit and can be loaded when you start the game again.
+
+## How to Play
+
+The game is controlled using the keyboard.
+
+*   **1-9 Keys:** Select one of the items listed on the screen.
+*   **Z:** Unlocks the selected item if you have enough money.
+*   **S:** Manually "sells" the selected item. A progress bar will appear, and you will earn money when it completes.
+*   **U:** Upgrades the selected item to a new level, increasing its value.
+*   **D:** Buys a "Delivery" service for the selected item, which will sell it automatically.
+*   **B:** Uses a special item, like a Beverage or a Sandwich, to apply its effects.
+*   **Q:** Saves the current game progress and quits the application.
+
 ### To be implemented
 
 - Extending the range of food items and progress balances.

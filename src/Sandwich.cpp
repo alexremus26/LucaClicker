@@ -69,7 +69,7 @@ bool Sandwich::rollFastEffect() const {
     return dist(rng) < fastChance;
 }
 
-double Sandwich::doSellPayout() const { return 0; }
+double Sandwich::doSellPayout() const { return 0.0; }
 double Sandwich::doDeliveryPayout() const { return 0.0; }
 
 void Sandwich::doPrint(std::ostream& os) const {
@@ -85,17 +85,14 @@ void Sandwich::doUpgrade() {
     ++level;
     useCost *= 1.5;
 
-    this->fastChance += 0.01;
-    this->fastChance = std::min(1.0, this->fastChance);
-
+    this->fastChance = std::min(1.0, this->fastChance + 0.01);
     this->fastMultiplier += 0.05;
-
     if (this->slowMultiplier > 0.1)
         this->slowMultiplier -= 0.01;
 }
 
 sf::Time Sandwich::doComputeDuration() const {
-    return baseDuration;
+    return sf::seconds(0.f);
 }
 
 std::string Sandwich::doGetEffectDescription() const {
