@@ -85,11 +85,13 @@ void Sandwich::doUpgrade() {
     ++level;
     useCost *= 1.5;
 
-    fastChance += 0.01;
-    fastChance = std::min(1.0, fastChance);
-    fastMultiplier += 0.05;
-    if (slowMultiplier > 0.1)
-        slowMultiplier -= 0.01;
+    this->fastChance += 0.01;
+    this->fastChance = std::min(1.0, this->fastChance);
+
+    this->fastMultiplier += 0.05;
+
+    if (this->slowMultiplier > 0.1)
+        this->slowMultiplier -= 0.01;
 }
 
 sf::Time Sandwich::doComputeDuration() const {
