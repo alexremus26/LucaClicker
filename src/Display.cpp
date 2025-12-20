@@ -230,7 +230,7 @@ void Display::run()
 
                 auto beverageIndex = static_cast<size_t>(-1);
                 for (size_t j = 0; j < allItems.size(); ++j) {
-                    if (const auto* beverage = dynamic_cast<Beverage*>(allItems[j].get())) {
+                    if (auto* beverage = dynamic_cast<Beverage*>(allItems[j].get())) {
                         if (beverage->getTargetName() == pastry->getName()) {
                             beverageIndex = j;
                             break;

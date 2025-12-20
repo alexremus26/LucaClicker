@@ -165,7 +165,7 @@ double Beverage::getBuffMultiplier() {
     return 1.0;
 }
 
-std::string Beverage::getTargetName() const {
+std::string& Beverage::getTargetName() {
     return targetName;
 }
 

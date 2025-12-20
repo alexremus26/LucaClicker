@@ -85,7 +85,8 @@ void Sandwich::doUpgrade() {
     ++level;
     useCost *= 1.5;
 
-    fastChance = std::min(1.0, fastChance + 0.01);
+    fastChance += 0.01;
+    fastChance = std::min(1.0, fastChance);
     fastMultiplier += 0.05;
     if (slowMultiplier > 0.1)
         slowMultiplier -= 0.01;
