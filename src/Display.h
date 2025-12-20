@@ -35,7 +35,7 @@ private:
     static constexpr float WARNING_Y_OFFSET = 80.f;
 
     void drawProgressBar(float progress, float x, float y);
-    float drawItemAndReturnHeight(Item& item, size_t realIndex, int displayIndex, float x, float y);
+    float drawItemAndReturnHeight(const Item& item, size_t realIndex, int displayIndex, float x, float y);
 
 public:
     explicit Display(GameManager& manager);

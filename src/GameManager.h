@@ -53,7 +53,7 @@ public:
     void sell(const Item& item) const;
     void runSellingLoop(Item& item, std::size_t index);
     void upgrade(Item& item) const;
-    [[nodiscard]] float getProgress(std::size_t index) const;
+    [[nodiscard]] float anyProgress(std::size_t index) const;
 
     void startDelivery(Item& item, const Delivery& delivery, int index);
     void stopAllDeliveries();

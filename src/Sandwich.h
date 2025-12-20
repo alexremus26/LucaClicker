@@ -21,7 +21,7 @@ private:
     double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
     void doUpgrade() override;
-    void doApplyMultiplier(double mult) override;
+    void doApplyMultiplier(double multi) override;
     [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doUse(std::vector<std::unique_ptr<Item>>& allItems,
@@ -32,6 +32,7 @@ private:
     [[nodiscard]] std::string getType() const override;
 
 public:
+    static void registerItem();
     Sandwich(std::string name,
              double unlockCost,
              double fastMult,
@@ -41,9 +42,6 @@ public:
     Sandwich(const Sandwich& other);
     ~Sandwich() override = default;
     [[nodiscard]] Item* clone() const override;
-
-    [[nodiscard]] double rollMultiplier() const;
-    void updateSpeedBuff(sf::Time deltaTime);
 
     friend void swap(Sandwich& lhs, Sandwich& rhs) noexcept {
         using std::swap;

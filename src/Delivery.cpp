@@ -76,7 +76,7 @@ void Delivery::load(std::istream& is) {
     auto getKV = [&](std::string& k, std::string& v) {
         if (!std::getline(is, line)) return false;
         if (line.empty()) return false;
-        size_t pos = line.find(':');
+        const size_t pos = line.find(':');
         if (pos == std::string::npos) return false;
         k = line.substr(0, pos);
         v = line.substr(pos + 2);

@@ -8,6 +8,13 @@
 #include "Item.h"
 
 class ItemFactory {
+private:
+    ItemFactory() = default;
+
+    std::map<std::string,
+        std::function<std::unique_ptr<Item>(const std::map<std::string, std::string>&)>
+    > creationMethods;
+
 public:
     static ItemFactory& getInstance();
 
@@ -24,12 +31,6 @@ public:
         const std::map<std::string, std::string>& config
     );
 
-private:
-    ItemFactory() = default;
-
-    std::map<std::string,
-        std::function<std::unique_ptr<Item>(const std::map<std::string, std::string>&)>
-    > creationMethods;
 };
 
 #endif // OOP_ITEMFACTORY_H

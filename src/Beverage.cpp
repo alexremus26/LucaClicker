@@ -5,55 +5,49 @@
 #include "ItemFactory.h"
 #include "GameExceptions.h"
 
-namespace {
-class BeverageRegistration {
-public:
-    BeverageRegistration() {
-        ItemFactory::getInstance().registerType(
-            "Beverage",
-            [](const std::map<std::string, std::string>& config) -> std::unique_ptr<Item> {
+void Beverage::registerItem() {
+    ItemFactory::getInstance().registerType(
+        "Beverage",
+        [](const std::map<std::string, std::string>& config) -> std::unique_ptr<Item> {
 
-                auto require = [&](const char* key) -> const std::string& {
-                    auto it = config.find(key);
-                    if (it == config.end()) {
-                        throw InvalidFormatException(std::string("Beverage missing key: '") + key + "'");
-                    }
-                    return it->second;
-                };
-
-                auto getOr = [&](const char* key, const std::string& def) -> std::string {
-                    auto it = config.find(key);
-                    return (it == config.end()) ? def : it->second;
-                };
-
-                try {
-                    const std::string name = require("name");
-                    const double multiplier = std::stod(require("multiplier"));
-                    const double unlockCost = std::stod(require("unlockCost"));
-
-                    std::vector<std::tuple<std::string, double>> effects;
-                    {
-                        const std::string effectsStr = getOr("effects", "");
-                        std::stringstream ss(effectsStr);
-                        std::string effectType;
-                        double effectValue;
-                        while (ss >> effectType >> effectValue) {
-                            effects.emplace_back(effectType, effectValue);
-                        }
-                    }
-
-                    const std::string targetName = getOr("target", "all");
-
-                    return std::make_unique<Beverage>(name, multiplier, unlockCost, effects, targetName);
-                } catch (const std::exception& e) {
-                    throw InvalidFormatException(std::string("Beverage parse error: ") + e.what());
+            auto require = [&](const char* key) -> const std::string& {
+                const auto it = config.find(key);
+                if (it == config.end()) {
+                    throw InvalidFormatException(std::string("Beverage missing key: '") + key + "'");
                 }
+                return it->second;
+            };
+
+            auto getOr = [&](const char* key, const std::string& def) -> std::string {
+                const auto it = config.find(key);
+                return (it == config.end()) ? def : it->second;
+            };
+
+            try {
+                const std::string& name = require("name");
+                const double multiplier = std::stod(require("multiplier"));
+                const double unlockCost = std::stod(require("unlockCost"));
+
+                std::vector<std::tuple<std::string, double>> effects;
+                {
+                    const std::string effectsStr = getOr("effects", "");
+                    std::stringstream ss(effectsStr);
+                    std::string effectType;
+                    double effectValue;
+                    while (ss >> effectType >> effectValue) {
+                        effects.emplace_back(effectType, effectValue);
+                    }
+                }
+
+                const std::string targetName = getOr("target", "all");
+
+                return std::make_unique<Beverage>(name, multiplier, unlockCost, effects, targetName);
+            } catch (const std::exception& e) {
+                throw InvalidFormatException(std::string("Beverage parse error: ") + e.what());
             }
-        );
-    }
-};
+        }
+    );
 }
-static BeverageRegistration beverage_registration;
 
 Beverage::Beverage(std::string name_, const double multiplier_, const double unlockCost_,
                    std::vector<std::tuple<std::string, double>> effects_,
@@ -82,7 +76,7 @@ double Beverage::doSellPayout() const { return 0.0; }
 double Beverage::doDeliveryPayout() const { return 0.0; }
 
 void Beverage::doPrint(std::ostream& os) const {
-    os << "Use Cost: " << getUseCost()
+    os << "Use Cost: " << useCost
        << " | Level: " << level
        << " | Target: " << targetName
        << " | Effects: " << getEffectDescription();
@@ -155,7 +149,7 @@ double Beverage::getUpgradeCost() const {
     return 0.0;
 }
 
-void Beverage::updateBuffs(sf::Time deltaTime) {
+void Beverage::updateBuffs(const sf::Time deltaTime) {
     for (auto it = activeBuffs.begin(); it != activeBuffs.end(); ) {
         auto& remaining = std::get<2>(*it);
         remaining -= deltaTime;
@@ -167,7 +161,7 @@ void Beverage::updateBuffs(sf::Time deltaTime) {
     }
 }
 
-double Beverage::getBuffMultiplier() const {
+double Beverage::getBuffMultiplier() {
     return 1.0;
 }
 
@@ -175,7 +169,7 @@ std::string Beverage::getTargetName() const {
     return targetName;
 }
 
-void Beverage::update(sf::Time time) {
+void Beverage::update(const sf::Time time) {
     updateBuffs(time);
 }
 
@@ -241,10 +235,10 @@ void Beverage::doLoad(std::istream& is) {
             for (std::size_t j = 0; j < buffsCount; ++j) {
                 std::string buffLine;
                 if (std::getline(is, buffLine)) {
-                    std::string buffKey;
-                    std::string buffValue;
                     size_t pos = buffLine.find(':');
                     if (pos != std::string::npos) {
+                        std::string buffKey;
+                        std::string buffValue;
                         buffKey = buffLine.substr(0, pos);
                         buffValue = buffLine.substr(pos + 2);
                         if (buffKey == "activeBuff") {

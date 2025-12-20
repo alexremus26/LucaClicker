@@ -1,6 +1,9 @@
 #include "GameManager.h"
 #include "GameExceptions.h"
 #include "ItemFactory.h"
+#include "Beverage.h"
+#include "Pastry.h"
+#include "Sandwich.h"
 
 #include <iostream>
 #include <thread>
@@ -155,7 +158,7 @@ void GameManager::upgrade(Item& item) const{
 }
 
 
-float GameManager::getProgress(const std::size_t index) const {
+float GameManager::anyProgress(const std::size_t index) const {
     return (index < progress.size()) ? progress[index] : 0.f;
 }
 
@@ -206,6 +209,10 @@ std::string GameManager::popEventMessage() {
 
 
 GameManager GameManager::loadFromFile(const std::string& fileName, Player& player) {
+    Beverage::registerItem();
+    Pastry::registerItem();
+    Sandwich::registerItem();
+
     std::ifstream file(fileName);
     if (!file.is_open())
         throw FileOpenException(fileName);
@@ -390,7 +397,6 @@ bool GameManager::loadSavedGame() {
 
     return true;
 }
-
 
 std::vector<std::unique_ptr<Item>>& GameManager::getItems() {
     return items;

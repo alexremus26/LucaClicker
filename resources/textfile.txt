@@ -1,6 +1,6 @@
 type: Pastry
 name: Covrig
-baseIncome: 1442
+baseIncome: 1
 upgradeCost: 10
 multiplier: 1.5
 unlockCost: 0

@@ -30,12 +30,6 @@ bool Player::tryPay(const double amount) {
 void Player::earn(const double amount) {
     money += amount;
 }
-bool Player::enoughMoney(const double amount) const {
-    if (money >= amount) {
-        return true;
-    }
-    else return false;
-}
 
 void Player::save(std::ostream& os) const {
     os << "money: " << money << "\n";

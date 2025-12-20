@@ -31,6 +31,7 @@ private:
     [[nodiscard]] std::string getType() const override;
 
 public:
+    static void registerItem();
     Beverage(std::string name_, double multiplier_, double unlockCost_,
              std::vector<std::tuple<std::string, double>> effects_,
              std::string targetName_ = "ALL");
@@ -55,7 +56,7 @@ public:
         }
     [[nodiscard]] double getUpgradeCost() const override;
     void updateBuffs(sf::Time deltaTime);
-    double getBuffMultiplier() const;
+    static double getBuffMultiplier() ;
     [[nodiscard]] std::string getTargetName() const;
 
     void update(sf::Time time) override;

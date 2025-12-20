@@ -17,7 +17,6 @@ public:
     [[nodiscard]] const double& getMoney() const;
     bool tryPay(double amount);
     void earn(double amount);
-    [[nodiscard]] bool enoughMoney(double amount) const;
 
     void save(std::ostream& os) const;
     void load(std::istream& is);

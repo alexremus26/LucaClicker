@@ -5,40 +5,33 @@
 #include "ItemFactory.h"
 #include "GameExceptions.h"
 
-namespace {
-class PastryRegistration {
-public:
-    PastryRegistration() {
-        ItemFactory::getInstance().registerType(
-            "Pastry",
-            [](const std::map<std::string, std::string>& config) -> std::unique_ptr<Item> {
+void Pastry::registerItem() {
+    ItemFactory::getInstance().registerType(
+        "Pastry",
+        [](const std::map<std::string, std::string>& config) -> std::unique_ptr<Item> {
 
-                auto require = [&](const char* key) -> const std::string& {
-                    const auto it = config.find(key);
-                    if (it == config.end()) {
-                        throw InvalidFormatException(std::string("Pastry missing key: '") + key + "'");
-                    }
-                    return it->second;
-                };
-
-                try {
-                    const std::string name = require("name");
-                    const double multiplier = std::stod(require("multiplier"));
-                    const double unlockCost = std::stod(require("unlockCost"));
-                    const double baseIncome = std::stod(require("baseIncome"));
-                    const double upgradeCost = std::stod(require("upgradeCost"));
-                    const sf::Time duration = sf::seconds(std::stof(require("duration")));
-
-                    return std::make_unique<Pastry>(name, multiplier, unlockCost, baseIncome, upgradeCost, duration);
-                } catch (const std::exception& e) {
-                    throw InvalidFormatException(std::string("Pastry parse error: ") + e.what());
+            auto require = [&](const char* key) -> const std::string& {
+                const auto it = config.find(key);
+                if (it == config.end()) {
+                    throw InvalidFormatException(std::string("Pastry missing key: '") + key + "'");
                 }
-            }
-        );
-    }
-};
+                return it->second;
+            };
 
-static PastryRegistration pastryRegistration;
+            try {
+                const std::string& name = require("name");
+                const double multiplier = std::stod(require("multiplier"));
+                const double unlockCost = std::stod(require("unlockCost"));
+                const double baseIncome = std::stod(require("baseIncome"));
+                const double upgradeCost = std::stod(require("upgradeCost"));
+                const sf::Time duration = sf::seconds(std::stof(require("duration")));
+
+                return std::make_unique<Pastry>(name, multiplier, unlockCost, baseIncome, upgradeCost, duration);
+            } catch (const std::exception& e) {
+                throw InvalidFormatException(std::string("Pastry parse error: ") + e.what());
+            }
+        }
+    );
 }
 
 Pastry::Pastry(std::string name_, const double multiplier_, const double unlockCost_,
@@ -74,14 +67,14 @@ double Pastry::doDeliveryPayout() const {
 
 void Pastry::doPrint(std::ostream &os) const {
     os  << "  Income: " << baseIncome
-        << " (x" << multiplier << " = " << doSellPayout()*multiplier<< ")"
+        << " (x" << multiplier << " = " << baseIncome * multiplier<< ")"
         << " | Upgrade Cost: " << upgradeCost
         << " | Level: " << level
         << " | Multiplier: " << multiplier;
 }
 
-void Pastry::doApplyMultiplier(const double mult) {
-    multiplier *= mult;
+void Pastry::doApplyMultiplier(const double multi) {
+    multiplier *= multi;
 }
 
 void Pastry::doUpgrade() {
@@ -110,7 +103,7 @@ bool Pastry::isUsable() const {
     return false;
 }
 
-void Pastry::applyEffect(const std::string& type, double value) {
+void Pastry::applyEffect(const std::string& type, const double value) {
     if (type == "profit_multiplier") {
         applyMultiplier(value);
     } else if (type == "upgrade_discount") {

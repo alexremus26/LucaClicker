@@ -48,9 +48,9 @@ void Display::drawProgressBar(const float progress, const float x, const float y
     window.draw(fill);
 }
 
-float Display::drawItemAndReturnHeight(Item& item,
-                                      size_t realIndex,
-                                      int displayIndex,
+float Display::drawItemAndReturnHeight(const Item& item,
+                                      const size_t realIndex,
+                                      const int displayIndex,
                                       float x,
                                       float y)
 {
@@ -91,8 +91,8 @@ float Display::drawItemAndReturnHeight(Item& item,
     window.draw(details);
 
     blockHeight += details.getGlobalBounds().size.y + 6.f;
-
-    if (const float progress = gameManager.getProgress(realIndex); progress > 0.f) {
+    const float progress = gameManager.anyProgress(realIndex);
+    if (progress != 0) {
         drawProgressBar(
             progress,
             x,
@@ -222,15 +222,15 @@ void Display::run()
         for (size_t i = 0; i < allItems.size(); ++i) {
             if (itemDrawn[i]) continue;
 
-            if (auto* pastry = dynamic_cast<Pastry*>(allItems[i].get())) {
+            if (const auto* pastry = dynamic_cast<Pastry*>(allItems[i].get())) {
                 displayToReal.push_back(i);
                 float pastryHeight =
                     drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
                 itemDrawn[i] = true;
 
-                size_t beverageIndex = static_cast<size_t>(-1);
+                auto beverageIndex = static_cast<size_t>(-1);
                 for (size_t j = 0; j < allItems.size(); ++j) {
-                    if (auto* beverage = dynamic_cast<Beverage*>(allItems[j].get())) {
+                    if (const auto* beverage = dynamic_cast<Beverage*>(allItems[j].get())) {
                         if (beverage->getTargetName() == pastry->getName()) {
                             beverageIndex = j;
                             break;
@@ -254,7 +254,7 @@ void Display::run()
             }
             else if (dynamic_cast<Sandwich*>(allItems[i].get())) {
                 displayToReal.push_back(i);
-                float sandwichHeight =
+                const float sandwichHeight =
                     drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
                 itemDrawn[i] = true;
                 y += sandwichHeight + ITEM_SPACING;
@@ -264,7 +264,7 @@ void Display::run()
         for (size_t i = 0; i < allItems.size(); ++i) {
             if (!itemDrawn[i]) {
                 displayToReal.push_back(i);
-                float itemHeight =
+                const float itemHeight =
                     drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
                 itemDrawn[i] = true;
                 y += itemHeight + ITEM_SPACING;

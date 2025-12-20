@@ -6,40 +6,33 @@
 #include "ItemFactory.h"
 #include "GameExceptions.h"
 
-namespace {
-class SandwichRegistration {
-public:
-    SandwichRegistration() {
-        ItemFactory::getInstance().registerType(
-            "Sandwich",
-            [](const std::map<std::string, std::string>& config) -> std::unique_ptr<Item> {
+void Sandwich::registerItem() {
+    ItemFactory::getInstance().registerType(
+        "Sandwich",
+        [](const std::map<std::string, std::string>& config) -> std::unique_ptr<Item> {
 
-                auto require = [&](const char* key) -> const std::string& {
-                    auto it = config.find(key);
-                    if (it == config.end()) {
-                        throw InvalidFormatException(std::string("Sandwich missing key: '") + key + "'");
-                    }
-                    return it->second;
-                };
-
-                try {
-                    const std::string name = require("name");
-                    const double unlockCost = std::stod(require("unlockCost"));
-                    const double fastMult = std::stod(require("fastMultiplier"));
-                    const double slowMult = std::stod(require("slowMultiplier"));
-                    const double fastChance = std::stod(require("fastChance"));
-                    const sf::Time baseDuration = sf::seconds(std::stof(require("baseDuration")));
-
-                    return std::make_unique<Sandwich>(name, unlockCost, fastMult, slowMult, fastChance, baseDuration);
-                } catch (const std::exception& e) {
-                    throw InvalidFormatException(std::string("Sandwich parse error: ") + e.what());
+            auto require = [&](const char* key) -> const std::string& {
+                const auto it = config.find(key);
+                if (it == config.end()) {
+                    throw InvalidFormatException(std::string("Sandwich missing key: '") + key + "'");
                 }
-            }
-        );
-    }
-};
+                return it->second;
+            };
 
-static SandwichRegistration sandwichRegistration;
+            try {
+                const std::string& name = require("name");
+                const double unlockCost = std::stod(require("unlockCost"));
+                const double fastMult = std::stod(require("fastMultiplier"));
+                const double slowMult = std::stod(require("slowMultiplier"));
+                const double fastChance = std::stod(require("fastChance"));
+                const sf::Time baseDuration = sf::seconds(std::stof(require("baseDuration")));
+
+                return std::make_unique<Sandwich>(name, unlockCost, fastMult, slowMult, fastChance, baseDuration);
+            } catch (const std::exception& e) {
+                throw InvalidFormatException(std::string("Sandwich parse error: ") + e.what());
+            }
+        }
+    );
 }
 
 Sandwich::Sandwich(std::string name,
@@ -107,8 +100,8 @@ std::string Sandwich::doGetEffectDescription() const {
            " or slow x" + std::to_string(slowMultiplier);
 }
 
-void Sandwich::doApplyMultiplier(const double mult) {
-    multiplier *= mult;
+void Sandwich::doApplyMultiplier(const double multi) {
+    multiplier *= multi;
 }
 
 void Sandwich::doUse(std::vector<std::unique_ptr<Item>>& allItems,
@@ -142,9 +135,9 @@ double Sandwich::getUpgradeCost() const {
     return 0.0;
 }
 
-void Sandwich::update(sf::Time dt) {
+void Sandwich::update(const sf::Time time) {
     if (currentSpeedBuff.has_value()) {
-        std::get<1>(*currentSpeedBuff) -= dt;
+        std::get<1>(*currentSpeedBuff) -= time;
         if (std::get<1>(*currentSpeedBuff) <= sf::Time::Zero) {
             currentSpeedBuff.reset();
         }
@@ -207,9 +200,12 @@ void Sandwich::doLoad(std::istream& is) {
         else if (key == "hasBuff") {
             if (value == "1") {
                 std::string k2, v2;
-                getKV(k2, v2); double mult = std::stod(v2);
-                getKV(k2, v2); double rem  = std::stod(v2);
-                getKV(k2, v2); double tot  = std::stod(v2);
+                getKV(k2, v2);
+                double mult = std::stod(v2);
+                getKV(k2, v2);
+                const double rem  = std::stod(v2);
+                getKV(k2, v2);
+                const double tot  = std::stod(v2);
                 currentSpeedBuff = std::make_tuple(
                     mult,
                     sf::seconds(static_cast<float>(rem)),
