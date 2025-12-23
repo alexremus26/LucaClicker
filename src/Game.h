@@ -47,7 +47,6 @@ public:
     void pushEventMessage(const std::string& message);
     std::string popEventMessage();
 
-    void processEvents();
 
     std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;

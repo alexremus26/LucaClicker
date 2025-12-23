@@ -206,26 +206,6 @@ std::string Game::popEventMessage() {
     return message;
 }
 
-void Game::processEvents() {
-    std::string event;
-    while (!(event = popEventMessage()).empty()) {
-        std::istringstream iss(event);
-        std::string eventType;
-        iss >> eventType;
-
-        if (eventType == "TIME_WARP") {
-            double payout;
-            iss >> payout;
-            player.earn(payout);
-
-            std::stringstream ss;
-            ss << "Raffle Ticket time warp generated " << std::fixed << std::setprecision(2) << payout << " money!";
-            pushEventMessage(ss.str());
-        }
-    }
-}
-
-
 
 Game Game::loadFromFile(const std::string& fileName, Player& player) {
     Beverage::registerItem();
