@@ -1,4 +1,4 @@
-#include "GameManager.h"
+#include "Game.h"
 #include "GameExceptions.h"
 #include "ItemFactory.h"
 #include "Beverage.h"
@@ -15,7 +15,7 @@
 #include <algorithm>
 
 
-GameManager::GameManager(Player& player_,
+Game::Game(Player& player_,
                          std::vector<std::unique_ptr<Item>> items_,
                          std::vector<Delivery> deliveries_)
     : player(player_),
@@ -33,12 +33,12 @@ GameManager::GameManager(Player& player_,
 
 
 
-GameManager::~GameManager() {
+Game::~Game() {
     stopAllDeliveries();
     std::cout << "GameManager destroyed!\n";
 }
 
-std::ostream& operator<<(std::ostream& ostream, const GameManager& manager)
+std::ostream& operator<<(std::ostream& ostream, const Game& manager)
 {
     ostream << "=== Game Manager ===\n";
     ostream << "Player money: " << manager.player.getMoney() << "\n";
@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& ostream, const GameManager& manager)
     return ostream;
 }
 
-std::string GameManager::unlockItem(const std::size_t index) {
+std::string Game::unlockItem(const std::size_t index) {
     if (index >= itemUnlocked.size()) {
         throw InvalidIndexException("Attempted to unlock item at invalid index " + std::to_string(index) + ".");
     }
@@ -66,12 +66,12 @@ std::string GameManager::unlockItem(const std::size_t index) {
     return "Unlocked item!";
 }
 
-bool GameManager::isUnlocked(const std::size_t index) const {
+bool Game::isUnlocked(const std::size_t index) const {
     return index < itemUnlocked.size() && itemUnlocked[index];
 }
 
 
-std::thread GameManager::runDeliveryLoop(Item& item, std::size_t index) {
+std::thread Game::runDeliveryLoop(Item& item, std::size_t index) {
     return std::thread([this, &item, index]() {
         const Delivery& delivery = deliveries[index];
         const DeliveryPlatform& platform = delivery.getPlatform();
@@ -112,7 +112,7 @@ std::thread GameManager::runDeliveryLoop(Item& item, std::size_t index) {
         }
     });
 }
-void GameManager::runSellingLoop(Item& item, std::size_t index)
+void Game::runSellingLoop(Item& item, std::size_t index)
 {
     if (deliveryRunning[index])
         return;
@@ -146,11 +146,11 @@ void GameManager::runSellingLoop(Item& item, std::size_t index)
 }
 
 
-void GameManager::sell(const Item& item) const {
+void Game::sell(const Item& item) const {
     player.earn(item.sellPayout());
 }
 
-void GameManager::upgrade(Item& item) const{
+void Game::upgrade(Item& item) const{
     const double cost = item.getUpgradeCost();
     if (cost > 0 && player.tryPay(cost)) {
         item.upgrade();
@@ -158,11 +158,11 @@ void GameManager::upgrade(Item& item) const{
 }
 
 
-float GameManager::anyProgress(const std::size_t index) const {
+float Game::anyProgress(const std::size_t index) const {
     return (index < progress.size()) ? progress[index] : 0.f;
 }
 
-void GameManager::startDelivery(Item& item, const Delivery& delivery, const int index) {
+void Game::startDelivery(Item& item, const Delivery& delivery, const int index) {
     if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size())
         throw InvalidIndexException("Delivery index " + std::to_string(index) + " is out of bounds.");
 
@@ -178,7 +178,7 @@ void GameManager::startDelivery(Item& item, const Delivery& delivery, const int 
     }
 }
 
-void GameManager::stopAllDeliveries() {
+void Game::stopAllDeliveries() {
     for (auto && i : deliveryRunning) {
         i = false;
     }
@@ -191,12 +191,12 @@ void GameManager::stopAllDeliveries() {
     deliveryThreads.clear();
 }
 
-void GameManager::pushEventMessage(const std::string& message) {
+void Game::pushEventMessage(const std::string& message) {
     const std::lock_guard<std::mutex> lock(eventMutex);
     eventMessages.push(message);
 }
 
-std::string GameManager::popEventMessage() {
+std::string Game::popEventMessage() {
     const std::lock_guard<std::mutex> lock(eventMutex);
     if (eventMessages.empty()) {
         return "";
@@ -206,9 +206,28 @@ std::string GameManager::popEventMessage() {
     return message;
 }
 
+void Game::processEvents() {
+    std::string event;
+    while (!(event = popEventMessage()).empty()) {
+        std::istringstream iss(event);
+        std::string eventType;
+        iss >> eventType;
+
+        if (eventType == "TIME_WARP") {
+            double payout;
+            iss >> payout;
+            player.earn(payout);
+
+            std::stringstream ss;
+            ss << "Raffle Ticket time warp generated " << std::fixed << std::setprecision(2) << payout << " money!";
+            pushEventMessage(ss.str());
+        }
+    }
+}
 
 
-GameManager GameManager::loadFromFile(const std::string& fileName, Player& player) {
+
+Game Game::loadFromFile(const std::string& fileName, Player& player) {
     Beverage::registerItem();
     Pastry::registerItem();
     Sandwich::registerItem();
@@ -288,7 +307,7 @@ GameManager GameManager::loadFromFile(const std::string& fileName, Player& playe
     return { player, std::move(items), std::move(deliveries) };
 }
 
-void GameManager::saveGame() const {
+void Game::saveGame() const {
     std::ofstream file("resources/savegame.txt");
     if (!file.is_open()) return;
 
@@ -308,7 +327,7 @@ void GameManager::saveGame() const {
 }
 
 
-bool GameManager::loadSavedGame() {
+bool Game::loadSavedGame() {
     std::ifstream file("resources/savegame.txt");
     if (!file.is_open())
         throw FileOpenException("resources/savegame.txt");
@@ -398,20 +417,20 @@ bool GameManager::loadSavedGame() {
     return true;
 }
 
-std::vector<std::unique_ptr<Item>>& GameManager::getItems() {
+std::vector<std::unique_ptr<Item>>& Game::getItems() {
     return items;
 }
 
-std::vector<Delivery>& GameManager::getDelivery() {
+std::vector<Delivery>& Game::getDelivery() {
     return deliveries;
 }
 
 
-double GameManager::getPlayerMoney() const {
+double Game::getPlayerMoney() const {
     return player.getMoney();
 }
 
-void GameManager::useItem(const std::size_t index) {
+void Game::useItem(const std::size_t index) {
     if (index >= items.size()) {
         throw InvalidIndexException("Attempted to use item at invalid index " + std::to_string(index) + ".");
     }
@@ -437,13 +456,13 @@ void GameManager::useItem(const std::size_t index) {
     item->upgrade();
 }
 
-void GameManager::update(const sf::Time time) {
+void Game::update(const sf::Time time) {
     for (const auto& item_ptr : items) {
         item_ptr->update(time);
     }
 }
 
-double GameManager::combinedSpeedMultiplier() const {
+double Game::combinedSpeedMultiplier() const {
     double combined = 1.0;
     for (const auto& item_ptr : items) {
         combined *= item_ptr->getSpeedMultiplier();

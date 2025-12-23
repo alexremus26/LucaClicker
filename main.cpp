@@ -3,7 +3,7 @@
 #include <fstream>
 
 #include "src/Player.h"
-#include "src/GameManager.h"
+#include "src/Game.h"
 #include "src/Display.h"
 #include "src/GameExceptions.h"
 
@@ -31,7 +31,7 @@ int main() {
             }
         }
 
-        GameManager gameManager(GameManager::loadFromFile("../resources/textfile.txt", player));
+        Game gameManager(Game::loadFromFile("../resources/textfile.txt", player));
 
         if (saveExists) {
             (void)gameManager.loadSavedGame();

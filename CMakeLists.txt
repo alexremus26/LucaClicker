@@ -62,8 +62,8 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/Player.h
         src/Delivery.cpp
         src/Delivery.h
-        src/GameManager.cpp
-        src/GameManager.h
+        src/Game.cpp
+        src/Game.h
         src/Display.cpp
         src/Display.h
         src/Item.cpp

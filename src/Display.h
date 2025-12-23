@@ -4,16 +4,16 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-#include "GameManager.h"
+#include "Game.h"
 
 class Display {
 private:
-    GameManager& gameManager;
+    Game& gameManager;
 
     sf::RenderWindow window;
     sf::Font font;
 
-    int  selectedIndex = 0;
+    int  selectedIndex = -1;
     char lastAction    = ' ';
 
     std::string warningMessage;
@@ -38,7 +38,7 @@ private:
     float drawItemAndReturnHeight(const Item& item, size_t realIndex, int displayIndex, float x, float y);
 
 public:
-    explicit Display(GameManager& manager);
+    explicit Display(Game& manager);
     Display(const Display& other) = delete;
     Display& operator=(const Display& other) = delete;
     ~Display();

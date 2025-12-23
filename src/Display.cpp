@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-Display::Display(GameManager& manager)
+Display::Display(Game& manager)
     : gameManager(manager)
 {
     const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -50,7 +50,7 @@ void Display::drawProgressBar(const float progress, const float x, const float y
 
 float Display::drawItemAndReturnHeight(const Item& item,
                                       const size_t realIndex,
-                                      const int displayIndex,
+                                      int displayIndex, // This is now 0-indexed
                                       float x,
                                       float y)
 {
@@ -64,12 +64,12 @@ float Display::drawItemAndReturnHeight(const Item& item,
 
     if (gameManager.isUnlocked(realIndex)) {
         title.setString(
-            "[" + std::to_string(displayIndex) + "] " +
+            "[" + std::to_string(displayIndex + 1) + "] " + // Display as 1-based
             item.getName() + " (" + item.getType() + ")"
         );
     } else {
         title.setString(
-            "[" + std::to_string(displayIndex) +
+            "[" + std::to_string(displayIndex + 1) + // Display as 1-based
             "] LOCKED - Cost: " +
             std::to_string(static_cast<int>(item.getUnlockCost())) + " RON"
         );
@@ -120,6 +120,7 @@ void Display::run()
     {
         const sf::Time dt = deltaClock.restart();
         gameManager.update(dt);
+        gameManager.processEvents();
 
         while (const auto event = window.pollEvent())
         {
@@ -139,12 +140,17 @@ void Display::run()
                     case Scan::B: lastAction = 'b'; break;
                     case Scan::Z: lastAction = 'z'; break;
 
-                    case Scan::Num1: case Scan::Num2: case Scan::Num3:
-                    case Scan::Num4: case Scan::Num5: case Scan::Num6:
-                    case Scan::Num7: case Scan::Num8: case Scan::Num9:
-                        selectedIndex =
-                            static_cast<int>(key->scancode) -
-                            static_cast<int>(Scan::Num1) + 1;
+                    case Scan::Num0: case Scan::Num1: case Scan::Num2:
+                    case Scan::Num3: case Scan::Num4: case Scan::Num5:
+                    case Scan::Num6: case Scan::Num7: case Scan::Num8:
+                    case Scan::Num9:
+                        // Map Num1 to index 0, Num2 to index 1, ..., Num9 to index 8, Num0 to index 9 (for 10th item)
+                        selectedIndex = static_cast<int>(key->scancode) - static_cast<int>(Scan::Num1);
+                        if (key->scancode == Scan::Num0) {
+                            selectedIndex = 9; // Map '0' key to the 10th item (0-indexed 9)
+                        } else if (selectedIndex < 0 || selectedIndex > 8) { // If it's not Num0, but not 1-9 either (e.g. key->scancode < Scan::Num1)
+                            selectedIndex = -1; // Invalid selection
+                        }
                         break;
 
                     default: break;
@@ -154,10 +160,10 @@ void Display::run()
 
         if (lastAction != ' ')
         {
-            if (selectedIndex > 0 &&
-                selectedIndex <= static_cast<int>(displayToReal.size()))
+            if (selectedIndex >= 0 && // Changed from > 0
+                selectedIndex < static_cast<int>(displayToReal.size())) // changed from <=
             {
-                const std::size_t idx = displayToReal[selectedIndex - 1];
+                const std::size_t idx = displayToReal[selectedIndex]; // Changed from selectedIndex - 1
                 Item& item = *gameManager.getItems()[idx];
 
                 if (lastAction == 'z') {
@@ -174,8 +180,6 @@ void Display::run()
                         case 'b':
                         {
                             gameManager.useItem(idx);
-                            warningMessage = gameManager.popEventMessage();
-                            warningClock.restart();
                             break;
                         }
                         default: break;
@@ -198,6 +202,8 @@ void Display::run()
 
         window.clear(sf::Color(25, 25, 25));
 
+        // The warning message from useItem should be handled by processEvents, and pushed back if needed
+        // If there are other warning messages, they will still be popped here
         if (const std::string msg = gameManager.popEventMessage(); !msg.empty()) {
             warningMessage = msg;
             warningClock.restart();
@@ -206,7 +212,7 @@ void Display::run()
         std::ostringstream top;
         top << "=========== LUCA CLICKER ===========\n"
             << "Money: " << gameManager.getPlayerMoney() << " RON\n"
-            << "Selected item: " << selectedIndex << "\n";
+            << "Selected item: " << (selectedIndex == -1 ? "None" : std::to_string(selectedIndex + 1)) << "\n"; // Display 1-based, or None
 
         header.setString(top.str());
         header.setPosition({ LEFT_MARGIN, TOP_MARGIN });
@@ -217,7 +223,7 @@ void Display::run()
         auto& allItems = gameManager.getItems();
         std::vector<bool> itemDrawn(allItems.size(), false);
         displayToReal.clear();
-        int displayIndex = 1;
+        int displayIndex = 0; // Changed to 0-indexed
 
         for (size_t i = 0; i < allItems.size(); ++i) {
             if (itemDrawn[i]) continue;

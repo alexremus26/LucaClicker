@@ -13,7 +13,7 @@
 #include "Item.h"
 #include "Delivery.h"
 
-class GameManager {
+class Game {
 private:
     Player& player;
     std::vector<std::unique_ptr<Item>> items;
@@ -31,21 +31,23 @@ private:
     std::thread runDeliveryLoop(Item& item, std::size_t index);
 
 public:
-    GameManager(Player& player_,
+    Game(Player& player_,
                 std::vector<std::unique_ptr<Item>> items_,
                 std::vector<Delivery> deliveries_);
-    GameManager(const GameManager&) = delete;
-    GameManager& operator=(const GameManager&) = delete;
-    ~GameManager();
+    Game(const Game&) = delete;
+    Game& operator=(const Game&) = delete;
+    ~Game();
 
-    friend std::ostream& operator<<(std::ostream& ostream, const GameManager& manager);
+    friend std::ostream& operator<<(std::ostream& ostream, const Game& manager);
 
-    static GameManager loadFromFile(const std::string& fileName, Player& player);
+    static Game loadFromFile(const std::string& fileName, Player& player);
     void saveGame() const;
     bool loadSavedGame();
 
     void pushEventMessage(const std::string& message);
     std::string popEventMessage();
+
+    void processEvents();
 
     std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
