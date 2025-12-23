@@ -1,13 +1,7 @@
 # Luca Clicker
 
-### Luca Clicker
 Luca Clicker is an idle-incremental simulation game inspired by AdVenture Capitalist based on the Luca pastry shop. You start with nothing but ambition and a bagel. Sell items, earn money, and build your empire one click at a time. Each sale earns you income, which can be reinvested into upgrades and automation systems to scale your profits.
 Players begin with a single unlocked food item. Selling it earns small profits that can be used to: 
-  - Upgrade food items — Boost the income each sale generates.
-
-  - Unlock new foods — Expand your empire and diversify income sources.
-
-  - Hire delivery services — Automate production and sales so your income grows passively over time.
 
 ## Features
 
@@ -22,13 +16,13 @@ Players begin with a single unlocked food item. Selling it earns small profits t
 
 The game is controlled using the keyboard.
 
-*   **1-9 Keys:** Select one of the items listed on the screen.
-*   **Z:** Unlocks the selected item if you have enough money.
-*   **S:** Manually "sells" the selected item. A progress bar will appear, and you will earn money when it completes.
-*   **U:** Upgrades the selected item to a new level, increasing its value.
-*   **D:** Buys a "Delivery" service for the selected item, which will sell it automatically.
-*   **B:** Uses a special item, like a Beverage or a Sandwich, to apply its effects.
-*   **Q:** Saves the current game progress and quits the application.
+*   **[1-9]Keys:** Select one of the items listed on the screen.
+*   **[Z]** Unlocks the selected item if you have enough money.
+*   **[S]** Manually "sells" the selected item. A progress bar will appear, and you will earn money when it completes.
+*   **[U]** Upgrades the selected item to a new level, increasing its value.
+*   **[D]** Buys a "Delivery" service for the selected item, which will sell it automatically.
+*   **[B]** Uses a special item, like a Beverage or a Sandwich, to apply its effects.
+*   **[Q]** Saves the current game progress and quits the application.
 
 ### To be implemented
 
