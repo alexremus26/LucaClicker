@@ -120,7 +120,6 @@ void Display::run()
     {
         const sf::Time dt = deltaClock.restart();
         gameManager.update(dt);
-        gameManager.processEvents();
 
         while (const auto event = window.pollEvent())
         {
