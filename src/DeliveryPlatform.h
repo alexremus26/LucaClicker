@@ -18,7 +18,7 @@ protected:
     mutable std::mt19937 rng;
 
 private:
-    // NVI
+
     [[nodiscard]] virtual IncomeResult doComputeIncome(const Item&) const = 0;
     [[nodiscard]] virtual sf::Time doComputeSpeed(const Item&) const = 0;
 
@@ -29,7 +29,6 @@ public:
 
     [[nodiscard]] virtual bool rollCrit() const;
 
-    // NVI
     [[nodiscard]] IncomeResult computeIncome(const Item&) const;
     [[nodiscard]] sf::Time computeSpeed(const Item&) const;
 };

@@ -42,7 +42,6 @@ public:
     Display(const Display& other) = delete;
     Display& operator=(const Display& other) = delete;
     ~Display();
-
     friend std::ostream& operator<<(std::ostream& os, const Display& display);
 
     void run();

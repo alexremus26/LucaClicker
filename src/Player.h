@@ -15,6 +15,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Player& player);
 
     [[nodiscard]] const double& getMoney() const;
+
     bool tryPay(double amount);
     void earn(double amount);
 

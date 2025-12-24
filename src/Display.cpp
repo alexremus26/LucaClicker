@@ -19,7 +19,7 @@ Display::Display(Game& manager)
 
     window.setFramerateLimit(60);
 
-    if (!font.openFromFile("resources/font/MightySouly-lxggD.ttf"))
+    if (!font.openFromFile("assets/font/MightySouly-lxggD.ttf"))
         std::cerr << "Failed to load font!\n";
 }
 

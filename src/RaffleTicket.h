@@ -28,6 +28,7 @@ private:
     void doDrawRaffle(Player &player, double incomePerSecond,
                       std::queue<std::string> &eventMessages,
                       std::mutex &eventMutex) const override;
+    [[nodiscard]] double doComputeIncomePerSecond() const override;
 
 public:
 
@@ -50,8 +51,8 @@ public:
         return *this;
     }
     [[nodiscard]] double getUpgradeCost() const override;
+
     [[nodiscard]] bool isUsable() const override;
-    [[nodiscard]] double doComputeIncomePerSecond() const override;
 };
 
 #endif // OOP_RAFFLETICKET_H

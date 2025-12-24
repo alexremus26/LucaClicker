@@ -24,6 +24,7 @@ private:
     void doLoad(std::istream& is) override;
     [[nodiscard]] std::string getType() const override;
     void doDrawRaffle(Player &player, double incomePerSecond, std::queue<std::string> &eventMessages, std::mutex &eventMutex) const override;
+    [[nodiscard]] double doComputeIncomePerSecond() const override;
 
 public:
     static void registerItem();
@@ -50,10 +51,10 @@ public:
         swap(lhs.duration, rhs.duration);
     }
     void applyUpgradeDiscount(double factor);
-    [[nodiscard]] double getUpgradeCost() const override;
     [[nodiscard]] bool isUsable() const override;
-    [[nodiscard]] double doComputeIncomePerSecond() const override;
     void applyEffect(const std::string& type, double value) override;
+
+    [[nodiscard]] double getUpgradeCost() const override;
 };
 
 #endif // OOP_PASTRY_H

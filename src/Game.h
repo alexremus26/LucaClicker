@@ -37,7 +37,6 @@ public:
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
     ~Game();
-
     friend std::ostream& operator<<(std::ostream& ostream, const Game& manager);
 
     static Game loadFromFile(const std::string& fileName, Player& player);
@@ -46,7 +45,6 @@ public:
 
     void pushEventMessage(const std::string& message);
     std::string popEventMessage();
-
 
     std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
@@ -62,7 +60,6 @@ public:
     void useItem(std::size_t index);
     void update(sf::Time time) const;
     [[nodiscard]] double combinedSpeedMultiplier() const;
-
     [[nodiscard]] double computeTotalIncomePerSecond() const;
 
     std::vector<std::unique_ptr<Item>>& getItems();

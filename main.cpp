@@ -11,7 +11,7 @@ int main() {
     try {
         Player player("Stoicescu", 100000);
 
-        std::ifstream saveFile("resources/savegame.txt");
+        std::ifstream saveFile("../data/savefile.txt");
         bool saveExists = saveFile.good();
         saveFile.close();
 
@@ -25,13 +25,13 @@ int main() {
             std::cin >> choice;
 
             if (choice == '2') {
-                std::remove("resources/savegame.txt");
+                std::remove("../data/savefile.txt");
                 std::cout << "Starting new game...\n";
                 saveExists = false;
             }
         }
 
-        Game gameManager(Game::loadFromFile("../resources/textfile.txt", player));
+        Game gameManager(Game::loadFromFile("../data/load.txt", player));
 
         if (saveExists) {
             (void)gameManager.loadSavedGame();

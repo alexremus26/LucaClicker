@@ -30,6 +30,7 @@ private:
     void doLoad(std::istream& is) override;
     [[nodiscard]] std::string getType() const override;
     void doDrawRaffle(Player &player, double incomePerSecond, std::queue<std::string> &eventMessages, std::mutex &eventMutex) const override;
+    [[nodiscard]] double doComputeIncomePerSecond() const override;
 
 public:
     static void registerItem();
@@ -55,14 +56,14 @@ public:
             }
             return *this;
         }
+
     [[nodiscard]] double getUpgradeCost() const override;
-    void updateBuffs(sf::Time deltaTime);
+    [[nodiscard]] double getSpeedMultiplier() const override;
     static double getBuffMultiplier() ;
     [[nodiscard]] std::string& getTargetName();
 
+    void updateBuffs(sf::Time deltaTime);
     void update(sf::Time time) override;
-    [[nodiscard]] double getSpeedMultiplier() const override;
-    [[nodiscard]] double doComputeIncomePerSecond() const override;
 };
 
 #endif // OOP_BEVERAGE_H

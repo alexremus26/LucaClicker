@@ -31,6 +31,7 @@ private:
     void doLoad(std::istream& is) override;
     [[nodiscard]] std::string getType() const override;
     void doDrawRaffle(Player &player, double incomePerSecond, std::queue<std::string> &eventMessages, std::mutex &eventMutex) const override;
+    [[nodiscard]] double doComputeIncomePerSecond() const override;
 
 public:
     static void registerItem();
@@ -59,11 +60,10 @@ public:
         swap(*this, other);
         return *this;
     }
-    [[nodiscard]] double getUpgradeCost() const override;
-
     void update(sf::Time time) override;
+
+    [[nodiscard]] double getUpgradeCost() const override;
     [[nodiscard]] double getSpeedMultiplier() const override;
-    [[nodiscard]] double doComputeIncomePerSecond() const override;
 };
 
 #endif // OOP_SANDWICH_H
