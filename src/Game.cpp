@@ -409,6 +409,20 @@ bool Game::loadSavedGame() {
     return true;
 }
 
+void Game::resetFromFile(const std::string &file) {
+    Game fresh = Game::loadFromFile(file, player);
+
+    items           = std::move(fresh.items);
+    deliveries      = std::move(fresh.deliveries);
+    deliveryRunning = std::move(fresh.deliveryRunning);
+    itemUnlocked    = std::move(fresh.itemUnlocked);
+    progress        = std::move(fresh.progress);
+    sellingRunning  = std::move(fresh.sellingRunning);
+
+    stopAllDeliveries();
+    deliveryThreads.clear();
+}
+
 std::vector<std::unique_ptr<Item>>& Game::getItems() {
     return items;
 }

@@ -37,6 +37,7 @@ private:
 
     void drawProgressBar(float progress, float x, float y);
     float drawItemAndReturnHeight(const Item& item, size_t realIndex, int displayIndex, float x, float y);
+    void initWindowAndFont();
 
     enum class MenuResult {
         NewGame,

@@ -42,6 +42,8 @@ public:
     static Game loadFromFile(const std::string& fileName, Player& player);
     void saveGame() const;
     bool loadSavedGame();
+    void resetFromFile(const std::string& file);
+
 
     void pushEventMessage(const std::string& message);
     std::string popEventMessage();

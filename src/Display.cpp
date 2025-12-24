@@ -17,18 +17,7 @@
 Display::Display(Game& manager)
     : gameManager(manager)
 {
-    const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-    window.create(
-        sf::VideoMode({ desktop.size.x, desktop.size.y }, desktop.bitsPerPixel),
-        "Luca Clicker",
-        sf::Style::Default,
-        sf::State::Windowed
-    );
-
-    window.setFramerateLimit(60);
-
-    if (!font.openFromFile("assets/font/MightySouly-lxggD.ttf"))
-        std::cerr << "Failed to load font!\n";
+    initWindowAndFont();
 }
 
 Display::~Display() = default;
@@ -58,7 +47,7 @@ void Display::drawProgressBar(const float progress, const float x, const float y
 
 float Display::drawItemAndReturnHeight(const Item& item,
                                       const size_t realIndex,
-                                      int displayIndex, // This is now 0-indexed
+                                      const int displayIndex,
                                       float x,
                                       float y)
 {
@@ -72,12 +61,12 @@ float Display::drawItemAndReturnHeight(const Item& item,
 
     if (gameManager.isUnlocked(realIndex)) {
         title.setString(
-            "[" + std::to_string(displayIndex + 1) + "] " + // Display as 1-based
+            "[" + std::to_string(displayIndex + 1) + "] " +
             item.getName() + " (" + item.getType() + ")"
         );
     } else {
         title.setString(
-            "[" + std::to_string(displayIndex + 1) + // Display as 1-based
+            "[" + std::to_string(displayIndex + 1) +
             "] LOCKED - Cost: " +
             std::to_string(static_cast<int>(item.getUnlockCost())) + " RON"
         );
@@ -112,6 +101,22 @@ float Display::drawItemAndReturnHeight(const Item& item,
     return blockHeight;
 }
 
+void Display::initWindowAndFont() {
+    const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+
+    window.create(
+        sf::VideoMode({ desktop.size.x, desktop.size.y }, desktop.bitsPerPixel),
+        "Luca Clicker",
+        sf::Style::Default,
+        sf::State::Windowed
+    );
+
+    window.setFramerateLimit(60);
+
+    if (!font.openFromFile("assets/font/MightySouly-lxggD.ttf"))
+        throw FontLoadingException("assets/font/MightySouly-lxggD.ttf");
+}
+
 Display::MenuResult Display::menu()
 {
     const std::string savePath = "../data/savefile.txt";
@@ -134,7 +139,6 @@ Display::MenuResult Display::menu()
         sf::Style::Titlebar | sf::Style::Close
     );
 
-    // ---------- BACKGROUND ----------
     sf::Sprite background(
         ResourceManager::instance().getTexture(
             "../assets/textures/background.png"
@@ -147,7 +151,6 @@ Display::MenuResult Display::menu()
         static_cast<float>(menuSize.y) / bgSize.y
     });
 
-    // ---------- MUSIC ----------
     sf::Sound soundtrack(
         ResourceManager::instance().getSound(
             "../assets/audio/adventure_capitalist_theme_song.wav"
@@ -157,7 +160,6 @@ Display::MenuResult Display::menu()
     soundtrack.setVolume(50.f);
     soundtrack.play();
 
-    // ---------- BUTTONS ----------
     const sf::Texture& buttonTex =
         ResourceManager::instance().getTexture(
             "../assets/textures/generic_banner_small_tintable.png"
@@ -181,13 +183,11 @@ Display::MenuResult Display::menu()
         });
     }
 
-    // ---------- FONT ----------
     const sf::Font& font =
         ResourceManager::instance().getFont(
             "../assets/font/MightySouly-lxggD.ttf"
         );
 
-    // ---------- BUTTON LABELS ----------
     std::vector<sf::Text> labels;
     labels.emplace_back(font, "New Game", 50);
     labels.emplace_back(font, "Saved Game", 50);
@@ -208,7 +208,6 @@ Display::MenuResult Display::menu()
         });
     }
 
-    // ---------- TITLE ----------
     sf::Text title(font, "Luca Clicker", 160);
     title.setFillColor(sf::Color(200, 200, 200));
 
@@ -223,7 +222,6 @@ Display::MenuResult Display::menu()
         menuSize.y * 0.2f
     });
 
-    // ---------- WARNING ----------
     sf::Text warning(font, "", 32);
     warning.setFillColor(sf::Color::Red);
     warning.setPosition({
@@ -231,7 +229,6 @@ Display::MenuResult Display::menu()
         menuSize.y * 0.3f
     });
 
-    // ---------- LOOP ----------
     while (window.isOpen()) {
 
         const sf::Vector2f mouse =
@@ -251,13 +248,13 @@ Display::MenuResult Display::menu()
                     for (std::size_t i = 0; i < buttons.size(); ++i) {
                         if (buttons[i].getGlobalBounds().contains(mouse)) {
 
-                            if (i == 0) { // NEW GAME
+                            if (i == 0) {
                                 if (saveExists())
                                     deleteSave();
                                 return MenuResult::NewGame;
                             }
 
-                            if (i == 1) { // LOAD GAME
+                            if (i == 1) {
                                 if (!saveExists()) {
                                     warning.setString("No saved game found!");
                                     warningClock.restart();
@@ -271,15 +268,12 @@ Display::MenuResult Display::menu()
             }
         }
 
-        // ---------- HOVER ----------
         for (auto& b : buttons) {
             if (b.getGlobalBounds().contains(mouse))
                 b.setColor(sf::Color(255, 215, 0));
             else
                 b.setColor(sf::Color::White);
         }
-
-        // ---------- DRAW ----------
         window.clear();
         window.draw(background);
         window.draw(title);
@@ -307,8 +301,11 @@ void Display::run()
     if (result == MenuResult::Exit)
         return;
 
-    if (result == MenuResult::NewGame)
-        Game::loadFromFile("../data/load.txt", gameManager.getPlayer());
+    if (result == MenuResult::NewGame) {
+        std::remove("../data/savefile.txt");
+        gameManager.resetFromFile("../data/load.txt");
+        initWindowAndFont();
+    }
 
     if (result == MenuResult::LoadGame)
         gameManager.loadSavedGame();
@@ -350,12 +347,11 @@ void Display::run()
                     case Scan::Num3: case Scan::Num4: case Scan::Num5:
                     case Scan::Num6: case Scan::Num7: case Scan::Num8:
                     case Scan::Num9:
-                        // Map Num1 to index 0, Num2 to index 1, ..., Num9 to index 8, Num0 to index 9 (for 10th item)
                         selectedIndex = static_cast<int>(key->scancode) - static_cast<int>(Scan::Num1);
                         if (key->scancode == Scan::Num0) {
-                            selectedIndex = 9; // Map '0' key to the 10th item (0-indexed 9)
-                        } else if (selectedIndex < 0 || selectedIndex > 8) { // If it's not Num0, but not 1-9 either (e.g. key->scancode < Scan::Num1)
-                            selectedIndex = -1; // Invalid selection
+                            selectedIndex = 9;
+                        } else if (selectedIndex < 0 || selectedIndex > 8) {
+                            selectedIndex = -1;
                         }
                         break;
 
@@ -366,10 +362,10 @@ void Display::run()
 
         if (lastAction != ' ')
         {
-            if (selectedIndex >= 0 && // Changed from > 0
-                selectedIndex < static_cast<int>(displayToReal.size())) // changed from <=
+            if (selectedIndex >= 0 &&
+                selectedIndex < static_cast<int>(displayToReal.size()))
             {
-                const std::size_t idx = displayToReal[selectedIndex]; // Changed from selectedIndex - 1
+                const std::size_t idx = displayToReal[selectedIndex];
                 Item& item = *gameManager.getItems()[idx];
 
                 if (lastAction == 'z') {
@@ -408,8 +404,6 @@ void Display::run()
 
         window.clear(sf::Color(25, 25, 25));
 
-        // The warning message from useItem should be handled by processEvents, and pushed back if needed
-        // If there are other warning messages, they will still be popped here
         if (const std::string msg = gameManager.popEventMessage(); !msg.empty()) {
             warningMessage = msg;
             warningClock.restart();
@@ -418,7 +412,7 @@ void Display::run()
         std::ostringstream top;
         top << "=========== LUCA CLICKER ===========\n"
             << "Money: " << gameManager.getPlayerMoney() << " RON\n"
-            << "Selected item: " << (selectedIndex == -1 ? "None" : std::to_string(selectedIndex + 1)) << "\n"; // Display 1-based, or None
+            << "Selected item: " << (selectedIndex == -1 ? "None" : std::to_string(selectedIndex + 1)) << "\n";
 
         header.setString(top.str());
         header.setPosition({ LEFT_MARGIN, TOP_MARGIN });
@@ -429,7 +423,7 @@ void Display::run()
         auto& allItems = gameManager.getItems();
         std::vector<bool> itemDrawn(allItems.size(), false);
         displayToReal.clear();
-        int displayIndex = 0; // Changed to 0-indexed
+        int displayIndex = 0;
 
         for (size_t i = 0; i < allItems.size(); ++i) {
             if (itemDrawn[i]) continue;
