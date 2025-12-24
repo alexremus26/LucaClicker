@@ -183,8 +183,7 @@ Display::MenuResult Display::menu()
         });
     }
 
-    const sf::Font& font =
-        ResourceManager::instance().getFont(
+    font = ResourceManager::instance().getFont(
             "../assets/font/MightySouly-lxggD.ttf"
         );
 

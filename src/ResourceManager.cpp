@@ -45,8 +45,3 @@ const sf::SoundBuffer& ResourceManager::getSound(const std::string& path) {
     return insertedIt->second;
 }
 
-void ResourceManager::cleanup() {
-    textures.clear();
-    fonts.clear();
-    sounds.clear();
-}

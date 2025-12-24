@@ -22,8 +22,6 @@ public:
     const sf::Font& getFont(const std::string& path);
     const sf::SoundBuffer& getSound(const std::string& path);
 
-    void cleanup();
-
     ResourceManager(const ResourceManager&) = delete;
     ResourceManager& operator=(const ResourceManager&) = delete;
 
