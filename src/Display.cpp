@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "SFML/Audio/Sound.hpp"
+#include <SFML/Audio/Sound.hpp>
 
 Display::Display(Game& manager)
     : gameManager(manager)
