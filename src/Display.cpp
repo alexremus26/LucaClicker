@@ -5,13 +5,11 @@
 #include "Beverage.h"
 #include "Pastry.h"
 #include "Sandwich.h"
-
+#include "GameExceptions.h"
+#include "ResourceManager.h"
 
 #include <iostream>
 #include <sstream>
-
-#include "GameExceptions.h"
-#include "ResourceManager.h"
 #include "SFML/Audio/Sound.hpp"
 
 Display::Display(Game& manager)
@@ -173,9 +171,9 @@ Display::MenuResult Display::menu()
         b.setScale({3.f, 3.f});
 
     float startY  = menuSize.y * 0.4f;
-    float spacing = 100.f;
 
     for (std::size_t i = 0; i < buttons.size(); ++i) {
+        float spacing = 100.f;
         const sf::FloatRect bounds = buttons[i].getGlobalBounds();
         buttons[i].setPosition({
             (menuSize.x - bounds.size.x) * 0.5f,
