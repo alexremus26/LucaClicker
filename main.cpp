@@ -2,10 +2,12 @@
 #include <iostream>
 #include <fstream>
 
+#include "SFML/Audio/Sound.hpp"
 #include "src/Player.h"
 #include "src/Game.h"
 #include "src/Display.h"
 #include "src/GameExceptions.h"
+#include "src/ResourceManager.h"
 
 int main() {
     try {

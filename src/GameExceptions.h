@@ -4,6 +4,8 @@
 #include <exception>
 #include <string>
 
+#include "Game.h"
+
 class GameException : public std::exception {
 protected:
     std::string message;
@@ -16,6 +18,21 @@ public:
 class FileOpenException : public GameException {
 public:
     explicit FileOpenException(const std::string& path);
+};
+
+class TextureLoadingException : public GameException {
+public:
+    explicit  TextureLoadingException(const std::string& path);
+};
+
+class AudioLoadingException : public GameException {
+public:
+    explicit AudioLoadingException(const std::string& path);
+};
+
+class FontLoadingException : public GameException {
+public:
+    explicit FontLoadingException(const std::string& path);
 };
 
 class InvalidFormatException : public GameException {

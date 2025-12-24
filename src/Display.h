@@ -6,6 +6,7 @@
 
 #include "Game.h"
 
+
 class Display {
 private:
     Game& gameManager;
@@ -37,12 +38,22 @@ private:
     void drawProgressBar(float progress, float x, float y);
     float drawItemAndReturnHeight(const Item& item, size_t realIndex, int displayIndex, float x, float y);
 
+    enum class MenuResult {
+        NewGame,
+        LoadGame,
+        Exit
+    };
+
+    MenuResult menu();
+
 public:
+
     explicit Display(Game& manager);
     Display(const Display& other) = delete;
     Display& operator=(const Display& other) = delete;
     ~Display();
     friend std::ostream& operator<<(std::ostream& os, const Display& display);
+
 
     void run();
 };

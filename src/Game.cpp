@@ -422,6 +422,10 @@ double Game::getPlayerMoney() const {
     return player.getMoney();
 }
 
+Player &Game::getPlayer() const {
+    return player;
+}
+
 void Game::useItem(const std::size_t index) {
     if (index >= items.size()) {
         throw InvalidIndexException("Attempted to use item at invalid index " + std::to_string(index) + ".");

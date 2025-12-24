@@ -13,6 +13,17 @@ FileOpenException::FileOpenException(const std::string& path)
 InvalidFormatException::InvalidFormatException(const std::string& detail)
     : GameException("Invalid data format: " + detail) {}
 
+TextureLoadingException::TextureLoadingException(const std::string &path)
+    : GameException("Invalid texture: " + path){}
+
+AudioLoadingException::AudioLoadingException(const std::string &path)
+    : GameException("Invalid audio: " + path){
+}
+
+FontLoadingException::FontLoadingException(const std::string &path)
+    : GameException("Invalid Font: " + path){
+}
+
 SaveStateException::SaveStateException(const std::string& detail)
     : GameException("Saved game invalid: " + detail) {}
 

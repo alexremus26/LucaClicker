@@ -1,10 +1,18 @@
 #include "Display.h"
+
+#include <fstream>
+
 #include "Beverage.h"
 #include "Pastry.h"
 #include "Sandwich.h"
 
+
 #include <iostream>
 #include <sstream>
+
+#include "GameExceptions.h"
+#include "ResourceManager.h"
+#include "SFML/Audio/Sound.hpp"
 
 Display::Display(Game& manager)
     : gameManager(manager)
@@ -104,8 +112,207 @@ float Display::drawItemAndReturnHeight(const Item& item,
     return blockHeight;
 }
 
+Display::MenuResult Display::menu()
+{
+    const std::string savePath = "../data/savefile.txt";
+
+    auto saveExists = [&]() {
+        std::ifstream file(savePath);
+        return file.good();
+    };
+
+    auto deleteSave = [&]() {
+        std::remove(savePath.c_str());
+    };
+
+    constexpr sf::Vector2u menuSize{1200, 1100};
+    const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+
+    window.create(
+        sf::VideoMode(menuSize, desktop.bitsPerPixel),
+        "Luca Clicker",
+        sf::Style::Titlebar | sf::Style::Close
+    );
+
+    // ---------- BACKGROUND ----------
+    sf::Sprite background(
+        ResourceManager::instance().getTexture(
+            "../assets/textures/background.png"
+        )
+    );
+
+    const sf::Vector2u bgSize = background.getTexture().getSize();
+    background.setScale({
+        static_cast<float>(menuSize.x) / bgSize.x,
+        static_cast<float>(menuSize.y) / bgSize.y
+    });
+
+    // ---------- MUSIC ----------
+    sf::Sound soundtrack(
+        ResourceManager::instance().getSound(
+            "../assets/audio/adventure_capitalist_theme_song.wav"
+        )
+    );
+    soundtrack.setLooping(true);
+    soundtrack.setVolume(50.f);
+    soundtrack.play();
+
+    // ---------- BUTTONS ----------
+    const sf::Texture& buttonTex =
+        ResourceManager::instance().getTexture(
+            "../assets/textures/generic_banner_small_tintable.png"
+        );
+
+    std::vector<sf::Sprite> buttons;
+    buttons.emplace_back(buttonTex); // New Game
+    buttons.emplace_back(buttonTex); // Load Game
+
+    for (auto& b : buttons)
+        b.setScale({3.f, 3.f});
+
+    float startY  = menuSize.y * 0.4f;
+    float spacing = 100.f;
+
+    for (std::size_t i = 0; i < buttons.size(); ++i) {
+        const sf::FloatRect bounds = buttons[i].getGlobalBounds();
+        buttons[i].setPosition({
+            (menuSize.x - bounds.size.x) * 0.5f,
+            startY + i * (bounds.size.y + spacing)
+        });
+    }
+
+    // ---------- FONT ----------
+    const sf::Font& font =
+        ResourceManager::instance().getFont(
+            "../assets/font/MightySouly-lxggD.ttf"
+        );
+
+    // ---------- BUTTON LABELS ----------
+    std::vector<sf::Text> labels;
+    labels.emplace_back(font, "New Game", 50);
+    labels.emplace_back(font, "Saved Game", 50);
+
+    for (std::size_t i = 0; i < labels.size(); ++i) {
+        labels[i].setFillColor(sf::Color(200, 200, 200));
+
+        const sf::FloatRect tb = labels[i].getLocalBounds();
+        labels[i].setOrigin({
+            tb.position.x + tb.size.x * 0.5f,
+            tb.position.y + tb.size.y * 0.5f
+        });
+
+        const sf::FloatRect bb = buttons[i].getGlobalBounds();
+        labels[i].setPosition({
+            bb.position.x + bb.size.x * 0.5f,
+            bb.position.y + bb.size.y * 0.5f
+        });
+    }
+
+    // ---------- TITLE ----------
+    sf::Text title(font, "Luca Clicker", 160);
+    title.setFillColor(sf::Color(200, 200, 200));
+
+    const sf::FloatRect tb = title.getLocalBounds();
+    title.setOrigin({
+        tb.position.x + tb.size.x * 0.5f,
+        tb.position.y + tb.size.y * 0.5f
+    });
+
+    title.setPosition({
+        menuSize.x * 0.5f,
+        menuSize.y * 0.2f
+    });
+
+    // ---------- WARNING ----------
+    sf::Text warning(font, "", 32);
+    warning.setFillColor(sf::Color::Red);
+    warning.setPosition({
+        menuSize.x * 0.5f,
+        menuSize.y * 0.3f
+    });
+
+    // ---------- LOOP ----------
+    while (window.isOpen()) {
+
+        const sf::Vector2f mouse =
+            window.mapPixelToCoords(sf::Mouse::getPosition(window));
+
+        while (const auto event = window.pollEvent()) {
+
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return MenuResult::Exit;
+            }
+
+            if (event->is<sf::Event::MouseButtonPressed>()) {
+                const auto* me = event->getIf<sf::Event::MouseButtonPressed>();
+
+                if (me->button == sf::Mouse::Button::Left) {
+                    for (std::size_t i = 0; i < buttons.size(); ++i) {
+                        if (buttons[i].getGlobalBounds().contains(mouse)) {
+
+                            if (i == 0) { // NEW GAME
+                                if (saveExists())
+                                    deleteSave();
+                                return MenuResult::NewGame;
+                            }
+
+                            if (i == 1) { // LOAD GAME
+                                if (!saveExists()) {
+                                    warning.setString("No saved game found!");
+                                    warningClock.restart();
+                                    break;
+                                }
+                                return MenuResult::LoadGame;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ---------- HOVER ----------
+        for (auto& b : buttons) {
+            if (b.getGlobalBounds().contains(mouse))
+                b.setColor(sf::Color(255, 215, 0));
+            else
+                b.setColor(sf::Color::White);
+        }
+
+        // ---------- DRAW ----------
+        window.clear();
+        window.draw(background);
+        window.draw(title);
+
+        if (!warning.getString().isEmpty() &&
+            warningClock.getElapsedTime().asSeconds() < 2.5f)
+            window.draw(warning);
+
+        for (const auto& b : buttons)
+            window.draw(b);
+
+        for (const auto& t : labels)
+            window.draw(t);
+
+        window.display();
+    }
+
+    return MenuResult::Exit;
+}
+
 void Display::run()
 {
+    const MenuResult result = menu();
+
+    if (result == MenuResult::Exit)
+        return;
+
+    if (result == MenuResult::NewGame)
+        Game::loadFromFile("../data/load.txt", gameManager.getPlayer());
+
+    if (result == MenuResult::LoadGame)
+        gameManager.loadSavedGame();
+
     sf::Clock deltaClock;
 
     sf::Text header(font);
@@ -291,3 +498,5 @@ void Display::run()
         window.display();
     }
 }
+
+

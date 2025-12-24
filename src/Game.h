@@ -65,6 +65,7 @@ public:
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();
     [[nodiscard]] double getPlayerMoney() const;
+    [[nodiscard]] Player &getPlayer() const;
 };
 
 #endif // OOP_GAMEMANAGER_H
