@@ -117,6 +117,10 @@ std::string Beverage::doGetEffectDescription() const {
     return os.str();
 }
 
+void Beverage::doDrawRaffle(Player &, double , std::queue<std::string> &,
+    std::mutex &) const {
+}
+
 void Beverage::doUse(std::vector<std::unique_ptr<Item>>& allItems,
                      std::queue<std::string>& eventMessages,
                      std::mutex& eventMutex) {
@@ -253,4 +257,8 @@ void Beverage::doLoad(std::istream& is) {
             }
         }
     }
+}
+
+double Beverage::doComputeIncomePerSecond() const {
+    return 0.0;
 }

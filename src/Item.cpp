@@ -71,7 +71,13 @@ void Item::use(std::vector<std::unique_ptr<Item>>& allItems,
     doUse(allItems, eventMessages, eventMutex);
 }
 
-void Item::update(sf::Time time) {
+void Item::drawRaffle(Player& player, const double incomePerSecond,
+                      std::queue<std::string>& eventMessages,
+                      std::mutex& eventMutex) const {
+    doDrawRaffle(player, incomePerSecond, eventMessages, eventMutex);
+}
+
+void Item::update(const sf::Time time) {
     (void)time;
 }
 
@@ -83,7 +89,11 @@ bool Item::isUsable() const {
     return true;
 }
 
-void Item::applyEffect(const std::string& type, double value) {
+double Item::computeIncomePerSecond() const {
+    return doComputeIncomePerSecond();
+}
+
+void Item::applyEffect(const std::string& type, const double value) {
     (void)type;
     (void)value;
 }

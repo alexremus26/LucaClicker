@@ -60,8 +60,10 @@ public:
     void stopAllDeliveries();
 
     void useItem(std::size_t index);
-    void update(sf::Time time);
+    void update(sf::Time time) const;
     [[nodiscard]] double combinedSpeedMultiplier() const;
+
+    [[nodiscard]] double computeTotalIncomePerSecond() const;
 
     std::vector<std::unique_ptr<Item>>& getItems();
     std::vector<Delivery>& getDelivery();

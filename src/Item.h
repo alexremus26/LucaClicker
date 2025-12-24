@@ -7,6 +7,7 @@
 #include <queue>
 #include <mutex>
 #include <SFML/System/Time.hpp>
+#include "Player.h"
 
 class Item {
 protected:
@@ -25,10 +26,14 @@ private:
     virtual void doApplyMultiplier(double multiplier) = 0;
     [[nodiscard]] virtual sf::Time doComputeDuration() const = 0;
     [[nodiscard]] virtual std::string doGetEffectDescription() const = 0;
-
     virtual void doUse(std::vector<std::unique_ptr<Item>>& allItems,
                        std::queue<std::string>& eventMessages,
                        std::mutex& eventMutex) = 0;
+    virtual void doDrawRaffle(Player& player, double incomePerSecond,
+                              std::queue<std::string>& eventMessages,
+                              std::mutex& eventMutex) const = 0;
+    [[nodiscard]] virtual double doComputeIncomePerSecond() const = 0;
+
 
 protected:
     virtual void doSave(std::ostream& os) const = 0;
@@ -78,6 +83,10 @@ public:
              std::queue<std::string>& eventMessages,
              std::mutex& eventMutex);
 
+    void drawRaffle(Player& player, double incomePerSecond,
+                    std::queue<std::string>& eventMessages,
+                    std::mutex& eventMutex) const;
+
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] double getUseCost() const;
     [[nodiscard]] virtual double getUpgradeCost() const = 0;
@@ -88,6 +97,7 @@ public:
     [[nodiscard]] virtual double getSpeedMultiplier() const;
     [[nodiscard]] virtual bool isUsable() const;
 
+    [[nodiscard]] virtual double computeIncomePerSecond() const;
     virtual void applyEffect(const std::string& type, double value);
 };
 

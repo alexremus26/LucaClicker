@@ -131,6 +131,10 @@ std::string Sandwich::getType() const {
     return "Sandwich";
 }
 
+void Sandwich::doDrawRaffle(Player &, double , std::queue<std::string> &,
+    std::mutex &) const {
+}
+
 double Sandwich::getUpgradeCost() const {
     return 0.0;
 }
@@ -149,6 +153,10 @@ double Sandwich::getSpeedMultiplier() const {
         return std::get<0>(*currentSpeedBuff);
     }
     return 1.0;
+}
+
+double Sandwich::doComputeIncomePerSecond() const {
+    return 0.0;
 }
 
 void Sandwich::doSave(std::ostream& os) const {

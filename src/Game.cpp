@@ -4,6 +4,7 @@
 #include "Beverage.h"
 #include "Pastry.h"
 #include "Sandwich.h"
+#include "RaffleTicket.h"
 
 #include <iostream>
 #include <thread>
@@ -206,11 +207,22 @@ std::string Game::popEventMessage() {
     return message;
 }
 
+double Game::computeTotalIncomePerSecond() const {
+    double totalIncome = 0.0;
+    for (size_t i = 0; i < items.size(); ++i) {
+        if (isUnlocked(i) && deliveryRunning.at(i)) {
+            totalIncome += items[i]->computeIncomePerSecond();
+        }
+    }
+    return totalIncome;
+}
+
 
 Game Game::loadFromFile(const std::string& fileName, Player& player) {
     Beverage::registerItem();
     Pastry::registerItem();
     Sandwich::registerItem();
+    RaffleTicket::registerItem();
 
     std::ifstream file(fileName);
     if (!file.is_open())
@@ -433,10 +445,14 @@ void Game::useItem(const std::size_t index) {
     }
 
     item->use(items, eventMessages, eventMutex);
+
+    const double totalIncome = computeTotalIncomePerSecond();
+
+    item->drawRaffle(player, totalIncome, eventMessages, eventMutex);
     item->upgrade();
 }
 
-void Game::update(const sf::Time time) {
+void Game::update(const sf::Time time) const {
     for (const auto& item_ptr : items) {
         item_ptr->update(time);
     }

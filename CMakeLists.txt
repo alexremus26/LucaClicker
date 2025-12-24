@@ -84,6 +84,8 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/GameExceptions.h
         src/ItemFactory.cpp
         src/ItemFactory.h
+        src/RaffleTicket.cpp
+        src/RaffleTicket.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

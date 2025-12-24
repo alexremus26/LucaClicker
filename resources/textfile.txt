@@ -83,3 +83,9 @@ fastChance: 0.5
 baseDuration: 10
 deliveryName: Glovo
 unlockDeliveryCost: 1000
+
+type: RaffleTicket
+name: GoldenCookie
+unlockCost: 5000
+minDuration: 60
+maxDuration: 1800

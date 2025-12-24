@@ -103,6 +103,10 @@ bool Pastry::isUsable() const {
     return false;
 }
 
+double Pastry::doComputeIncomePerSecond() const {
+    return baseIncome/static_cast<double>(duration.asSeconds());
+}
+
 void Pastry::applyEffect(const std::string& type, const double value) {
     if (type == "profit_multiplier") {
         applyMultiplier(value);
@@ -115,16 +119,15 @@ std::string Pastry::doGetEffectDescription() const {
     return "Generates " + std::to_string(static_cast<int>(doSellPayout())) + " RON";
 }
 
-void Pastry::doUse(std::vector<std::unique_ptr<Item>>& allItems,
-                   std::queue<std::string>& eventMessages,
-                   std::mutex& eventMutex) {
-    (void)allItems;
-    (void)eventMessages;
-    (void)eventMutex;
+void Pastry::doUse(std::vector<std::unique_ptr<Item>>&, std::queue<std::string>&, std::mutex&) {
 }
 
 std::string Pastry::getType() const {
     return "Pastry";
+}
+
+void Pastry::doDrawRaffle(Player &, double , std::queue<std::string> &,
+    std::mutex &) const {
 }
 
 void Pastry::doSave(std::ostream& os) const {

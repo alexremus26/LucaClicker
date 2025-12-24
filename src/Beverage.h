@@ -29,6 +29,7 @@ private:
     void doSave(std::ostream& os) const override;
     void doLoad(std::istream& is) override;
     [[nodiscard]] std::string getType() const override;
+    void doDrawRaffle(Player &player, double incomePerSecond, std::queue<std::string> &eventMessages, std::mutex &eventMutex) const override;
 
 public:
     static void registerItem();
@@ -61,6 +62,7 @@ public:
 
     void update(sf::Time time) override;
     [[nodiscard]] double getSpeedMultiplier() const override;
+    [[nodiscard]] double doComputeIncomePerSecond() const override;
 };
 
 #endif // OOP_BEVERAGE_H
