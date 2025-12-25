@@ -17,8 +17,8 @@
 
 
 Game::Game(Player& player_,
-                         std::vector<std::unique_ptr<Item>> items_,
-                         std::vector<Delivery> deliveries_)
+           std::vector<std::unique_ptr<Item>> items_,
+           std::vector<Delivery> deliveries_)
     : player(player_),
       items(std::move(items_)),
       deliveries(std::move(deliveries_))
@@ -26,7 +26,11 @@ Game::Game(Player& player_,
     deliveryRunning.resize(items.size(), false);
     sellingRunning.resize(items.size(), false);
     itemUnlocked.resize(items.size(), false);
+
     progress.resize(items.size(), 0.f);
+    sellingState.resize(items.size(), SellingState::Idle);
+    sellingClock.resize(items.size());
+    sellingDuration.resize(items.size(), sf::Time::Zero);
 
     if (!items.empty())
         itemUnlocked[0] = true;
@@ -96,6 +100,7 @@ std::thread Game::runDeliveryLoop(Item& item, std::size_t index) {
 
                     float p = clock.getElapsedTime().asSeconds() / duration.asSeconds();
                     progress[index] = std::min(1.f, p);
+                    std::cout << "Delivery Loop Progress[" << index << "]: " << progress[index] << std::endl;
                     std::this_thread::sleep_for(std::chrono::milliseconds(40));
                 }
 
@@ -113,39 +118,45 @@ std::thread Game::runDeliveryLoop(Item& item, std::size_t index) {
         }
     });
 }
+
 void Game::runSellingLoop(Item& item, std::size_t index)
 {
-    if (deliveryRunning[index])
+    if (sellingState[index] == SellingState::Running) {
         return;
+    }
 
-    if (sellingRunning[index])
-        return;
+    const double speedMultiplier = combinedSpeedMultiplier();
 
-    sellingRunning[index] = true;
+    sellingDuration[index] =
+        item.getDuration() / static_cast<float>(speedMultiplier);
 
-    std::thread([this, &item, index]() {
-        const sf::Clock clock;
-
-        progress[index] = 0.f;
-
-        const double speedMultiplier = combinedSpeedMultiplier();
-        const sf::Time duration = item.getDuration() / static_cast<float>(speedMultiplier);
-
-        while (clock.getElapsedTime() < duration)
-        {
-            float p = clock.getElapsedTime().asSeconds() / duration.asSeconds();
-            progress[index] = std::min(1.f, p);
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(40));
-        }
-
-        sell(item);
-        progress[index] = 0.f;
-        sellingRunning[index] = false;
-
-    }).detach();
+    sellingClock[index].restart();
+    sellingState[index] = SellingState::Running;
+    progress[index] = 0.f;
 }
 
+void Game::updateSelling()
+{
+    for (std::size_t i = 0; i < sellingState.size(); ++i)
+    {
+        if (sellingState[i] != SellingState::Running)
+            continue;
+
+        float p =
+            sellingClock[i].getElapsedTime().asSeconds() /
+            sellingDuration[i].asSeconds();
+
+        progress[i] = std::min(1.f, p);
+
+        if (progress[i] >= 1.f)
+        {
+            sell(*items[i]);
+
+            sellingClock[i].restart();
+            progress[i] = 0.f;
+        }
+    }
+}
 
 void Game::sell(const Item& item) const {
     player.earn(item.sellPayout());
@@ -157,11 +168,10 @@ void Game::upgrade(Item& item) const{
         item.upgrade();
     }
 }
-
-
-float Game::anyProgress(const std::size_t index) const {
+float Game::anyProgress(std::size_t index) const {
     return (index < progress.size()) ? progress[index] : 0.f;
 }
+
 
 void Game::startDelivery(Item& item, const Delivery& delivery, const int index) {
     if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size())
@@ -420,6 +430,7 @@ void Game::resetFromFile(const std::string &file) {
     sellingRunning  = std::move(fresh.sellingRunning);
 
     stopAllDeliveries();
+
     deliveryThreads.clear();
 }
 

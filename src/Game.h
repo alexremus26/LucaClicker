@@ -7,11 +7,14 @@
 #include <thread>
 #include <queue>
 #include <mutex>
+#include <atomic>
 #include <SFML/System/Time.hpp>
 
 #include "Player.h"
 #include "Item.h"
 #include "Delivery.h"
+#include "SFML/System/Clock.hpp"
+
 
 class Game {
 private:
@@ -27,6 +30,16 @@ private:
     std::queue<std::string> eventMessages;
     std::mutex eventMutex;
     std::vector<std::thread> deliveryThreads;
+    mutable std::mutex progressMutex;
+
+    enum class SellingState {
+        Idle,
+        Running
+    };
+    std::vector<SellingState> sellingState;
+    std::vector<sf::Clock> sellingClock;
+    std::vector<sf::Time> sellingDuration;
+
 
     std::thread runDeliveryLoop(Item& item, std::size_t index);
 
@@ -53,6 +66,9 @@ public:
 
     void sell(const Item& item) const;
     void runSellingLoop(Item& item, std::size_t index);
+
+    void updateSelling();
+
     void upgrade(Item& item) const;
     [[nodiscard]] float anyProgress(std::size_t index) const;
 

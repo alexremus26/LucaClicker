@@ -15,7 +15,6 @@
 Display::Display(Game& manager)
     : gameManager(manager)
 {
-    initWindowAndFont();
 }
 
 Display::~Display() = default;
@@ -28,21 +27,36 @@ std::ostream& operator<<(std::ostream& os, const Display& display)
 
 void Display::drawProgressBar(const float progress, const float x, const float y)
 {
-    sf::RectangleShape back({ PROGRESS_WIDTH, PROGRESS_HEIGHT });
-    back.setFillColor(sf::Color(70, 70, 70));
-    back.setPosition({ x, y });
+    const float clampedProgress = std::clamp(progress, 0.f, 1.f);
 
-    sf::RectangleShape fill({
-        PROGRESS_WIDTH * progress,
-        PROGRESS_HEIGHT
+    static const sf::Texture& outlineTex =
+        ResourceManager::instance().getTexture(
+            "../assets/textures/ProgressBarOutline.png"
+        );
+
+    static const sf::Texture& fillTex =
+        ResourceManager::instance().getTexture(
+            "../assets/textures/ProgressBarContent.png"
+        );
+
+    sf::Sprite outline(outlineTex);
+    sf::Sprite fill(fillTex);
+
+    outline.setPosition({x, y});
+    fill.setPosition({x, y});
+
+    const sf::Vector2u size = fillTex.getSize();
+    const unsigned int clippedWidth =
+        static_cast<unsigned int>(static_cast<float>(size.x) * clampedProgress);
+
+    fill.setTextureRect({
+        {3, -8},
+        {static_cast<int>(clippedWidth), static_cast<int>(size.y)}
     });
-    fill.setFillColor(sf::Color(60, 200, 90));
-    fill.setPosition({ x, y });
 
-    window.draw(back);
+    window.draw(outline);
     window.draw(fill);
 }
-
 float Display::drawItemAndReturnHeight(const Item& item,
                                       const size_t realIndex,
                                       const int displayIndex,
@@ -100,16 +114,6 @@ float Display::drawItemAndReturnHeight(const Item& item,
 }
 
 void Display::initWindowAndFont() {
-    const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-
-    window.create(
-        sf::VideoMode({ desktop.size.x, desktop.size.y }, desktop.bitsPerPixel),
-        "Luca Clicker",
-        sf::Style::Default,
-        sf::State::Windowed
-    );
-
-    window.setFramerateLimit(60);
 
     if (!font.openFromFile("assets/font/MightySouly-lxggD.ttf"))
         throw FontLoadingException("assets/font/MightySouly-lxggD.ttf");
@@ -118,6 +122,8 @@ void Display::initWindowAndFont() {
 Display::MenuResult Display::menu()
 {
     const std::string savePath = "../data/savefile.txt";
+
+    initWindowAndFont();
 
     auto saveExists = [&]() {
         std::ifstream file(savePath);
@@ -139,7 +145,7 @@ Display::MenuResult Display::menu()
 
     sf::Sprite background(
         ResourceManager::instance().getTexture(
-            "../assets/textures/background.png"
+            "../assets/textures/MenuBackground.png"
         )
     );
 
@@ -160,7 +166,7 @@ Display::MenuResult Display::menu()
 
     const sf::Texture& buttonTex =
         ResourceManager::instance().getTexture(
-            "../assets/textures/generic_banner_small_tintable.png"
+            "../assets/textures/MenuButton.png"
         );
 
     std::vector<sf::Sprite> buttons;
@@ -168,7 +174,7 @@ Display::MenuResult Display::menu()
     buttons.emplace_back(buttonTex); // Load Game
 
     for (auto& b : buttons)
-        b.setScale({3.f, 3.f});
+        b.setScale({0.75, 0.75});
 
     float startY  = menuSize.y * 0.4f;
 
@@ -180,10 +186,6 @@ Display::MenuResult Display::menu()
             startY + i * (bounds.size.y + spacing)
         });
     }
-
-    font = ResourceManager::instance().getFont(
-            "../assets/font/MightySouly-lxggD.ttf"
-        );
 
     std::vector<sf::Text> labels;
     labels.emplace_back(font, "New Game", 50);
@@ -248,6 +250,7 @@ Display::MenuResult Display::menu()
                             if (i == 0) {
                                 if (saveExists())
                                     deleteSave();
+                                window.close();
                                 return MenuResult::NewGame;
                             }
 
@@ -257,6 +260,7 @@ Display::MenuResult Display::menu()
                                     warningClock.restart();
                                     break;
                                 }
+                                window.close();
                                 return MenuResult::LoadGame;
                             }
                         }
@@ -293,201 +297,150 @@ Display::MenuResult Display::menu()
 
 void Display::run()
 {
-    const MenuResult result = menu();
-
-    if (result == MenuResult::Exit)
+    if (menu() == MenuResult::Exit)
         return;
 
-    if (result == MenuResult::NewGame) {
-        std::remove("../data/savefile.txt");
-        gameManager.resetFromFile("../data/load.txt");
-        initWindowAndFont();
+    const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    window.create(
+        sf::VideoMode({desktop.size.x, desktop.size.y}, desktop.bitsPerPixel),
+        "Luca Clicker",
+        sf::Style::Default
+    );
+    window.setView(window.getDefaultView());
+
+    const float winW = static_cast<float>(window.getSize().x);
+    const float winH = static_cast<float>(window.getSize().y);
+
+    sf::Text moneyText(font, "", 42);
+    moneyText.setFillColor(sf::Color(255, 220, 120));
+    moneyText.setPosition({winW * 0.03f, winH * 0.03f});
+
+    sf::Sprite background(
+        ResourceManager::instance().getTexture(
+            "../assets/textures/GameBackground.png"
+        )
+    );
+    background.setScale({
+        winW / background.getTexture().getSize().x,
+        winH / background.getTexture().getSize().y
+    });
+
+    const sf::Texture& holderTex =
+        ResourceManager::instance().getTexture("../assets/textures/ItemHolder.png");
+    const sf::Texture& buyTex =
+        ResourceManager::instance().getTexture("../assets/textures/BuyButton.png");
+    const sf::Texture& timeTex =
+        ResourceManager::instance().getTexture("../assets/textures/TimeIntervalButton.png");
+
+    std::vector<sf::Sprite> holders, buyButtons, upgradeButtons;
+    std::vector<sf::Text> buyTexts, upgradeTexts;
+
+    std::vector<bool> buyHovered(5, false);
+    std::vector<bool> upgradeHovered(5, false);
+
+    float baseScale = winH * 0.00025f;
+    float buyScale = baseScale * 1.25f;
+    float timeScale = baseScale * 0.85f;
+
+    float leftX = winW * 0.04f;
+    float startY = winH * 0.18f;
+    float spacing = winH * 0.155f;
+    float progressX = leftX + holderTex.getSize().x * baseScale + winW * 0.015f;
+    float buyX = progressX;
+    float timeX = buyX + buyTex.getSize().x * buyScale + winW * 0.01f;
+
+    for (int i = 0; i < 5; ++i) {
+        float y = startY + i * spacing;
+
+        sf::Sprite h(holderTex);
+        h.setScale({baseScale, baseScale});
+        h.setPosition({leftX, y});
+        holders.push_back(h);
+
+        sf::Sprite b(buyTex);
+        b.setScale({buyScale, buyScale});
+        b.setPosition({buyX, y + winH * 0.055f});
+        buyButtons.push_back(b);
+
+        sf::Text bt(font, "BUY", 32);
+        bt.setFillColor(sf::Color::Black);
+        bt.setOrigin(bt.getLocalBounds().getCenter());
+        bt.setPosition(b.getGlobalBounds().getCenter());
+        buyTexts.push_back(bt);
+
+        sf::Sprite t(timeTex);
+        t.setScale({timeScale, timeScale});
+        t.setPosition({timeX, y + winH * 0.062f});
+        upgradeButtons.push_back(t);
+
+        sf::Text tt(font, "Upgrade", 26);
+        tt.setFillColor(sf::Color::White);
+        tt.setOrigin(tt.getLocalBounds().getCenter());
+        tt.setPosition(t.getGlobalBounds().getCenter());
+        upgradeTexts.push_back(tt);
     }
 
-    if (result == MenuResult::LoadGame)
-        gameManager.loadSavedGame();
+    while (window.isOpen()) {
+        gameManager.updateSelling();
 
-    sf::Clock deltaClock;
-
-    sf::Text header(font);
-    header.setCharacterSize(HEADER_SIZE);
-    header.setFillColor(sf::Color::White);
-
-    sf::Text warning(font);
-    warning.setCharacterSize(DETAIL_SIZE);
-    warning.setFillColor(sf::Color::Red);
-
-    while (window.isOpen())
-    {
-        const sf::Time dt = deltaClock.restart();
-        gameManager.update(dt);
-
-        while (const auto event = window.pollEvent())
-        {
-            if (event->is<sf::Event::Closed>())
+        while (auto e = window.pollEvent()) {
+            if (e->is<sf::Event::Closed>()) {
                 window.close();
-
-            if (const auto* key = event->getIf<sf::Event::KeyPressed>())
-            {
-                using Scan = sf::Keyboard::Scan;
-
-                switch (key->scancode)
-                {
-                    case Scan::Q: gameManager.saveGame(); window.close(); break;
-                    case Scan::S: lastAction = 's'; break;
-                    case Scan::U: lastAction = 'u'; break;
-                    case Scan::D: lastAction = 'd'; break;
-                    case Scan::B: lastAction = 'b'; break;
-                    case Scan::Z: lastAction = 'z'; break;
-
-                    case Scan::Num0: case Scan::Num1: case Scan::Num2:
-                    case Scan::Num3: case Scan::Num4: case Scan::Num5:
-                    case Scan::Num6: case Scan::Num7: case Scan::Num8:
-                    case Scan::Num9:
-                        selectedIndex = static_cast<int>(key->scancode) - static_cast<int>(Scan::Num1);
-                        if (key->scancode == Scan::Num0) {
-                            selectedIndex = 9;
-                        } else if (selectedIndex < 0 || selectedIndex > 8) {
-                            selectedIndex = -1;
-                        }
-                        break;
-
-                    default: break;
-                }
             }
-        }
 
-        if (lastAction != ' ')
-        {
-            if (selectedIndex >= 0 &&
-                selectedIndex < static_cast<int>(displayToReal.size()))
-            {
-                const std::size_t idx = displayToReal[selectedIndex];
-                Item& item = *gameManager.getItems()[idx];
+            if (e->is<sf::Event::MouseButtonPressed>()) {
+                if (e->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
+                    sf::Vector2f mouse =
+                        window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-                if (lastAction == 'z') {
-                    warningMessage = gameManager.unlockItem(idx);
-                    warningClock.restart();
-                }
-                else if (gameManager.isUnlocked(idx)) {
-                    Delivery& delivery = gameManager.getDelivery()[idx];
-                    switch (lastAction)
-                    {
-                        case 's': gameManager.runSellingLoop(item, idx); break;
-                        case 'u': gameManager.upgrade(item); break;
-                        case 'd': gameManager.startDelivery(item, delivery, static_cast<int>(idx)); break;
-                        case 'b':
-                        {
-                            gameManager.useItem(idx);
-                            break;
+                    for (int i = 0; i < 5; ++i) {
+                        if (buyButtons[i].getGlobalBounds().contains(mouse)) {
+                            if (!gameManager.isUnlocked(i)) {
+                                gameManager.unlockItem(i);
+                            } else {
+                                auto& item = *gameManager.getItems()[i];
+                                gameManager.runSellingLoop(item, i);
+                            }
                         }
-                        default: break;
-                    }
-                }
-                else
-                {
-                    if (lastAction == 's' || lastAction == 'u' || lastAction == 'd' || lastAction == 'b')
-                    {
-                        warningMessage =
-                            "Locked! Press Z to unlock (" +
-                            std::to_string(static_cast<int>(item.getUnlockCost())) +
-                            " RON)";
-                        warningClock.restart();
-                    }
-                }
-            }
-            lastAction = ' ';
-        }
 
-        window.clear(sf::Color(25, 25, 25));
-
-        if (const std::string msg = gameManager.popEventMessage(); !msg.empty()) {
-            warningMessage = msg;
-            warningClock.restart();
-        }
-
-        std::ostringstream top;
-        top << "=========== LUCA CLICKER ===========\n"
-            << "Money: " << gameManager.getPlayerMoney() << " RON\n"
-            << "Selected item: " << (selectedIndex == -1 ? "None" : std::to_string(selectedIndex + 1)) << "\n";
-
-        header.setString(top.str());
-        header.setPosition({ LEFT_MARGIN, TOP_MARGIN });
-        window.draw(header);
-
-        float y = TOP_MARGIN + header.getGlobalBounds().size.y + 30.f;
-
-        auto& allItems = gameManager.getItems();
-        std::vector<bool> itemDrawn(allItems.size(), false);
-        displayToReal.clear();
-        int displayIndex = 0;
-
-        for (size_t i = 0; i < allItems.size(); ++i) {
-            if (itemDrawn[i]) continue;
-
-            if (const auto* pastry = dynamic_cast<Pastry*>(allItems[i].get())) {
-                displayToReal.push_back(i);
-                float pastryHeight =
-                    drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
-                itemDrawn[i] = true;
-
-                auto beverageIndex = static_cast<size_t>(-1);
-                for (size_t j = 0; j < allItems.size(); ++j) {
-                    if (auto* beverage = dynamic_cast<Beverage*>(allItems[j].get())) {
-                        if (beverage->getTargetName() == pastry->getName()) {
-                            beverageIndex = j;
-                            break;
+                        if (upgradeButtons[i].getGlobalBounds().contains(mouse)) {
+                            if (gameManager.isUnlocked(i)) {
+                                auto& item = *gameManager.getItems()[i];
+                                gameManager.upgrade(item);
+                            }
                         }
                     }
                 }
-
-                float beverageHeight = 0.f;
-                if (beverageIndex != static_cast<size_t>(-1)) {
-                    displayToReal.push_back(beverageIndex);
-                    beverageHeight =
-                        drawItemAndReturnHeight(*allItems[beverageIndex],
-                                                beverageIndex,
-                                                displayIndex++,
-                                                window.getSize().x / 2.f,
-                                                y);
-                    itemDrawn[beverageIndex] = true;
-                }
-
-                y += std::max(pastryHeight, beverageHeight) + ITEM_SPACING;
-            }
-            else if (dynamic_cast<Sandwich*>(allItems[i].get())) {
-                displayToReal.push_back(i);
-                const float sandwichHeight =
-                    drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
-                itemDrawn[i] = true;
-                y += sandwichHeight + ITEM_SPACING;
             }
         }
 
-        for (size_t i = 0; i < allItems.size(); ++i) {
-            if (!itemDrawn[i]) {
-                displayToReal.push_back(i);
-                const float itemHeight =
-                    drawItemAndReturnHeight(*allItems[i], i, displayIndex++, LEFT_MARGIN, y);
-                itemDrawn[i] = true;
-                y += itemHeight + ITEM_SPACING;
-            }
+        window.clear();
+        window.draw(background);
+
+        sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+        for (int i = 0; i < 5; ++i) {
+            buyHovered[i] = buyButtons[i].getGlobalBounds().contains(mouse);
+            upgradeHovered[i] = upgradeButtons[i].getGlobalBounds().contains(mouse);
         }
 
-        if (!warningMessage.empty()) {
-            warning.setString(warningMessage);
-            warning.setPosition({
-                LEFT_MARGIN,
-                static_cast<float>(window.getSize().y) - WARNING_Y_OFFSET - 50.f
-            });
-            window.draw(warning);
+        double money = gameManager.getPlayerMoney();
+        moneyText.setString("$ " + std::to_string(static_cast<long long>(money)));
+        window.draw(moneyText);
 
-            if (warningClock.getElapsedTime().asSeconds() > 3.f)
-                warningMessage.clear();
+        for (int i = 0; i < 5; ++i) {
+            window.draw(holders[i]);
+
+
+            buyButtons[i].setColor(buyHovered[i] ? sf::Color(255, 230, 160) : sf::Color::White);
+            upgradeButtons[i].setColor(upgradeHovered[i] ? sf::Color(200, 200, 255) : sf::Color::White);
+
+            window.draw(buyButtons[i]);
+            window.draw(buyTexts[i]);
+            window.draw(upgradeButtons[i]);
+            window.draw(upgradeTexts[i]);
+            drawProgressBar(gameManager.anyProgress(i), progressX, startY + i * spacing);
         }
 
         window.display();
     }
 }
-
-
