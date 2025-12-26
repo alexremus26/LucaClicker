@@ -15,8 +15,6 @@ private:
     sf::Font font;
 
     int  selectedIndex = -1;
-    char lastAction    = ' ';
-
     std::string warningMessage;
     sf::Clock   warningClock;
 
