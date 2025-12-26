@@ -11,7 +11,6 @@
 #include <fstream>
 #include <sstream>
 #include <map>
-#include <tuple>
 #include <SFML/System/Clock.hpp>
 #include <algorithm>
 
@@ -75,6 +74,11 @@ bool Game::isUnlocked(const std::size_t index) const {
     return index < itemUnlocked.size() && itemUnlocked[index];
 }
 
+bool Game::isSelling(const std::size_t index) const {
+    return index < sellingState.size() &&
+       sellingState[index] == SellingState::Running;
+}
+
 
 std::thread Game::runDeliveryLoop(Item& item, std::size_t index) {
     return std::thread([this, &item, index]() {
@@ -119,7 +123,7 @@ std::thread Game::runDeliveryLoop(Item& item, std::size_t index) {
     });
 }
 
-void Game::runSellingLoop(Item& item, std::size_t index)
+void Game::runSellingLoop(const Item& item, const std::size_t index)
 {
     if (sellingState[index] == SellingState::Running) {
         return;
@@ -152,9 +156,17 @@ void Game::updateSelling()
         {
             sell(*items[i]);
 
-            sellingClock[i].restart();
-            progress[i] = 0.f;
+            if (deliveryRunning[i]) {
+
+                sellingClock[i].restart();
+                progress[i] = 0.f;
+            } else {
+
+                sellingState[i] = SellingState::Idle;
+                progress[i] = 0.f;
+            }
         }
+
     }
 }
 
@@ -489,4 +501,12 @@ double Game::combinedSpeedMultiplier() const {
         combined *= item_ptr->getSpeedMultiplier();
     }
     return combined;
+}
+
+bool Game::isPastry(const std::unique_ptr<Item>& item) {
+    return dynamic_cast<Pastry*>(item.get()) != nullptr;
+}
+
+bool Game::isBeverage(const std::unique_ptr<Item>& item) {
+    return dynamic_cast<Beverage*>(item.get()) != nullptr;
 }

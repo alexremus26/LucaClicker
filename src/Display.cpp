@@ -38,6 +38,13 @@ void Display::drawProgressBar(const float progress, const float x, const float y
         ResourceManager::instance().getTexture(
             "../assets/textures/ProgressBarContent.png"
         );
+    const std::vector<std::string> itemIconFiles = {
+        "../assets/textures/Pretzel.png",
+        "../assets/textures/Strudel.png",
+        "../assets/textures/ApplePie.png",
+        "../assets/textures/Pizza.png",
+        "../assets/textures/CovriLuca.png"
+    };
 
     sf::Sprite outline(outlineTex);
     sf::Sprite fill(fillTex);
@@ -50,7 +57,7 @@ void Display::drawProgressBar(const float progress, const float x, const float y
         static_cast<unsigned int>(static_cast<float>(size.x) * clampedProgress);
 
     fill.setTextureRect({
-        {3, -8},
+        {5, -8},
         {static_cast<int>(clippedWidth), static_cast<int>(size.y)}
     });
 
@@ -126,7 +133,7 @@ Display::MenuResult Display::menu()
     initWindowAndFont();
 
     auto saveExists = [&]() {
-        std::ifstream file(savePath);
+        const std::ifstream file(savePath);
         return file.good();
     };
 
@@ -311,7 +318,56 @@ void Display::run()
     const float winW = static_cast<float>(window.getSize().x);
     const float winH = static_cast<float>(window.getSize().y);
 
-    sf::Text moneyText(font, "", 42);
+    // Text: Sell/Upgrade
+    auto makeSmallLabel = [&](const std::string& str,
+                              const sf::FloatRect& bounds)
+    {
+        sf::Text t(font, str);
+        t.setFillColor(sf::Color::Black);
+
+        const auto size =
+            static_cast<unsigned int>(bounds.size.y * 0.22f);
+        t.setCharacterSize(size);
+
+        t.setPosition({
+            bounds.position.x + bounds.size.x * 0.1f,
+            bounds.position.y + bounds.size.y * 0.12f
+        });
+
+        return t;
+    };
+
+    // Values
+    auto makeValueLabel = [&](const std::string& str,
+                              const sf::FloatRect& bounds)
+    {
+        sf::Text t(font, str);
+        t.setFillColor(sf::Color::Black);
+
+        const auto size =
+            static_cast<unsigned int>(bounds.size.y * 0.25f);
+        t.setCharacterSize(size);
+
+        t.setOrigin(t.getLocalBounds().getCenter());
+        t.setPosition(bounds.getCenter());
+        t.move({0,20});
+
+        return t;
+    };
+
+    sf::Sound soundtrack(
+        ResourceManager::instance().getSound(
+            "../assets/audio/adventure_capitalist_theme_song.wav"
+        )
+    );
+    soundtrack.setLooping(true);
+    soundtrack.setVolume(50.f);
+    soundtrack.play();
+
+    sf::Text moneyText(font, "", 90);
+    moneyText.setOutlineThickness(3.f);
+    moneyText.setOutlineColor(sf::Color::Black);
+
     moneyText.setFillColor(sf::Color(255, 220, 120));
     moneyText.setPosition({winW * 0.03f, winH * 0.03f});
 
@@ -332,11 +388,32 @@ void Display::run()
     const sf::Texture& timeTex =
         ResourceManager::instance().getTexture("../assets/textures/TimeIntervalButton.png");
 
-    std::vector<sf::Sprite> holders, buyButtons, upgradeButtons;
-    std::vector<sf::Text> buyTexts, upgradeTexts;
+    const std::vector<std::string> itemIconFiles = {
+        "../assets/textures/Pretzel.png",
+        "../assets/textures/Pizza.png",
+        "../assets/textures/ApplePie.png",
+        "../assets/textures/Strudel.png",
+        "../assets/textures/CovriLuca.png"
+    };
+    const std::vector<std::string> beverageIconFiles = {
+        "../assets/textures/Water.png",
+        "../assets/textures/Coke.png",
+        "../assets/textures/Coffee.png",
+        "../assets/textures/Ayran.png",
+        "../assets/textures/Matcha.png"
+    };
+
+    std::vector<sf::Sprite> holders, buyButtons, upgradeButtons, itemIcons,
+                            beverageHolders, useButtons, beverageIcons;
+
+    std::vector<sf::Text>   buyTexts, upgradeTexts, useTexts,
+                            itemNameTexts, beverageNameTexts,
+                            buyValueTexts, upgradeValueTexts, useValueTexts;
 
     std::vector<bool> buyHovered(5, false);
     std::vector<bool> upgradeHovered(5, false);
+    std::vector<bool> useHovered(5, false);
+
 
     float baseScale = winH * 0.00025f;
     float buyScale = baseScale * 1.25f;
@@ -349,6 +426,10 @@ void Display::run()
     float buyX = progressX;
     float timeX = buyX + buyTex.getSize().x * buyScale + winW * 0.01f;
 
+    float secondColumnX = timeX + timeTex.getSize().x * timeScale + winW * 0.08f;
+    float useButtonX    = secondColumnX + holderTex.getSize().x * baseScale + winW * 0.015f;
+
+
     for (int i = 0; i < 5; ++i) {
         float y = startY + i * spacing;
 
@@ -357,27 +438,106 @@ void Display::run()
         h.setPosition({leftX, y});
         holders.push_back(h);
 
+        sf::Sprite icon(
+            ResourceManager::instance().getTexture(itemIconFiles[i])
+        );
+
+        float holderHeight = holderTex.getSize().y * baseScale;
+        float iconScale = holderHeight * 0.5f / icon.getTexture().getSize().y;
+        icon.setScale({iconScale, iconScale});
+
+        icon.setOrigin(icon.getLocalBounds().getCenter());
+        icon.setPosition(holders.back().getGlobalBounds().getCenter());
+        icon.move({0, -30});
+
+        itemIcons.push_back(icon);
+
+        sf::Text nameText(font, gameManager.getItems()[i]->getName(), 26);
+        nameText.setFillColor(sf::Color(60, 60, 60));
+        nameText.setOrigin(nameText.getLocalBounds().getCenter());
+
+        sf::FloatRect hBounds = holders.back().getGlobalBounds();
+        nameText.setPosition({
+            hBounds.getCenter().x,
+            hBounds.position.y + hBounds.size.y * 0.82f
+        });
+
+        itemNameTexts.push_back(nameText);
+
         sf::Sprite b(buyTex);
         b.setScale({buyScale, buyScale});
         b.setPosition({buyX, y + winH * 0.055f});
         buyButtons.push_back(b);
 
-        sf::Text bt(font, "BUY", 32);
-        bt.setFillColor(sf::Color::Black);
-        bt.setOrigin(bt.getLocalBounds().getCenter());
-        bt.setPosition(b.getGlobalBounds().getCenter());
-        buyTexts.push_back(bt);
+        sf::FloatRect bBounds = b.getGlobalBounds();
+
+        buyTexts.push_back(
+            makeSmallLabel("SELL", bBounds)
+        );
+
+        buyValueTexts.push_back(
+            makeValueLabel("0", bBounds)
+        );
 
         sf::Sprite t(timeTex);
         t.setScale({timeScale, timeScale});
         t.setPosition({timeX, y + winH * 0.062f});
         upgradeButtons.push_back(t);
 
-        sf::Text tt(font, "Upgrade", 26);
-        tt.setFillColor(sf::Color::White);
-        tt.setOrigin(tt.getLocalBounds().getCenter());
-        tt.setPosition(t.getGlobalBounds().getCenter());
-        upgradeTexts.push_back(tt);
+        sf::FloatRect tBounds = t.getGlobalBounds();
+
+        upgradeTexts.push_back(
+            makeSmallLabel("UPGRADE", tBounds)
+        );
+
+        sf::Text upgVal = makeValueLabel("0", tBounds);
+        upgVal.setFillColor(sf::Color::White);
+        upgradeValueTexts.push_back(upgVal);
+
+        sf::Sprite bh(holderTex);
+        bh.setScale({baseScale, baseScale});
+        bh.setPosition({secondColumnX, y});
+        beverageHolders.push_back(bh);
+
+        sf::Sprite bIcon(
+            ResourceManager::instance().getTexture(beverageIconFiles[i])
+        );
+
+        float bHolderHeight = holderTex.getSize().y * baseScale;
+        float bIconScale = bHolderHeight * 0.45f / bIcon.getTexture().getSize().y;
+        bIcon.setScale({bIconScale, bIconScale});
+        bIcon.setOrigin(bIcon.getLocalBounds().getCenter());
+        bIcon.setPosition(beverageHolders.back().getGlobalBounds().getCenter());
+        bIcon.move({0, -30});
+
+        beverageIcons.push_back(bIcon);
+        std::size_t beverageIndex = i + 5;
+        sf::Text bName(font, gameManager.getItems()[beverageIndex]->getName(), 26);
+        bName.setFillColor(sf::Color(60, 60, 60));
+        bName.setOrigin(bName.getLocalBounds().getCenter());
+
+        sf::FloatRect bhBounds = beverageHolders.back().getGlobalBounds();
+        bName.setPosition({
+            bhBounds.getCenter().x,
+            bhBounds.position.y + bhBounds.size.y * 0.82f
+        });
+
+        beverageNameTexts.push_back(bName);
+
+        sf::Sprite ub(buyTex);
+        ub.setScale({buyScale, buyScale});
+        ub.setPosition({useButtonX, y + winH * 0.055f});
+        useButtons.push_back(ub);
+
+        sf::FloatRect ubBounds = ub.getGlobalBounds();
+
+        useTexts.push_back(
+            makeSmallLabel("USE", ubBounds)
+        );
+
+        useValueTexts.push_back(
+            makeValueLabel("0", ubBounds)
+        );
     }
 
     while (window.isOpen()) {
@@ -397,16 +557,27 @@ void Display::run()
                         if (buyButtons[i].getGlobalBounds().contains(mouse)) {
                             if (!gameManager.isUnlocked(i)) {
                                 gameManager.unlockItem(i);
-                            } else {
+                            }
+                            else if (!gameManager.isSelling(i)) {
                                 auto& item = *gameManager.getItems()[i];
                                 gameManager.runSellingLoop(item, i);
                             }
                         }
-
                         if (upgradeButtons[i].getGlobalBounds().contains(mouse)) {
                             if (gameManager.isUnlocked(i)) {
                                 auto& item = *gameManager.getItems()[i];
                                 gameManager.upgrade(item);
+                            }
+                        }
+                    }
+                    for (int i = 0; i < 5; ++i) {
+                        if (useButtons[i].getGlobalBounds().contains(mouse)) {
+                            std::size_t index = i + 5;
+
+                            if (!gameManager.isUnlocked(index)) {
+                                gameManager.unlockItem(index);
+                            } else {
+                                gameManager.useItem(index);
                             }
                         }
                     }
@@ -421,25 +592,97 @@ void Display::run()
         for (int i = 0; i < 5; ++i) {
             buyHovered[i] = buyButtons[i].getGlobalBounds().contains(mouse);
             upgradeHovered[i] = upgradeButtons[i].getGlobalBounds().contains(mouse);
+            useHovered[i] = useButtons[i].getGlobalBounds().contains(mouse);
+
         }
 
         double money = gameManager.getPlayerMoney();
         moneyText.setString("$ " + std::to_string(static_cast<long long>(money)));
         window.draw(moneyText);
 
-        for (int i = 0; i < 5; ++i) {
-            window.draw(holders[i]);
 
+        for (int i = 0; i < 5; ++i) {
+            const Item& item = *gameManager.getItems()[i];
+
+            bool unlocked = gameManager.isUnlocked(i);
+
+            buyTexts[i].setString(unlocked ? "SELL" : "UNLOCK");
+
+            double buyValue =
+                unlocked ? item.sellPayout()
+                         : item.getUnlockCost();
+
+            buyValueTexts[i].setString(
+                std::to_string(static_cast<long long>(buyValue))
+            );
+
+            if (gameManager.isUnlocked(i)) {
+                upgradeTexts[i].setString("UPGRADE");
+
+                double upgCost = item.getUpgradeCost();
+                upgradeValueTexts[i].setString(
+                    upgCost > 0 ? std::to_string(static_cast<long long>(upgCost)) : "-"
+                );
+            } else {
+                upgradeTexts[i].setString("");
+                upgradeValueTexts[i].setString("");
+            }
+
+            std::size_t bevIndex = i + 5;
+            const Item& bev = *gameManager.getItems()[bevIndex];
+
+            if (!gameManager.isUnlocked(bevIndex)) {
+                useTexts[i].setString("UNLOCK");
+                useValueTexts[i].setString(
+                    std::to_string(static_cast<long long>(bev.getUnlockCost()))
+                );
+            }
+            else if (!bev.isUsable()) {
+                useTexts[i].setString("");
+                useValueTexts[i].setString("");
+            }
+            else {
+                useTexts[i].setString("USE");
+                useValueTexts[i].setString(
+                    std::to_string(static_cast<long long>(bev.getUseCost()))
+                );
+            }
+
+            window.draw(holders[i]);
+            window.draw(itemNameTexts[i]);
+            window.draw(itemIcons[i]);
 
             buyButtons[i].setColor(buyHovered[i] ? sf::Color(255, 230, 160) : sf::Color::White);
             upgradeButtons[i].setColor(upgradeHovered[i] ? sf::Color(200, 200, 255) : sf::Color::White);
 
             window.draw(buyButtons[i]);
+
             window.draw(buyTexts[i]);
+            window.draw(buyValueTexts[i]);
+
             window.draw(upgradeButtons[i]);
+
             window.draw(upgradeTexts[i]);
+            window.draw(upgradeValueTexts[i]);
             drawProgressBar(gameManager.anyProgress(i), progressX, startY + i * spacing);
+            if (gameManager.isSelling(i)) {
+                buyButtons[i].setColor(sf::Color(180, 180, 180));
+            }
         }
+            for (int i = 0; i < 5; ++i) {
+                window.draw(beverageHolders[i]);
+                window.draw(beverageNameTexts[i]);
+                window.draw(beverageIcons[i]);
+
+                useButtons[i].setColor(
+                    useHovered[i] ? sf::Color(160, 230, 255) : sf::Color::White
+                );
+
+                window.draw(useButtons[i]);
+
+                window.draw(useTexts[i]);
+                window.draw(useValueTexts[i]);
+            }
 
         window.display();
     }

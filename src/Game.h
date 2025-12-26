@@ -52,6 +52,9 @@ public:
     ~Game();
     friend std::ostream& operator<<(std::ostream& ostream, const Game& manager);
 
+    static bool isPastry(const std::unique_ptr<Item>& item);
+    static bool isBeverage(const std::unique_ptr<Item>& item);
+
     static Game loadFromFile(const std::string& fileName, Player& player);
     void saveGame() const;
     bool loadSavedGame();
@@ -63,9 +66,11 @@ public:
 
     std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
+    [[nodiscard]] bool isSelling(std::size_t index) const;
+
 
     void sell(const Item& item) const;
-    void runSellingLoop(Item& item, std::size_t index);
+    void runSellingLoop(const Item& item, std::size_t index);
 
     void updateSelling();
 

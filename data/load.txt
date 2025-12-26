@@ -1,5 +1,5 @@
 type: Pastry
-name: Covrig
+name: Pretzel
 baseIncome: 1
 upgradeCost: 10
 multiplier: 1.5
@@ -9,17 +9,17 @@ deliveryName: Glovo
 unlockDeliveryCost: 100
 
 type: Pastry
-name: Merdenea
-baseIncome: 50
-upgradeCost: 500
-multiplier: 2
+name: Pizza
+baseIncome: 300
+upgradeCost: 10
+multiplier: 1.5
 unlockCost: 100
-duration: 10
-deliveryName: Wolt
-unlockDeliveryCost: 500
+duration: 2
+deliveryName: Glovo
+unlockDeliveryCost: 100
 
 type: Pastry
-name: Pizza
+name: ApplePie
 baseIncome: 200
 upgradeCost: 1000
 multiplier: 1.5
@@ -28,37 +28,66 @@ duration: 30
 deliveryName: Glovo
 unlockDeliveryCost: 1000
 
+type: Pastry
+name: Strudel
+baseIncome: 50
+upgradeCost: 500
+multiplier: 2
+unlockCost: 1000
+duration: 10
+deliveryName: Wolt
+unlockDeliveryCost: 500
+
+type: Pastry
+name: CovriLuca
+baseIncome: 500
+upgradeCost: 10
+multiplier: 1.5
+unlockCost: 5000
+duration: 2
+deliveryName: Glovo
+unlockDeliveryCost: 100
+
 type: Beverage
-name: Latte
+name: Water
 multiplier: 1.0
 unlockCost: 300
 effects: profit_multiplier 1.5 upgrade_discount 0.9
 deliveryName: None
 unlockDeliveryCost: 0
-target: Covrig
+target: Pretzel
 
 type: Beverage
-name: Ayran
+name: Coke
 multiplier: 1.0
 unlockCost: 500
 effects: profit_multiplier 1.7 upgrade_discount 0.8
 deliveryName: None
 unlockDeliveryCost: 0
-target: Merdenea
+target: Pizza
 
 type: Beverage
-name: Pepsi
+name: Coffee
 multiplier: 1.0
-unlockCost: 800
+unlockCost: 700
+effects: profit_multiplier 1.5 upgrade_discount 0.9
+deliveryName: None
+unlockDeliveryCost: 0
+target: ApplePie
+
+type: Beverage
+name: Ayran
+multiplier: 1.0
+unlockCost: 1000
 effects: profit_multiplier 2 upgrade_discount 0.7
 deliveryName: None
 unlockDeliveryCost: 0
-target: Pizza
+target: Strudel
 
 type: Beverage
 name: Matcha
 multiplier: 1.0
-unlockCost: 1000
+unlockCost: 5000
 effects: profit_multiplier 2.5 upgrade_discount 0.5
 deliveryName: None
 unlockDeliveryCost: 0
