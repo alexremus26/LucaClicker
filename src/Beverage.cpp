@@ -169,10 +169,6 @@ double Beverage::getBuffMultiplier() {
     return 1.0;
 }
 
-std::string& Beverage::getTargetName() {
-    return targetName;
-}
-
 void Beverage::update(const sf::Time time) {
     updateBuffs(time);
 }

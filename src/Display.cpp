@@ -36,15 +36,8 @@ void Display::drawProgressBar(const float progress, const float x, const float y
 
     static const sf::Texture& fillTex =
         ResourceManager::instance().getTexture(
-            "../assets/textures/ProgressBarContent.png"
+        "../assets/textures/ProgressBarFull.png"
         );
-    const std::vector<std::string> itemIconFiles = {
-        "../assets/textures/Pretzel.png",
-        "../assets/textures/Strudel.png",
-        "../assets/textures/ApplePie.png",
-        "../assets/textures/Pizza.png",
-        "../assets/textures/CovriLuca.png"
-    };
 
     sf::Sprite outline(outlineTex);
     sf::Sprite fill(fillTex);
@@ -53,71 +46,16 @@ void Display::drawProgressBar(const float progress, const float x, const float y
     fill.setPosition({x, y});
 
     const sf::Vector2u size = fillTex.getSize();
-    const unsigned int clippedWidth =
+    const auto clippedWidth =
         static_cast<unsigned int>(static_cast<float>(size.x) * clampedProgress);
 
     fill.setTextureRect({
-        {5, -8},
+        {0, -5},
         {static_cast<int>(clippedWidth), static_cast<int>(size.y)}
     });
 
     window.draw(outline);
     window.draw(fill);
-}
-float Display::drawItemAndReturnHeight(const Item& item,
-                                      const size_t realIndex,
-                                      const int displayIndex,
-                                      float x,
-                                      float y)
-{
-    sf::Text title(font);
-    title.setCharacterSize(TITLE_SIZE);
-    title.setFillColor(
-        selectedIndex == displayIndex
-        ? sf::Color(255, 220, 120)
-        : sf::Color::White
-    );
-
-    if (gameManager.isUnlocked(realIndex)) {
-        title.setString(
-            "[" + std::to_string(displayIndex + 1) + "] " +
-            item.getName() + " (" + item.getType() + ")"
-        );
-    } else {
-        title.setString(
-            "[" + std::to_string(displayIndex + 1) +
-            "] LOCKED - Cost: " +
-            std::to_string(static_cast<int>(item.getUnlockCost())) + " RON"
-        );
-    }
-
-    sf::Text details(font);
-    details.setCharacterSize(DETAIL_SIZE);
-    details.setFillColor(sf::Color(200, 200, 200));
-    std::ostringstream oss;
-    item.print(oss);
-    details.setString(oss.str());
-
-    title.setPosition({ x, y });
-    window.draw(title);
-
-    float blockHeight = title.getGlobalBounds().size.y;
-
-    details.setPosition({ x, y + blockHeight + 6.f });
-    window.draw(details);
-
-    blockHeight += details.getGlobalBounds().size.y + 6.f;
-    const float progress = gameManager.anyProgress(realIndex);
-    if (progress != 0) {
-        drawProgressBar(
-            progress,
-            x,
-            y + blockHeight + 6.f
-        );
-        blockHeight += PROGRESS_HEIGHT + 6.f;
-    }
-
-    return blockHeight;
 }
 
 void Display::initWindowAndFont() {
@@ -298,14 +236,28 @@ Display::MenuResult Display::menu()
 
         window.display();
     }
-
     return MenuResult::Exit;
 }
 
 void Display::run()
 {
-    if (menu() == MenuResult::Exit)
+    const MenuResult choice = menu();
+    if (choice == MenuResult::Exit)
         return;
+
+    if (choice == MenuResult::LoadGame) {
+        try {
+            if (!gameManager.loadSavedGame()) {
+                std::cerr << "Warning: save file could not be loaded.\n";
+            }
+        } catch (const FileOpenException& e) {
+            std::cerr << "Error loading saved game: " << e.what() << ". Starting a new game.\n";
+        } catch (const SaveStateException& e) {
+            std::cerr << "Error loading saved game: " << e.what() << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "An error occurred while loading saved game: " << e.what() << std::endl;
+        }
+    }
 
     const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.create(
@@ -545,6 +497,7 @@ void Display::run()
 
         while (auto e = window.pollEvent()) {
             if (e->is<sf::Event::Closed>()) {
+                gameManager.saveGame();
                 window.close();
             }
 
@@ -559,7 +512,7 @@ void Display::run()
                                 gameManager.unlockItem(i);
                             }
                             else if (!gameManager.isSelling(i)) {
-                                auto& item = *gameManager.getItems()[i];
+                                const auto& item = *gameManager.getItems()[i];
                                 gameManager.runSellingLoop(item, i);
                             }
                         }
@@ -683,7 +636,6 @@ void Display::run()
                 window.draw(useTexts[i]);
                 window.draw(useValueTexts[i]);
             }
-
         window.display();
     }
 }

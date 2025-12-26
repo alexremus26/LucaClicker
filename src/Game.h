@@ -52,9 +52,6 @@ public:
     ~Game();
     friend std::ostream& operator<<(std::ostream& ostream, const Game& manager);
 
-    static bool isPastry(const std::unique_ptr<Item>& item);
-    static bool isBeverage(const std::unique_ptr<Item>& item);
-
     static Game loadFromFile(const std::string& fileName, Player& player);
     void saveGame() const;
     bool loadSavedGame();
@@ -62,7 +59,6 @@ public:
 
 
     void pushEventMessage(const std::string& message);
-    std::string popEventMessage();
 
     std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
@@ -77,7 +73,7 @@ public:
     void upgrade(Item& item) const;
     [[nodiscard]] float anyProgress(std::size_t index) const;
 
-    void startDelivery(Item& item, const Delivery& delivery, int index);
+    // void startDelivery(Item& item, const Delivery& delivery, int index);
     void stopAllDeliveries();
 
     void useItem(std::size_t index);
@@ -86,7 +82,7 @@ public:
     [[nodiscard]] double computeTotalIncomePerSecond() const;
 
     std::vector<std::unique_ptr<Item>>& getItems();
-    std::vector<Delivery>& getDelivery();
+    // std::vector<Delivery>& getDelivery();
     [[nodiscard]] double getPlayerMoney() const;
 };
 

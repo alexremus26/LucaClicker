@@ -185,7 +185,7 @@ float Game::anyProgress(std::size_t index) const {
 }
 
 
-void Game::startDelivery(Item& item, const Delivery& delivery, const int index) {
+/*void Game::startDelivery(Item& item, const Delivery& delivery, const int index) {
     if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size())
         throw InvalidIndexException("Delivery index " + std::to_string(index) + " is out of bounds.");
 
@@ -199,7 +199,7 @@ void Game::startDelivery(Item& item, const Delivery& delivery, const int index) 
             deliveryThreads.emplace_back(runDeliveryLoop(item, index));
             std::cout << "Automation purchased for " << item.getName() << "!\n";
     }
-}
+}*/
 
 void Game::stopAllDeliveries() {
     for (auto && i : deliveryRunning) {
@@ -217,16 +217,6 @@ void Game::stopAllDeliveries() {
 void Game::pushEventMessage(const std::string& message) {
     const std::lock_guard<std::mutex> lock(eventMutex);
     eventMessages.push(message);
-}
-
-std::string Game::popEventMessage() {
-    const std::lock_guard<std::mutex> lock(eventMutex);
-    if (eventMessages.empty()) {
-        return "";
-    }
-    std::string message = eventMessages.front();
-    eventMessages.pop();
-    return message;
 }
 
 double Game::computeTotalIncomePerSecond() const {
@@ -449,10 +439,10 @@ void Game::resetFromFile(const std::string &file) {
 std::vector<std::unique_ptr<Item>>& Game::getItems() {
     return items;
 }
-
-std::vector<Delivery>& Game::getDelivery() {
-    return deliveries;
-}
+//
+// std::vector<Delivery>& Game::getDelivery() {
+//     return deliveries;
+// }
 
 
 double Game::getPlayerMoney() const {
@@ -501,12 +491,4 @@ double Game::combinedSpeedMultiplier() const {
         combined *= item_ptr->getSpeedMultiplier();
     }
     return combined;
-}
-
-bool Game::isPastry(const std::unique_ptr<Item>& item) {
-    return dynamic_cast<Pastry*>(item.get()) != nullptr;
-}
-
-bool Game::isBeverage(const std::unique_ptr<Item>& item) {
-    return dynamic_cast<Beverage*>(item.get()) != nullptr;
 }

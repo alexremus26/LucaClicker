@@ -12,14 +12,12 @@ private:
     ResourceManager() = default;
 
     std::unordered_map<std::string, sf::Texture> textures;
-    std::unordered_map<std::string, sf::Font> fonts;
     std::unordered_map<std::string, sf::SoundBuffer> sounds;
 
 public:
     static ResourceManager& instance();
 
     const sf::Texture& getTexture(const std::string& path);
-    const sf::Font& getFont(const std::string& path);
     const sf::SoundBuffer& getSound(const std::string& path);
 
     ResourceManager(const ResourceManager&) = delete;

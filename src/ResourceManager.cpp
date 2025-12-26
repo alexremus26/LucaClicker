@@ -19,19 +19,6 @@ const sf::Texture& ResourceManager::getTexture(const std::string& path) {
     return insertedIt->second;
 }
 
-const sf::Font& ResourceManager::getFont(const std::string& path) {
-    auto it = fonts.find(path);
-    if (it != fonts.end())
-        return it->second;
-
-    sf::Font font;
-    if (!font.openFromFile(path))
-        throw FontLoadingException(path);
-
-    auto [insertedIt, _] = fonts.emplace(path, std::move(font));
-    return insertedIt->second;
-}
-
 const sf::SoundBuffer& ResourceManager::getSound(const std::string& path) {
     auto it = sounds.find(path);
     if (it != sounds.end())
