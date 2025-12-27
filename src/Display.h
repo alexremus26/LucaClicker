@@ -3,38 +3,26 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <optional>
 
 #include "Game.h"
-
 
 class Display {
 private:
     Game& gameManager;
 
     sf::RenderWindow window;
+    std::optional<sf::RenderTexture> renderTexture;
     sf::Font font;
 
-    int  selectedIndex = -1;
+    int selectedIndex = -1;
     std::string warningMessage;
-    sf::Clock   warningClock;
+    sf::Clock warningClock;
 
-    std::vector<std::size_t> displayToReal;
+    static constexpr sf::Vector2u menuSize{1200, 1100};
+    static constexpr float referenceHeight = 1080.f;
 
-    static constexpr float LEFT_MARGIN   = 40.f;
-    static constexpr float TOP_MARGIN    = 20.f;
-    static constexpr float ITEM_SPACING  = 40.f;
-
-    static constexpr unsigned HEADER_SIZE = 40;
-    static constexpr unsigned TITLE_SIZE  = 50;
-    static constexpr unsigned DETAIL_SIZE = 30;
-
-    static constexpr float PROGRESS_WIDTH  = 600.f;
-    static constexpr float PROGRESS_HEIGHT = 20.f;
-
-    static constexpr float WARNING_Y_OFFSET = 80.f;
-
-    void drawProgressBar(float progress, float x, float y);
-    float drawItemAndReturnHeight(const Item& item, size_t realIndex, int displayIndex, float x, float y);
+    void drawProgressBar(float progress, float x, float y, float scale);
     void initWindowAndFont();
 
     enum class MenuResult {
@@ -46,13 +34,11 @@ private:
     MenuResult menu();
 
 public:
-
     explicit Display(Game& manager);
     Display(const Display& other) = delete;
     Display& operator=(const Display& other) = delete;
     ~Display();
     friend std::ostream& operator<<(std::ostream& os, const Display& display);
-
 
     void run();
 };

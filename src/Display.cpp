@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& os, const Display& display)
     return os;
 }
 
-void Display::drawProgressBar(const float progress, const float x, const float y)
+void Display::drawProgressBar(const float progress, const float x, const float y, const float scale)
 {
     const float clampedProgress = std::clamp(progress, 0.f, 1.f);
 
@@ -41,6 +41,9 @@ void Display::drawProgressBar(const float progress, const float x, const float y
 
     sf::Sprite outline(outlineTex);
     sf::Sprite fill(fillTex);
+
+    outline.setScale({scale, scale});
+    fill.setScale({scale, scale});
 
     outline.setPosition({x, y});
     fill.setPosition({x, y});
@@ -79,7 +82,6 @@ Display::MenuResult Display::menu()
         std::remove(savePath.c_str());
     };
 
-    constexpr sf::Vector2u menuSize{1200, 1100};
     const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
 
     window.create(
@@ -265,6 +267,13 @@ void Display::run()
         "Luca Clicker",
         sf::Style::Default
     );
+
+    // window.create(
+    //     sf::VideoMode({1920,1080}, desktop.bitsPerPixel),
+    //     "Luca Clicker",
+    //     sf::Style::Default
+    // ); test for 16:9
+
     window.setView(window.getDefaultView());
 
     const float winW = static_cast<float>(window.getSize().x);
@@ -320,6 +329,11 @@ void Display::run()
     moneyText.setOutlineThickness(3.f);
     moneyText.setOutlineColor(sf::Color::Black);
 
+    float heightScale = winH / referenceHeight;
+
+    auto moneyFontSize = static_cast<unsigned int>(90.f * heightScale);
+    moneyText.setCharacterSize(moneyFontSize);
+
     moneyText.setFillColor(sf::Color(255, 220, 120));
     moneyText.setPosition({winW * 0.03f, winH * 0.03f});
 
@@ -366,20 +380,33 @@ void Display::run()
     std::vector<bool> upgradeHovered(5, false);
     std::vector<bool> useHovered(5, false);
 
-
-    float baseScale = winH * 0.00025f;
+    float baseScale = heightScale * 0.3f;
     float buyScale = baseScale * 1.25f;
     float timeScale = baseScale * 0.85f;
 
-    float leftX = winW * 0.04f;
+    float progressBarScale = baseScale * 2.0f;
+    float aspectRatio = winW / winH;
+    float leftMargin;
+
+    if (aspectRatio >= 1.7f) {
+        leftMargin = 0.03f;         // 16:9
+    } else {
+        leftMargin = 0.04f;         // 16:10
+    }
+
+    float leftX = winW * leftMargin;
     float startY = winH * 0.18f;
     float spacing = winH * 0.155f;
-    float progressX = leftX + holderTex.getSize().x * baseScale + winW * 0.015f;
-    float buyX = progressX;
-    float timeX = buyX + buyTex.getSize().x * buyScale + winW * 0.01f;
 
-    float secondColumnX = timeX + timeTex.getSize().x * timeScale + winW * 0.08f;
-    float useButtonX    = secondColumnX + holderTex.getSize().x * baseScale + winW * 0.015f;
+    float horizontalSpacing = winW * 0.015f;
+    float columnGap = winW * (aspectRatio >= 2.0f ? 0.06f : 0.08f);
+
+    float progressX = leftX + holderTex.getSize().x * baseScale + horizontalSpacing;
+    float buyX = progressX;
+    float timeX = buyX + buyTex.getSize().x * buyScale + horizontalSpacing * 0.67f;
+
+    float secondColumnX = timeX + timeTex.getSize().x * timeScale + columnGap;
+    float useButtonX = secondColumnX + holderTex.getSize().x * baseScale + horizontalSpacing;
 
 
     for (int i = 0; i < 5; ++i) {
@@ -400,12 +427,16 @@ void Display::run()
 
         icon.setOrigin(icon.getLocalBounds().getCenter());
         icon.setPosition(holders.back().getGlobalBounds().getCenter());
-        icon.move({0, -30});
+        icon.move({0, -20});
 
         itemIcons.push_back(icon);
 
         sf::Text nameText(font, gameManager.getItems()[i]->getName(), 26);
         nameText.setFillColor(sf::Color(60, 60, 60));
+
+        auto fontSize = static_cast<unsigned int>(26.f * heightScale);
+        nameText.setCharacterSize(fontSize);
+
         nameText.setOrigin(nameText.getLocalBounds().getCenter());
 
         sf::FloatRect hBounds = holders.back().getGlobalBounds();
@@ -460,12 +491,16 @@ void Display::run()
         bIcon.setScale({bIconScale, bIconScale});
         bIcon.setOrigin(bIcon.getLocalBounds().getCenter());
         bIcon.setPosition(beverageHolders.back().getGlobalBounds().getCenter());
-        bIcon.move({0, -30});
+        bIcon.move({0, -22});
 
         beverageIcons.push_back(bIcon);
         std::size_t beverageIndex = i + 5;
         sf::Text bName(font, gameManager.getItems()[beverageIndex]->getName(), 26);
         bName.setFillColor(sf::Color(60, 60, 60));
+
+        auto bFontSize = static_cast<unsigned int>(26.f * heightScale);
+        bName.setCharacterSize(bFontSize);
+
         bName.setOrigin(bName.getLocalBounds().getCenter());
 
         sf::FloatRect bhBounds = beverageHolders.back().getGlobalBounds();
@@ -617,7 +652,7 @@ void Display::run()
 
             window.draw(upgradeTexts[i]);
             window.draw(upgradeValueTexts[i]);
-            drawProgressBar(gameManager.anyProgress(i), progressX, startY + i * spacing);
+            drawProgressBar(gameManager.anyProgress(i), progressX, startY + i * spacing, progressBarScale);
             if (gameManager.isSelling(i)) {
                 buyButtons[i].setColor(sf::Color(180, 180, 180));
             }
