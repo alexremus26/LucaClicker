@@ -15,7 +15,6 @@ private:
     std::optional<sf::RenderTexture> renderTexture;
     sf::Font font;
 
-    int selectedIndex = -1;
     std::string warningMessage;
     sf::Clock warningClock;
 
