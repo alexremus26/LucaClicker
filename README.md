@@ -1,35 +1,34 @@
 # Luca Clicker
 
-Luca Clicker is an idle-incremental simulation game inspired by AdVenture Capitalist based on the Luca pastry shop. You start with nothing but ambition and a bagel. Sell items, earn money, and build your empire one click at a time. Each sale earns you income, which can be reinvested into upgrades and automation systems to scale your profits.
-Players begin with a single unlocked food item. Selling it earns small profits that can be used to: 
-
-## Features
-
-*   **Incremental Gameplay:** Start with a single item and grow your empire.
-*   **Multiple Item Types:** Unlock and manage different types of items like Pastries, Beverages, and Sandwiches.
-*   **Upgrades:** Increase the income and effectiveness of your items by upgrading them.
-*   **Automation:** Hire delivery services (like Wolt and Glovo) to automate your income generation.
-*   **Buffs and Special Effects:** Use special items like Beverages and Sandwiches to apply temporary boosts to your production.
-*   **Save System:** Your progress is automatically saved when you quit and can be loaded when you start the game again.
+Luca Clicker is an idle-incremental simulation game inspired by AdVenture Capitalist based on the Luca pastry shop. 
+You start with nothing but ambition and a pretzel.
+Sell items, earn money, and build your empire one click at a time.
+Each sale earns you income, which can be reinvested into upgrades and automation systems to scale your profits.
+Players begin with a single unlocked food item.
 
 ## How to Play
 
-The game is controlled using the keyboard.
+The game is played using the mouse.
 
-*   **[1-9]Keys:** Select one of the items listed on the screen.
-*   **[Z]** Unlocks the selected item if you have enough money.
-*   **[S]** Manually "sells" the selected item. A progress bar will appear, and you will earn money when it completes.
-*   **[U]** Upgrades the selected item to a new level, increasing its value.
-*   **[D]** Buys a "Delivery" service for the selected item, which will sell it automatically.
-*   **[B]** Uses a special item, like a Beverage or a Sandwich, to apply its effects.
-*   **[Q]** Saves the current game progress and quits the application.
+*   **Main Menu:** When you start the game, you can choose to start a **New Game** or load a **Saved Game**.
+*   **Selling Items:**
+    *   On the left side of the screen, you'll see a list of pastries you can sell.
+    *   Click the **UNLOCK** button to make an item available for selling.
+    *   Once unlocked, the button changes to **SELL**. Click it to start selling the item.
+    * A progress bar will show you the state of the sell.
+*   **Upgrading:**
+    *   Next to the sell button, you'll find the **UPGRADE** button.
+    *   Click it to level up your item, which makes it sell for more money.
+*   **Using Beverages:**
+    *   On the right side of the screen, you can find beverages.
+    *   Just like pastries, you first need to **UNLOCK** them.
+    *   Once unlocked, you can **USE** them to get a temporary income boost.
+*   **Earning Money:** Your total money is displayed at the top of the screen.
+*   **Quitting:** Simply close the game window. Your progress will be saved automatically.
 
-### To be implemented
-
-- Extending the range of food items and progress balances.
-
-- Adding the clicker function along with an SFML interface.
-
+## To Implement
+  
+- All the features of the game using the clicker UI.
 - Idle progress while the game is off.
 
 ### Tema 0
@@ -83,7 +82,7 @@ The game is controlled using the keyboard.
 - [x] cât mai multe `const`
 - [x] funcții *de nivel înalt*, de eliminat cât mai mulți getters/setters/funcții low-level
 - [x] minim 75-80% din codul propriu să fie C++
-- [ ] la sfârșit: commit separat cu adăugarea unei noi clase derivate fără a modifica restul codului, **pe lângă cele 3 derivate deja adăugate** din aceeași ierarhie
+- [x] la sfârșit: commit separat cu adăugarea unei noi clase derivate fără a modifica restul codului, **pe lângă cele 3 derivate deja adăugate** din aceeași ierarhie
   - noua derivată nu poate fi una existentă care a fost ștearsă și adăugată din nou
   - noua derivată va fi integrată în codul existent (adică va fi folosită, nu adăugată doar ca să fie)
 - [ ] tag de `git` pe commit cu **toate bifele**: de exemplu `v0.2`

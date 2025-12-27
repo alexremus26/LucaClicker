@@ -1,57 +1,57 @@
 type: Pastry
 name: Pretzel
 baseIncome: 1
-upgradeCost: 10
-multiplier: 1.5
+upgradeCost: 5
+multiplier: 2
 unlockCost: 0
 duration: 2
 deliveryName: Glovo
-unlockDeliveryCost: 100
+unlockDeliveryCost: 50
 
 type: Pastry
 name: Pizza
-baseIncome: 300
-upgradeCost: 10
-multiplier: 1.5
-unlockCost: 100
-duration: 2
+baseIncome: 40
+upgradeCost: 50
+multiplier: 2
+unlockCost: 60
+duration: 4
 deliveryName: Glovo
-unlockDeliveryCost: 100
+unlockDeliveryCost: 600
 
 type: Pastry
 name: ApplePie
-baseIncome: 200
-upgradeCost: 1000
-multiplier: 1.5
-unlockCost: 500
-duration: 30
+baseIncome: 250
+upgradeCost: 900
+multiplier: 2
+unlockCost: 1100
+duration: 8
 deliveryName: Glovo
-unlockDeliveryCost: 1000
+unlockDeliveryCost: 11000
 
 type: Pastry
 name: Strudel
-baseIncome: 50
-upgradeCost: 500
+baseIncome: 1500
+upgradeCost: 16000
 multiplier: 2
-unlockCost: 1000
-duration: 10
+unlockCost: 20000
+duration: 15
 deliveryName: Wolt
-unlockDeliveryCost: 500
+unlockDeliveryCost: 200000
 
 type: Pastry
 name: CovriLuca
-baseIncome: 500
-upgradeCost: 10
-multiplier: 1.5
-unlockCost: 5000
-duration: 2
+baseIncome: 10000
+upgradeCost: 280000
+multiplier: 2
+unlockCost: 350000
+duration: 30
 deliveryName: Glovo
-unlockDeliveryCost: 100
+unlockDeliveryCost: 3500000
 
 type: Beverage
 name: Water
 multiplier: 1.0
-unlockCost: 300
+unlockCost: 200
 effects: profit_multiplier 1.5 upgrade_discount 0.9
 deliveryName: None
 unlockDeliveryCost: 0
@@ -60,7 +60,7 @@ target: Pretzel
 type: Beverage
 name: Coke
 multiplier: 1.0
-unlockCost: 500
+unlockCost: 1000
 effects: profit_multiplier 1.7 upgrade_discount 0.8
 deliveryName: None
 unlockDeliveryCost: 0
@@ -69,7 +69,7 @@ target: Pizza
 type: Beverage
 name: Coffee
 multiplier: 1.0
-unlockCost: 700
+unlockCost: 17000
 effects: profit_multiplier 1.5 upgrade_discount 0.9
 deliveryName: None
 unlockDeliveryCost: 0
@@ -78,7 +78,7 @@ target: ApplePie
 type: Beverage
 name: Ayran
 multiplier: 1.0
-unlockCost: 1000
+unlockCost: 300000
 effects: profit_multiplier 2 upgrade_discount 0.7
 deliveryName: None
 unlockDeliveryCost: 0
@@ -87,7 +87,7 @@ target: Strudel
 type: Beverage
 name: Matcha
 multiplier: 1.0
-unlockCost: 5000
+unlockCost: 7000000
 effects: profit_multiplier 2.5 upgrade_discount 0.5
 deliveryName: None
 unlockDeliveryCost: 0

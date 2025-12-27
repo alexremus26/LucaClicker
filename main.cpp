@@ -9,7 +9,7 @@ int main()
 {
     try {
 
-        Player player("Stoicescu", 100000);
+        Player player("Stoicescu", 0);
 
         Game gameManager = Game::loadFromFile("data/load.txt", player);
 
