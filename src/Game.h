@@ -7,13 +7,12 @@
 #include <thread>
 #include <queue>
 #include <mutex>
-#include <atomic>
 #include <SFML/System/Time.hpp>
 
 #include "Player.h"
 #include "Item.h"
 #include "Delivery.h"
-#include "SFML/System/Clock.hpp"
+#include <SFML/System/Clock.hpp>
 
 
 class Game {
