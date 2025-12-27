@@ -31,12 +31,12 @@ void Display::drawProgressBar(const float progress, const float x, const float y
 
     static const sf::Texture& outlineTex =
         ResourceManager::instance().getTexture(
-            "../assets/textures/ProgressBarOutline.png"
+            "assets/textures/ProgressBarOutline.png"
         );
 
     static const sf::Texture& fillTex =
         ResourceManager::instance().getTexture(
-        "../assets/textures/ProgressBarFull.png"
+        "assets/textures/ProgressBarFull.png"
         );
 
     sf::Sprite outline(outlineTex);
@@ -90,7 +90,7 @@ Display::MenuResult Display::menu()
 
     sf::Sprite background(
         ResourceManager::instance().getTexture(
-            "../assets/textures/MenuBackground.png"
+            "assets/textures/MenuBackground.png"
         )
     );
 
@@ -102,7 +102,7 @@ Display::MenuResult Display::menu()
 
     sf::Sound soundtrack(
         ResourceManager::instance().getSound(
-            "../assets/audio/adventure_capitalist_theme_song.wav"
+            "assets/audio/adventure_capitalist_theme_song.wav"
         )
     );
     soundtrack.setLooping(true);
@@ -111,7 +111,7 @@ Display::MenuResult Display::menu()
 
     const sf::Texture& buttonTex =
         ResourceManager::instance().getTexture(
-            "../assets/textures/MenuButton.png"
+            "assets/textures/MenuButton.png"
         );
 
     std::vector<sf::Sprite> buttons;
@@ -309,7 +309,7 @@ void Display::run()
 
     sf::Sound soundtrack(
         ResourceManager::instance().getSound(
-            "../assets/audio/adventure_capitalist_theme_song.wav"
+            "assets/audio/adventure_capitalist_theme_song.wav"
         )
     );
     soundtrack.setLooping(true);
@@ -325,7 +325,7 @@ void Display::run()
 
     sf::Sprite background(
         ResourceManager::instance().getTexture(
-            "../assets/textures/GameBackground.png"
+            "assets/textures/GameBackground.png"
         )
     );
     background.setScale({
@@ -334,25 +334,25 @@ void Display::run()
     });
 
     const sf::Texture& holderTex =
-        ResourceManager::instance().getTexture("../assets/textures/ItemHolder.png");
+        ResourceManager::instance().getTexture("assets/textures/ItemHolder.png");
     const sf::Texture& buyTex =
-        ResourceManager::instance().getTexture("../assets/textures/BuyButton.png");
+        ResourceManager::instance().getTexture("assets/textures/BuyButton.png");
     const sf::Texture& timeTex =
-        ResourceManager::instance().getTexture("../assets/textures/TimeIntervalButton.png");
+        ResourceManager::instance().getTexture("assets/textures/TimeIntervalButton.png");
 
     const std::vector<std::string> itemIconFiles = {
-        "../assets/textures/Pretzel.png",
-        "../assets/textures/Pizza.png",
-        "../assets/textures/ApplePie.png",
-        "../assets/textures/Strudel.png",
-        "../assets/textures/CovriLuca.png"
+        "assets/textures/Pretzel.png",
+        "assets/textures/Pizza.png",
+        "assets/textures/ApplePie.png",
+        "assets/textures/Strudel.png",
+        "assets/textures/CovriLuca.png"
     };
     const std::vector<std::string> beverageIconFiles = {
-        "../assets/textures/Water.png",
-        "../assets/textures/Coke.png",
-        "../assets/textures/Coffee.png",
-        "../assets/textures/Ayran.png",
-        "../assets/textures/Matcha.png"
+        "assets/textures/Water.png",
+        "assets/textures/Coke.png",
+        "assets/textures/Coffee.png",
+        "assets/textures/Ayran.png",
+        "assets/textures/Matcha.png"
     };
 
     std::vector<sf::Sprite> holders, buyButtons, upgradeButtons, itemIcons,
