@@ -11,7 +11,7 @@ int main()
 
         Player player("Stoicescu", 100000);
 
-        Game gameManager = Game::loadFromFile("../data/load.txt", player);
+        Game gameManager = Game::loadFromFile("data/load.txt", player);
 
         Display display(gameManager);
         display.run();

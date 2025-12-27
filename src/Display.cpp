@@ -66,7 +66,7 @@ void Display::initWindowAndFont() {
 
 Display::MenuResult Display::menu()
 {
-    const std::string savePath = "../data/savefile.txt";
+    const std::string savePath = "data/savefile.txt";
 
     initWindowAndFont();
 

@@ -312,7 +312,7 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
 }
 
 void Game::saveGame() const {
-    std::ofstream file("../data/savefile.txt");
+    std::ofstream file("data/savefile.txt");
     if (!file.is_open()) return;
 
     player.save(file);
@@ -332,7 +332,7 @@ void Game::saveGame() const {
 
 
 bool Game::loadSavedGame() {
-    std::ifstream file("../data/savefile.txt");
+    std::ifstream file("data/savefile.txt");
     if (!file.is_open())
         throw FileOpenException("data/savefile.txt");
 
