@@ -270,7 +270,7 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
             try {
                 unlockDeliveryCost = std::stod(it->second);
             } catch (const std::exception& e) {
-                throw InvalidFormatException("Invalid 'unlockDeliveryCost' in file '" + fileName + "'.");
+                throw InvalidFormatException("Invalid 'unlockDeliveryCost' in file '" + fileName + e.what());
             }
         }
         deliveries.emplace_back(deliveryName, unlockDeliveryCost);
