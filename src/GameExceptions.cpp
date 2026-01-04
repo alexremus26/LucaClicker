@@ -29,3 +29,7 @@ SaveStateException::SaveStateException(const std::string& detail)
 
 InvalidIndexException::InvalidIndexException(const std::string& detail)
     : GameException("Invalid index: " + detail) {}
+
+DeliveryPlatformException::DeliveryPlatformException(const std::string &detail)
+    : GameException("Invalid Delivery Platform: " + detail)
+{}

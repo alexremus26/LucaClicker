@@ -42,16 +42,9 @@ Pastry::Pastry(std::string name_, const double multiplier_, const double unlockC
       duration(duration_) {
 }
 
-Pastry::Pastry(const Pastry &other)
-    : Item(other),
-      baseIncome(other.baseIncome),
-      upgradeCost(other.upgradeCost),
-      duration(other.duration) {
-}
+Pastry::Pastry(const Pastry &other) = default;
 
-Pastry::~Pastry() {
-    std::cout << "Pastry " << getName() << " a fost distrus!\n";
-}
+Pastry::~Pastry() = default;
 
 Item *Pastry::clone() const {
     return new Pastry(*this);

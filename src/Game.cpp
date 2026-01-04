@@ -39,7 +39,7 @@ Game::Game(Player& player_,
 
 Game::~Game() {
     stopAllDeliveries();
-    std::cout << "GameManager destroyed!\n";
+    std::cout << "Game destroyed!\n";
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Game& manager)
@@ -245,8 +245,6 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
 
     std::string line;
     std::map<std::string, std::string> currentItemConfig;
-    std::string deliveryName;
-    double unlockDeliveryCost = 0.0;
 
     auto processCurrentItem = [&]() {
         if (currentItemConfig.empty()) return;
@@ -262,11 +260,22 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
         }
 
         items.push_back(std::move(created));
+
+        std::string deliveryName = "None";
+        double unlockDeliveryCost = 0.0;
+        if (const auto it = currentItemConfig.find("deliveryName"); it != currentItemConfig.end()) {
+            deliveryName = it->second;
+        }
+        if (const auto it = currentItemConfig.find("unlockDeliveryCost"); it != currentItemConfig.end()) {
+            try {
+                unlockDeliveryCost = std::stod(it->second);
+            } catch (const std::exception& e) {
+                throw InvalidFormatException("Invalid 'unlockDeliveryCost' in file '" + fileName + "'.");
+            }
+        }
         deliveries.emplace_back(deliveryName, unlockDeliveryCost);
 
         currentItemConfig.clear();
-        deliveryName.clear();
-        unlockDeliveryCost = 0.0;
     };
 
     while (std::getline(file, line)) {
@@ -286,23 +295,7 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
         if (!value.empty() && value[0] == ' ')
             value.erase(0, 1);
 
-        if (key == "deliveryName") {
-            deliveryName = value;
-        }
-        else if (key == "unlockDeliveryCost") {
-
-            try {
-                unlockDeliveryCost = std::stod(value);
-
-            } catch ([[maybe_unused]] const std::invalid_argument& e) {
-                throw InvalidFormatException("Invalid 'unlockDeliveryCost' value in file '" + fileName + "'. Must be a number.");
-
-            } catch ([[maybe_unused]] const std::out_of_range& e) {
-                throw InvalidFormatException("'unlockDeliveryCost' value out of range in file '" + fileName + "'.");
-            }
-        } else {
-            currentItemConfig[key] = value;
-        }
+        currentItemConfig[key] = value;
     }
     processCurrentItem();
 
@@ -411,7 +404,7 @@ bool Game::loadSavedGame() {
         }
 
         items[i]->load(file);
-        deliveries[i].load(file);
+            deliveries[i].load(file);
 
         if (deliveryRunning[i]) {
             deliveryThreads.emplace_back(runDeliveryLoop(*items[i], i));
@@ -476,4 +469,29 @@ double Game::combinedSpeedMultiplier() const {
         combined *= item_ptr->getSpeedMultiplier();
     }
     return combined;
+}
+
+std::string Game::getItemSpecialty(const std::size_t index) const
+{
+    if (index >= items.size()) {
+        throw InvalidIndexException("Invalid Index! ");
+    }
+
+    const auto& item_ptr = items[index];
+
+    if (dynamic_cast<const Pastry*>(item_ptr.get())) {
+        return "Type: Pastry\nSpecialty: Generates income over time.";
+    }
+    if (const auto* beverage = dynamic_cast<const Beverage*>(item_ptr.get())) {
+        return "Type: Beverage\nSpecialty: Buffs pastry items.\nTarget: " + beverage->getTargetName()
+        + "\nEffect: " + beverage->getEffectDescription();
+    }
+    if (dynamic_cast<const Sandwich*>(item_ptr.get())) {
+        return "Type: Sandwich\nSpecialty: Chance for a speed boost.";
+    }
+    if (dynamic_cast<const RaffleTicket*>(item_ptr.get())) {
+        return "Type: Raffle Ticket\nSpecialty: Chance to win big.";
+    }
+
+    return "This item has no special classification.";
 }

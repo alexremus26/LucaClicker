@@ -54,8 +54,6 @@ public:
     static Game loadFromFile(const std::string& fileName, Player& player);
     void saveGame() const;
     bool loadSavedGame();
-    void resetFromFile(const std::string& file);
-
 
     void pushEventMessage(const std::string& message);
 
@@ -79,6 +77,8 @@ public:
     void update(sf::Time time) const;
     [[nodiscard]] double combinedSpeedMultiplier() const;
     [[nodiscard]] double computeTotalIncomePerSecond() const;
+
+    [[nodiscard]] std::string getItemSpecialty(std::size_t index) const;
 
     std::vector<std::unique_ptr<Item>>& getItems();
     // std::vector<Delivery>& getDelivery();

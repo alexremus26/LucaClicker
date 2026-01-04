@@ -2,12 +2,9 @@
 #include <iostream>
 
 GlovoPlatform::GlovoPlatform() : DeliveryPlatform(0.10, 3.0) {
-    std::cout << "GlovoPlatform created!\n";
 }
 
-GlovoPlatform::~GlovoPlatform() {
-    std::cout << "GlovoPlatform destroyed!\n";
-}
+GlovoPlatform::~GlovoPlatform() = default;
 
 IncomeResult GlovoPlatform::doComputeIncome(const Item& item) const {
     double income = item.deliveryPayout();

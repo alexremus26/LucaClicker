@@ -2,12 +2,9 @@
 #include <iostream>
 
 WoltPlatform::WoltPlatform() : DeliveryPlatform(0.05, 7.0) {
-    std::cout << "WoltPlatform created!\n";
 }
 
-WoltPlatform::~WoltPlatform() {
-    std::cout << "WoltPlatform was destroyed!\n";
-}
+WoltPlatform::~WoltPlatform() = default;
 
 IncomeResult WoltPlatform::doComputeIncome(const Item& item) const {
     double income = item.deliveryPayout() * 1.4;

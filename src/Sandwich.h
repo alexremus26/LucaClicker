@@ -6,7 +6,7 @@
 #include <optional>
 
 
-class Sandwich final : public Item {
+class Sandwich : public Item {
 private:
     double fastMultiplier;
     double slowMultiplier;
@@ -17,6 +17,7 @@ private:
     std::optional<std::tuple<double, sf::Time, sf::Time>> currentSpeedBuff;
 
     bool rollFastEffect() const;
+
     double doSellPayout() const override;
     double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
@@ -45,21 +46,6 @@ public:
     ~Sandwich() override = default;
     [[nodiscard]] Item* clone() const override;
 
-    friend void swap(Sandwich& lhs, Sandwich& rhs) noexcept {
-        using std::swap;
-        swap(static_cast<Item&>(lhs), static_cast<Item&>(rhs));
-        swap(lhs.fastMultiplier, rhs.fastMultiplier);
-        swap(lhs.slowMultiplier, rhs.slowMultiplier);
-        swap(lhs.fastChance, rhs.fastChance);
-        swap(lhs.baseDuration, rhs.baseDuration);
-        swap(lhs.rng, rhs.rng);
-        swap(lhs.currentSpeedBuff, rhs.currentSpeedBuff);
-    }
-
-    Sandwich& operator=(Sandwich other) {
-        swap(*this, other);
-        return *this;
-    }
     void update(sf::Time time) override;
 
     [[nodiscard]] double getUpgradeCost() const override;

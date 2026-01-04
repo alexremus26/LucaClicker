@@ -58,15 +58,9 @@ Beverage::Beverage(std::string name_, const double multiplier_, const double unl
     useCost = unlockCost / 2;
 }
 
-Beverage::Beverage(const Beverage& other)
-    : Item(other),
-      effects(other.effects),
-      targetName(other.targetName),
-      activeBuffs(other.activeBuffs) {}
+Beverage::Beverage(const Beverage& other) = default;
 
-Beverage::~Beverage() {
-    std::cout << "Beverage " << name << " destroyed\n";
-}
+Beverage::~Beverage() = default;
 
 Item* Beverage::clone() const {
     return new Beverage(*this);
@@ -257,4 +251,8 @@ void Beverage::doLoad(std::istream& is) {
 
 double Beverage::doComputeIncomePerSecond() const {
     return 0.0;
+}
+
+const std::string& Beverage::getTargetName() const {
+    return targetName;
 }

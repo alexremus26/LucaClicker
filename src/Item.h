@@ -17,6 +17,9 @@ protected:
     double useCost;
     int level;
 
+    virtual void doSave(std::ostream& os) const = 0;
+    virtual void doLoad(std::istream& is) = 0;
+
 private:
     [[nodiscard]] virtual double doSellPayout() const = 0;
     [[nodiscard]] virtual double doDeliveryPayout() const = 0;
@@ -33,11 +36,6 @@ private:
                               std::queue<std::string>& eventMessages,
                               std::mutex& eventMutex) const = 0;
     [[nodiscard]] virtual double doComputeIncomePerSecond() const = 0;
-
-
-protected:
-    virtual void doSave(std::ostream& os) const = 0;
-    virtual void doLoad(std::istream& is) = 0;
 
 public:
     Item(std::string name_, double multiplier_, double unlockCost_);
@@ -60,7 +58,7 @@ public:
 
     Item& operator=(const Item& other) {
         if (this != &other) {
-            std::unique_ptr<Item> copy(other.clone());
+            const std::unique_ptr<Item> copy(other.clone());
             swap(*this, *copy);
         }
         return *this;
@@ -92,6 +90,8 @@ public:
     [[nodiscard]] virtual double getUpgradeCost() const = 0;
 
     [[nodiscard]] const std::string& getName() const;
+
+    [[nodiscard]] int getLevel() const;
 
     virtual void update(sf::Time time);
     [[nodiscard]] virtual double getSpeedMultiplier() const;

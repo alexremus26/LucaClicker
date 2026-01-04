@@ -5,7 +5,7 @@
 #include <random>
 #include <SFML/System/Time.hpp>
 
-class RaffleTicket final : public Item {
+class RaffleTicket : public Item {
 private:
     sf::Time minDuration;
     sf::Time maxDuration;

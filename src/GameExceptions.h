@@ -50,4 +50,9 @@ public:
     explicit InvalidIndexException(const std::string& detail);
 };
 
+class DeliveryPlatformException : public GameException {
+public:
+    explicit DeliveryPlatformException (const std::string& detail);
+};
+
 #endif // OOP_GAMEEXCEPTIONS_H

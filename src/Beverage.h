@@ -8,7 +8,7 @@
 #include <tuple>
 #include <memory>
 
-class Beverage final : public Item {
+class Beverage : public Item {
 private:
     std::vector<std::tuple<std::string, double>> effects;
     std::string targetName;
@@ -41,26 +41,10 @@ public:
     ~Beverage() override;
     [[nodiscard]] Item* clone() const override;
 
-    friend void swap(Beverage &lhs, Beverage &rhs) noexcept {
-        using std::swap;
-        swap(static_cast<Item &>(lhs), static_cast<Item &>(rhs));
-        swap(lhs.effects, rhs.effects);
-        swap(lhs.targetName, rhs.targetName);
-        swap(lhs.activeBuffs, rhs.activeBuffs);
-    }
-
-    Beverage & operator=(Beverage other) {
-        if (this != &other) {
-            using std::swap;
-            swap(*this, other);
-            }
-            return *this;
-        }
-
     [[nodiscard]] double getUpgradeCost() const override;
     [[nodiscard]] double getSpeedMultiplier() const override;
     static double getBuffMultiplier() ;
-    [[nodiscard]] std::string& getTargetName();
+    [[nodiscard]] const std::string& getTargetName() const;
 
     void updateBuffs(sf::Time deltaTime);
     void update(sf::Time time) override;

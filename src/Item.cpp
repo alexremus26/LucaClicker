@@ -6,9 +6,7 @@ Item::Item(std::string name_, const double multiplier_, const double unlockCost_
     : name(std::move(name_)), multiplier(multiplier_), unlockCost(unlockCost_), useCost(0.0), level(1){}
 Item::Item(const Item& other)
     : name(other.name),  multiplier(other.multiplier), unlockCost(other.unlockCost), useCost(other.useCost), level(other.level){}
-Item::~Item() {
-    std::cout << "Item-ul " << name << " a fost distrus!\n";
-}
+Item::~Item() = default;
 
 std::ostream& operator<<(std::ostream& ostream, const Item& item) {
     item.print(ostream);
@@ -43,6 +41,11 @@ double Item::getUnlockCost() const {
 const std::string& Item::getName() const {
     return name;
 }
+
+int Item::getLevel() const {
+    return level;
+}
+
 
 
 void Item::applyMultiplier(const double mult) {

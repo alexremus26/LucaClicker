@@ -15,7 +15,7 @@ upgradeCost: 50
 multiplier: 2
 unlockCost: 60
 duration: 4
-deliveryName: Glovo
+deliveryName: Wolt
 unlockDeliveryCost: 600
 
 type: Pastry
@@ -53,8 +53,6 @@ name: Water
 multiplier: 1.0
 unlockCost: 200
 effects: profit_multiplier 1.5 upgrade_discount 0.9
-deliveryName: None
-unlockDeliveryCost: 0
 target: Pretzel
 
 type: Beverage
@@ -62,8 +60,6 @@ name: Coke
 multiplier: 1.0
 unlockCost: 1000
 effects: profit_multiplier 1.7 upgrade_discount 0.8
-deliveryName: None
-unlockDeliveryCost: 0
 target: Pizza
 
 type: Beverage
@@ -71,8 +67,6 @@ name: Coffee
 multiplier: 1.0
 unlockCost: 17000
 effects: profit_multiplier 1.5 upgrade_discount 0.9
-deliveryName: None
-unlockDeliveryCost: 0
 target: ApplePie
 
 type: Beverage
@@ -80,8 +74,6 @@ name: Ayran
 multiplier: 1.0
 unlockCost: 300000
 effects: profit_multiplier 2 upgrade_discount 0.7
-deliveryName: None
-unlockDeliveryCost: 0
 target: Strudel
 
 type: Beverage
@@ -89,8 +81,6 @@ name: Matcha
 multiplier: 1.0
 unlockCost: 7000000
 effects: profit_multiplier 2.5 upgrade_discount 0.5
-deliveryName: None
-unlockDeliveryCost: 0
 target: all
 
 type: Sandwich
@@ -100,8 +90,6 @@ fastMultiplier: 5
 slowMultiplier: 0.2
 fastChance: 0.25
 baseDuration: 15
-deliveryName: Wolt
-unlockDeliveryCost: 1200
 
 type: Sandwich
 name: Salam Sandwich
@@ -110,8 +98,6 @@ fastMultiplier: 2
 slowMultiplier: 0.5
 fastChance: 0.5
 baseDuration: 10
-deliveryName: Glovo
-unlockDeliveryCost: 1000
 
 type: RaffleTicket
 name: GoldenCookie

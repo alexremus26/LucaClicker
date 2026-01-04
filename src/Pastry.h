@@ -34,22 +34,6 @@ public:
     ~Pastry() override;
     [[nodiscard]] Item* clone() const override;
 
-    Pastry& operator=(Pastry other) {
-        if (this != &other) {
-            using std::swap;
-            swap(*this, other);
-            return *this;
-        }
-        return *this;
-    }
-
-    friend void swap(Pastry &lhs, Pastry &rhs) noexcept {
-        using std::swap;
-        swap(static_cast<Item &>(lhs), static_cast<Item &>(rhs));
-        swap(lhs.baseIncome, rhs.baseIncome);
-        swap(lhs.upgradeCost, rhs.upgradeCost);
-        swap(lhs.duration, rhs.duration);
-    }
     void applyUpgradeDiscount(double factor);
     [[nodiscard]] bool isUsable() const override;
     void applyEffect(const std::string& type, double value) override;

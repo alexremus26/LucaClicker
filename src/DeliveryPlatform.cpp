@@ -1,7 +1,6 @@
 #include "DeliveryPlatform.h"
-#include <iostream>
 
-DeliveryPlatform::DeliveryPlatform(double critChance, double critMultiplier)
+DeliveryPlatform::DeliveryPlatform(const double critChance, const double critMultiplier)
     : critChance(critChance), critMultiplier(critMultiplier), rng(std::random_device{}()) {}
 
 
@@ -18,4 +17,4 @@ bool DeliveryPlatform::rollCrit() const {
     return dist(rng) < critChance;
 }
 
-DeliveryPlatform::~DeliveryPlatform() { std::cout << "DeliveryPlatform was destroyed!";}
+DeliveryPlatform::~DeliveryPlatform() = default;

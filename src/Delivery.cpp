@@ -1,6 +1,7 @@
 #include "Delivery.h"
 #include "GlovoPlatform.h"
 #include "WoltPlatform.h"
+#include "GameExceptions.h"
 #include <iostream>
 #include <utility>
 
@@ -9,8 +10,6 @@ Delivery::Delivery(std::string name_, const double unlockCost_)
       unlockDeliveryCost(unlockCost_),
       platform(nullptr)
 {
-    std::cout << "Delivery \"" << name << "\" created!\n";
-
     if (name == "Glovo") {
         platform = std::make_unique<GlovoPlatform>();
     }
@@ -18,8 +17,6 @@ Delivery::Delivery(std::string name_, const double unlockCost_)
         platform = std::make_unique<WoltPlatform>();
     }
     else {
-        std::cout << "Warning: Unknown platform \"" << name
-                  << "\". Defaulting to Glovo.\n";
         platform = std::make_unique<GlovoPlatform>();
     }
 }
@@ -30,7 +27,6 @@ Delivery::Delivery(const Delivery& other)
       running(other.running),
       platform(other.platform ? other.platform->clone() : nullptr)
 {
-    std::cout << "Delivery \"" << name << "\" copied!\n";
 }
 
 Delivery& Delivery::operator=(Delivery other) {
@@ -38,9 +34,7 @@ Delivery& Delivery::operator=(Delivery other) {
     return *this;
 }
 
-Delivery::~Delivery() {
-    std::cout << "Delivery \"" << name << "\" destroyed!\n";
-}
+Delivery::~Delivery() = default;
 
 void swap(Delivery& a, Delivery& b) noexcept {
     using std::swap;
@@ -87,13 +81,9 @@ void Delivery::load(std::istream& is) {
         if (key == "deliveryName") {
             name = value;
 
-            if (name == "Glovo") {
-                platform = std::make_unique<GlovoPlatform>();
-            } else if (name == "Wolt") {
+            if (name == "Wolt") {
                 platform = std::make_unique<WoltPlatform>();
             } else {
-                std::cout << "Warning: Unknown platform \"" << name
-                          << "\". Defaulting to Glovo.\n";
                 platform = std::make_unique<GlovoPlatform>();
             }
         }

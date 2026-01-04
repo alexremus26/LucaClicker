@@ -255,8 +255,6 @@ void Display::run()
         } catch (const FileOpenException& e) {
             std::cerr << "Error loading saved game: " << e.what() << ". Starting a new game.\n";
         } catch (const SaveStateException& e) {
-            std::cerr << "Error loading saved game: " << e.what() << std::endl;
-        } catch (const std::exception& e) {
             std::cerr << "An error occurred while loading saved game: " << e.what() << std::endl;
         }
     }
@@ -374,11 +372,14 @@ void Display::run()
 
     std::vector<sf::Text>   buyTexts, upgradeTexts, useTexts,
                             itemNameTexts, beverageNameTexts,
+                            itemLevelTexts, beverageLevelTexts,
                             buyValueTexts, upgradeValueTexts, useValueTexts;
 
     std::vector<bool> buyHovered(5, false);
     std::vector<bool> upgradeHovered(5, false);
     std::vector<bool> useHovered(5, false);
+    std::vector<bool> itemHolderHovered(5, false);
+    std::vector<bool> beverageHolderHovered(5, false);
 
     float baseScale = heightScale * 0.3f;
     float buyScale = baseScale * 1.25f;
@@ -431,10 +432,11 @@ void Display::run()
 
         itemIcons.push_back(icon);
 
-        sf::Text nameText(font, gameManager.getItems()[i]->getName(), 26);
+        const auto& item = gameManager.getItems()[i];
+        sf::Text nameText(font, item->getName(), 22);
         nameText.setFillColor(sf::Color(60, 60, 60));
 
-        auto fontSize = static_cast<unsigned int>(26.f * heightScale);
+        auto fontSize = static_cast<unsigned int>(22.f * heightScale);
         nameText.setCharacterSize(fontSize);
 
         nameText.setOrigin(nameText.getLocalBounds().getCenter());
@@ -442,10 +444,20 @@ void Display::run()
         sf::FloatRect hBounds = holders.back().getGlobalBounds();
         nameText.setPosition({
             hBounds.getCenter().x,
-            hBounds.position.y + hBounds.size.y * 0.82f
+            hBounds.position.y + hBounds.size.y * 0.78f
         });
-
         itemNameTexts.push_back(nameText);
+
+        sf::Text levelText(font, "Level " + std::to_string(item->getLevel()), 18);
+        levelText.setFillColor(sf::Color(80, 80, 80));
+        auto levelFontSize = static_cast<unsigned int>(18.f * heightScale);
+        levelText.setCharacterSize(levelFontSize);
+        levelText.setOrigin(levelText.getLocalBounds().getCenter());
+        levelText.setPosition({
+            hBounds.getCenter().x,
+            hBounds.position.y + hBounds.size.y * 0.92f
+        });
+        itemLevelTexts.push_back(levelText);
 
         sf::Sprite b(buyTex);
         b.setScale({buyScale, buyScale});
@@ -494,11 +506,13 @@ void Display::run()
         bIcon.move({0, -22});
 
         beverageIcons.push_back(bIcon);
+
         std::size_t beverageIndex = i + 5;
-        sf::Text bName(font, gameManager.getItems()[beverageIndex]->getName(), 26);
+        const auto& beverage = gameManager.getItems()[beverageIndex];
+        sf::Text bName(font, beverage->getName(), 22);
         bName.setFillColor(sf::Color(60, 60, 60));
 
-        auto bFontSize = static_cast<unsigned int>(26.f * heightScale);
+        auto bFontSize = static_cast<unsigned int>(22.f * heightScale);
         bName.setCharacterSize(bFontSize);
 
         bName.setOrigin(bName.getLocalBounds().getCenter());
@@ -506,10 +520,20 @@ void Display::run()
         sf::FloatRect bhBounds = beverageHolders.back().getGlobalBounds();
         bName.setPosition({
             bhBounds.getCenter().x,
-            bhBounds.position.y + bhBounds.size.y * 0.82f
+            bhBounds.position.y + bhBounds.size.y * 0.78f
         });
-
         beverageNameTexts.push_back(bName);
+
+        sf::Text bLevelText(font, "Level " + std::to_string(beverage->getLevel()), 18);
+        bLevelText.setFillColor(sf::Color(80, 80, 80));
+        auto bLevelFontSize = static_cast<unsigned int>(18.f * heightScale);
+        bLevelText.setCharacterSize(bLevelFontSize);
+        bLevelText.setOrigin(bLevelText.getLocalBounds().getCenter());
+        bLevelText.setPosition({
+            bhBounds.getCenter().x,
+            bhBounds.position.y + bhBounds.size.y * 0.92f
+        });
+        beverageLevelTexts.push_back(bLevelText);
 
         sf::Sprite ub(buyTex);
         ub.setScale({buyScale, buyScale});
@@ -581,7 +605,8 @@ void Display::run()
             buyHovered[i] = buyButtons[i].getGlobalBounds().contains(mouse);
             upgradeHovered[i] = upgradeButtons[i].getGlobalBounds().contains(mouse);
             useHovered[i] = useButtons[i].getGlobalBounds().contains(mouse);
-
+            itemHolderHovered[i] = holders[i].getGlobalBounds().contains(mouse);
+            beverageHolderHovered[i] = beverageHolders[i].getGlobalBounds().contains(mouse);
         }
 
         double money = gameManager.getPlayerMoney();
@@ -591,6 +616,14 @@ void Display::run()
 
         for (int i = 0; i < 5; ++i) {
             const Item& item = *gameManager.getItems()[i];
+            itemLevelTexts[i].setString("Level " + std::to_string(item.getLevel()));
+            itemLevelTexts[i].setOrigin(itemLevelTexts[i].getLocalBounds().getCenter());
+
+            std::size_t bevIndex = i + 5;
+            const Item& bev = *gameManager.getItems()[bevIndex];
+            beverageLevelTexts[i].setString("Level " + std::to_string(bev.getLevel()));
+            beverageLevelTexts[i].setOrigin(beverageLevelTexts[i].getLocalBounds().getCenter());
+
 
             bool unlocked = gameManager.isUnlocked(i);
 
@@ -616,9 +649,6 @@ void Display::run()
                 upgradeValueTexts[i].setString("");
             }
 
-            std::size_t bevIndex = i + 5;
-            const Item& bev = *gameManager.getItems()[bevIndex];
-
             if (!gameManager.isUnlocked(bevIndex)) {
                 useTexts[i].setString("UNLOCK");
                 useValueTexts[i].setString(
@@ -638,6 +668,7 @@ void Display::run()
 
             window.draw(holders[i]);
             window.draw(itemNameTexts[i]);
+            window.draw(itemLevelTexts[i]);
             window.draw(itemIcons[i]);
 
             buyButtons[i].setColor(buyHovered[i] ? sf::Color(255, 230, 160) : sf::Color::White);
@@ -660,6 +691,7 @@ void Display::run()
             for (int i = 0; i < 5; ++i) {
                 window.draw(beverageHolders[i]);
                 window.draw(beverageNameTexts[i]);
+                window.draw(beverageLevelTexts[i]);
                 window.draw(beverageIcons[i]);
 
                 useButtons[i].setColor(
@@ -671,6 +703,50 @@ void Display::run()
                 window.draw(useTexts[i]);
                 window.draw(useValueTexts[i]);
             }
+
+        std::string infoString;
+        for(int i = 0; i < 5; ++i) {
+            if (itemHolderHovered[i]) {
+                infoString = gameManager.getItemSpecialty(i);
+                break;
+            }
+            if (beverageHolderHovered[i]) {
+                infoString = gameManager.getItemSpecialty(i + 5);
+                break;
+            }
+        }
+
+        if (!infoString.empty()) {
+            sf::Text infoStringText(font, infoString, 24);
+            infoStringText.setFillColor(sf::Color::White);
+            infoStringText.setOutlineColor(sf::Color::Black);
+            infoStringText.setOutlineThickness(1.f);
+
+            sf::RectangleShape infoStringBackground;
+            infoStringBackground.setFillColor(sf::Color(0, 0, 0, 190));
+            infoStringBackground.setOutlineColor(sf::Color(200, 200, 200));
+            infoStringBackground.setOutlineThickness(1.f);
+
+            const auto textBounds = infoStringText.getLocalBounds();
+            infoStringBackground.setSize({textBounds.size.x + 20, textBounds.size.y + 20});
+
+            sf::Vector2f infoStringPos = mouse + sf::Vector2f(20.f, 20.f);
+
+            const auto windowSize = sf::Vector2f(window.getSize());
+            if (infoStringPos.x + infoStringBackground.getSize().x > windowSize.x) {
+                infoStringPos.x = windowSize.x - infoStringBackground.getSize().x;
+            }
+            if (infoStringPos.y + infoStringBackground.getSize().y > windowSize.y) {
+                infoStringPos.y = windowSize.y - infoStringBackground.getSize().y;
+            }
+
+            infoStringBackground.setPosition(infoStringPos);
+            infoStringText.setPosition(infoStringPos + sf::Vector2f(10.f, 10.f));
+
+            window.draw(infoStringBackground);
+            window.draw(infoStringText);
+        }
+
         window.display();
     }
 }
