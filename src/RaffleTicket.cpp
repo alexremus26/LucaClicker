@@ -65,7 +65,7 @@ sf::Time RaffleTicket::doComputeDuration() const {
 
 std::string RaffleTicket::doGetEffectDescription() const {
     std::ostringstream oss;
-    oss << "Instantly gain between " << minDuration.asSeconds() << " and " << maxDuration.asSeconds() << " seconds of income.";
+    oss << "Type: Raffle Ticket\nSpecialty: Chance to win big.\nInstantly gain between " << minDuration.asSeconds() << " and " << maxDuration.asSeconds() << " seconds of income.";
     return oss.str();
 }
 

@@ -467,21 +467,5 @@ std::string Game::getItemSpecialty(const std::size_t index) const
         throw InvalidIndexException("Invalid Index! ");
     }
 
-    const auto& item_ptr = items[index];
-
-    if (dynamic_cast<const Pastry*>(item_ptr.get())) {
-        return "Type: Pastry\nSpecialty: Generates income over time.";
-    }
-    if (const auto* beverage = dynamic_cast<const Beverage*>(item_ptr.get())) {
-        return "Type: Beverage\nSpecialty: Buffs pastry items.\nTarget: " + beverage->getTargetName()
-        + "\nEffect: " + beverage->getEffectDescription();
-    }
-    if (dynamic_cast<const Sandwich*>(item_ptr.get())) {
-        return "Type: Sandwich\nSpecialty: Chance for a speed boost.";
-    }
-    if (dynamic_cast<const RaffleTicket*>(item_ptr.get())) {
-        return "Type: Raffle Ticket\nSpecialty: Chance to win big.";
-    }
-
-    return "This item has no special classification.";
+    return items[index]->getEffectDescription();
 }

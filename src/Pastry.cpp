@@ -105,7 +105,7 @@ void Pastry::applyEffect(const std::string& type, const double value) {
 }
 
 std::string Pastry::doGetEffectDescription() const {
-    return "Generates " + std::to_string(static_cast<int>(doSellPayout())) + " RON";
+    return "Type: Pastry\nSpecialty: Generates income over time.\nGenerates " + std::to_string(static_cast<int>(baseIncome)) + " RON";
 }
 
 void Pastry::doUse(std::vector<std::unique_ptr<Item>>&, std::queue<std::string>&, std::mutex&) {

@@ -96,7 +96,7 @@ sf::Time Sandwich::doComputeDuration() const {
 }
 
 std::string Sandwich::doGetEffectDescription() const {
-    return "Random speed: fast x" + std::to_string(fastMultiplier) +
+    return "Type: Sandwich\nSpecialty: Chance for a speed boost.\nRandom speed: fast x" + std::to_string(fastMultiplier) +
            " or slow x" + std::to_string(slowMultiplier);
 }
 

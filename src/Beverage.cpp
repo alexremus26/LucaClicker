@@ -88,6 +88,7 @@ sf::Time Beverage::doComputeDuration() const {
 
 std::string Beverage::doGetEffectDescription() const {
     std::ostringstream os;
+    os << "Type: Beverage\nSpecialty: Buffs pastry items.\nTarget: " << targetName << "\nEffect: ";
     bool first = true;
 
     for (const auto& effect : effects) {
