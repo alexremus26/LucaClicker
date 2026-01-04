@@ -26,7 +26,6 @@ private:
 
     virtual void doPrint(std::ostream& os) const = 0;
     virtual void doUpgrade() = 0;
-    virtual void doApplyMultiplier(double multiplier) = 0;
     [[nodiscard]] virtual sf::Time doComputeDuration() const = 0;
     [[nodiscard]] virtual std::string doGetEffectDescription() const = 0;
     virtual void doUse(std::vector<std::unique_ptr<Item>>& allItems,
@@ -71,7 +70,6 @@ public:
     [[nodiscard]] double deliveryPayout() const;
 
     void print(std::ostream& os) const;
-    void applyMultiplier(double mult);
     void upgrade();
 
     [[nodiscard]] sf::Time getDuration() const;

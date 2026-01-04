@@ -1,4 +1,5 @@
 #include "Beverage.h"
+#include "Pastry.h"
 #include <iostream>
 #include <sstream>
 
@@ -76,10 +77,6 @@ void Beverage::doPrint(std::ostream& os) const {
        << " | Effects: " << getEffectDescription();
 }
 
-void Beverage::doApplyMultiplier(const double mult) {
-    multiplier *= mult;
-}
-
 void Beverage::doUpgrade() {
     level++;
     useCost *= 2.0;
@@ -133,9 +130,11 @@ void Beverage::doUse(std::vector<std::unique_ptr<Item>>& allItems,
 }
 
 void Beverage::applyToOne(Item& item) const {
-    for (const auto& effect : effects) {
-        const auto& [type, value] = effect;
-        item.applyEffect(type, value);
+    if (auto* pastry = dynamic_cast<Pastry*>(&item)) {
+        for (const auto& effect : effects) {
+            const auto& [type, value] = effect;
+            pastry->applyEffect(type, value);
+        }
     }
 }
 

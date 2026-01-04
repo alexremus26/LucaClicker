@@ -13,7 +13,6 @@ private:
     [[nodiscard]] double doSellPayout() const override;
     [[nodiscard]] double doDeliveryPayout() const override;
     void doPrint(std::ostream &os) const override;
-    void doApplyMultiplier(double multi) override;
     void doUpgrade() override;
     [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;

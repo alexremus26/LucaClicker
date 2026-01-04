@@ -22,7 +22,6 @@ private:
     double doDeliveryPayout() const override;
     void doPrint(std::ostream& os) const override;
     void doUpgrade() override;
-    void doApplyMultiplier(double multi) override;
     [[nodiscard]] sf::Time doComputeDuration() const override;
     [[nodiscard]] std::string doGetEffectDescription() const override;
     void doUse(std::vector<std::unique_ptr<Item>>& allItems,

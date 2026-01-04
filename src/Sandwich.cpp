@@ -100,10 +100,6 @@ std::string Sandwich::doGetEffectDescription() const {
            " or slow x" + std::to_string(slowMultiplier);
 }
 
-void Sandwich::doApplyMultiplier(const double multi) {
-    multiplier *= multi;
-}
-
 void Sandwich::doUse(std::vector<std::unique_ptr<Item>>& allItems,
                      std::queue<std::string>& eventMessages,
                      std::mutex& eventMutex) {

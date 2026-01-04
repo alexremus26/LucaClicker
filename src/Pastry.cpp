@@ -66,10 +66,6 @@ void Pastry::doPrint(std::ostream &os) const {
         << " | Multiplier: " << multiplier;
 }
 
-void Pastry::doApplyMultiplier(const double multi) {
-    multiplier *= multi;
-}
-
 void Pastry::doUpgrade() {
     level++;
     baseIncome *= multiplier;
@@ -102,7 +98,7 @@ double Pastry::doComputeIncomePerSecond() const {
 
 void Pastry::applyEffect(const std::string& type, const double value) {
     if (type == "profit_multiplier") {
-        applyMultiplier(value);
+        baseIncome *= value;
     } else if (type == "upgrade_discount") {
         applyUpgradeDiscount(value);
     }

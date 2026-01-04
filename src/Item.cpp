@@ -1,6 +1,4 @@
 #include "Item.h"
-#include <iostream>
-
 
 Item::Item(std::string name_, const double multiplier_, const double unlockCost_)
     : name(std::move(name_)), multiplier(multiplier_), unlockCost(unlockCost_), useCost(0.0), level(1){}
@@ -46,11 +44,6 @@ int Item::getLevel() const {
     return level;
 }
 
-
-
-void Item::applyMultiplier(const double mult) {
-    doApplyMultiplier(mult);
-}
 
 void Item::upgrade() {
     doUpgrade();

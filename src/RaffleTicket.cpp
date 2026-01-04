@@ -58,8 +58,6 @@ void RaffleTicket::doUpgrade() {
     useCost *= 1.2;
 }
 
-void RaffleTicket::doApplyMultiplier(double) {}
-
 sf::Time RaffleTicket::doComputeDuration() const {
     std::uniform_real_distribution<float> dist(minDuration.asSeconds(), maxDuration.asSeconds());
     return sf::seconds(dist(rng));
