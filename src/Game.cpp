@@ -361,11 +361,9 @@ bool Game::loadSavedGame() {
     try {
         savedItemsCount = std::stoul(value);
 
-    } catch ([[maybe_unused]] const std::invalid_argument &e) {
-        throw SaveStateException("Invalid 'itemsCount' value in save file. Must be a number.");
     }
-    catch ([[maybe_unused]] const std::out_of_range &e) {
-        throw SaveStateException("'itemsCount' value out of range in save file.");
+    catch (const std::logic_error& e) {
+        throw InvalidFormatException("Invalid 'unlockCost' value: " + std::string(e.what()));
     }
     if (savedItemsCount != items.size()) {
         std::cerr << "Warning: Saved game has " << savedItemsCount
@@ -382,12 +380,8 @@ bool Game::loadSavedGame() {
 
         try {
             itemUnlocked[i] = static_cast<bool>(std::stoi(value));
-
-        } catch ([[maybe_unused]] const std::invalid_argument& e) {
-            throw SaveStateException("Invalid 'unlocked' value for item " + std::to_string(i) + ". Must be 0 or 1.");
-        }
-        catch ([[maybe_unused]] const std::out_of_range& e) {
-            throw SaveStateException("'unlocked' value out of range for item " + std::to_string(i) + ".");
+        } catch (const std::logic_error& e) {
+            throw SaveStateException("Invalid 'unlocked' value for item " + std::to_string(i) + ": " + std::string(e.what()));
         }
 
         if (!getKV(key, value) || key != "deliveryRunning")
@@ -395,12 +389,8 @@ bool Game::loadSavedGame() {
 
         try {
             deliveryRunning[i] = static_cast<bool>(std::stoi(value));
-        }
-        catch ([[maybe_unused]] const std::invalid_argument& e) {
-            throw SaveStateException("Invalid 'deliveryRunning' value for item " + std::to_string(i) + ". Must be 0 or 1.");
-        }
-        catch ([[maybe_unused]] const std::out_of_range& e) {
-            throw SaveStateException("'deliveryRunning' value out of range for item " + std::to_string(i) + ".");
+        } catch (const std::logic_error& e) {
+            throw SaveStateException("Invalid 'deliveryRunning' value for item " + std::to_string(i) + ": " + std::string(e.what()));
         }
 
         items[i]->load(file);
