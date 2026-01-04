@@ -186,10 +186,6 @@ void Menu::show() {
     }
 }
 
-bool Menu::wantsNewGame() const {
-    return result == Result::NewGame;
-}
-
 bool Menu::wantsLoadGame() const {
     return result == Result::LoadGame;
 }

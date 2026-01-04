@@ -47,7 +47,6 @@ public:
     explicit Menu(sf::RenderWindow& window);
     void show();
 
-    [[nodiscard]] bool wantsNewGame() const;
     [[nodiscard]] bool wantsLoadGame() const;
     [[nodiscard]] bool wantsExit() const;
 };

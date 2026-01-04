@@ -122,6 +122,7 @@ private:
 
     static sf::Vector2f rectCenter(const sf::FloatRect& r);
     static sf::Texture& getEmptyTexture();
+
 public:
     explicit Display(Game& manager);
     Display(const Display&) = delete;
