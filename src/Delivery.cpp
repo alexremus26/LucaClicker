@@ -10,10 +10,7 @@ Delivery::Delivery(std::string name_, const double unlockCost_)
       unlockDeliveryCost(unlockCost_),
       platform(nullptr)
 {
-    if (name == "Glovo") {
-        platform = std::make_unique<GlovoPlatform>();
-    }
-    else if (name == "Wolt") {
+    if (name == "Wolt") {
         platform = std::make_unique<WoltPlatform>();
     }
     else {

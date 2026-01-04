@@ -85,13 +85,11 @@ public:
 
     [[nodiscard]] double getUnlockCost() const;
     [[nodiscard]] double getUseCost() const;
-    [[nodiscard]] virtual double getUpgradeCost() const = 0;
-
     [[nodiscard]] const std::string& getName() const;
-
     [[nodiscard]] int getLevel() const;
 
     virtual void update(sf::Time time);
+    [[nodiscard]] virtual double getUpgradeCost() const = 0;
     [[nodiscard]] virtual double getSpeedMultiplier() const;
     [[nodiscard]] virtual bool isUsable() const;
 

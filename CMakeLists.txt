@@ -88,6 +88,8 @@ add_executable(${MAIN_EXECUTABLE_NAME}
         src/RaffleTicket.h
         src/ResourceManager.cpp
         src/ResourceManager.h
+        src/Menu.cpp
+        src/Menu.h
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

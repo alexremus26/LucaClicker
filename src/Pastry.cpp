@@ -77,7 +77,7 @@ void Pastry::doUpgrade() {
 }
 
 sf::Time Pastry::doComputeDuration() const {
-    return sf::seconds(2.0f + static_cast<float>(unlockCost) / 100.0f);
+    return duration;
 }
 
 void Pastry::applyUpgradeDiscount(const double factor) {
