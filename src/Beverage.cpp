@@ -253,6 +253,3 @@ double Beverage::doComputeIncomePerSecond() const {
     return 0.0;
 }
 
-const std::string& Beverage::getTargetName() const {
-    return targetName;
-}

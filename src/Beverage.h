@@ -43,7 +43,6 @@ public:
     [[nodiscard]] double getUpgradeCost() const override;
     [[nodiscard]] double getSpeedMultiplier() const override;
     static double getBuffMultiplier() ;
-    [[nodiscard]] const std::string& getTargetName() const;
 
     void updateBuffs(sf::Time deltaTime);
     void update(sf::Time time) override;
