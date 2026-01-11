@@ -9,6 +9,16 @@
 #include "GameExceptions.h"
 #include "Menu.h"
 
+template <typename T>
+void Display::centerOrigin(T& object) {
+    auto bounds = object.getLocalBounds();
+    object.setOrigin(bounds.getCenter());
+}
+
+template void Display::centerOrigin<sf::Text>(sf::Text&);
+template void Display::centerOrigin<sf::Sprite>(sf::Sprite&);
+
+
 sf::Texture & Display::getEmptyTexture() {
     static sf::Texture texture;
     if (texture.getSize().x == 0) {
@@ -37,8 +47,7 @@ sf::Vector2f Display::rectCenter(const sf::FloatRect& r)
 
 void Display::loadFont()
 {
-    if (!font.openFromFile("assets/font/MightySouly-lxggD.ttf"))
-        throw FontLoadingException("assets/font/MightySouly-lxggD.ttf");
+    font = ResourceManager<sf::Font>::instance().get("assets/font/MightySouly-lxggD.ttf");
 }
 
 void Display::createMenuWindow()
@@ -54,17 +63,16 @@ void Display::createGameWindow()
     window.setView(window.getDefaultView());
 }
 
-sf::Text Display::makeCenteredText(const std::string& str, unsigned int size, const sf::Color& color, const sf::Vector2f& center) const
+sf::Text Display::makeCenteredText(const std::string& str, unsigned int size, const sf::Color& color, const sf::Vector2f& center)
 {
     sf::Text t(font, str, size);
     t.setFillColor(color);
-    t.setOrigin(t.getLocalBounds().getCenter());
+    Display::centerOrigin(t);
     t.setPosition(center);
     return t;
 }
 
-sf::Text Display::makeSmallLabel(const std::string& str, const sf::FloatRect& bounds, const sf::Color& color) const
-{
+sf::Text Display::makeSmallLabel(const std::string& str, const sf::FloatRect& bounds, const sf::Color& color) const {
     sf::Text t(font, str);
     t.setFillColor(color);
     t.setCharacterSize(static_cast<unsigned int>(bounds.size.y * 0.22f));
@@ -75,12 +83,12 @@ sf::Text Display::makeSmallLabel(const std::string& str, const sf::FloatRect& bo
     return t;
 }
 
-sf::Text Display::makeValueLabel(const std::string& str, const sf::FloatRect& bounds, const sf::Color& color) const
+sf::Text Display::makeValueLabel(const std::string& str, const sf::FloatRect& bounds, const sf::Color& color)
 {
     sf::Text t(font, str);
     t.setFillColor(color);
     t.setCharacterSize(static_cast<unsigned int>(bounds.size.y * 0.25f));
-    t.setOrigin(t.getLocalBounds().getCenter());
+    Display::centerOrigin(t); 
     t.setPosition(rectCenter(bounds));
     t.move({0.f, 20.f});
     return t;
@@ -91,10 +99,10 @@ void Display::drawProgressBar(const float progress, const float x, const float y
     const float clamped = std::clamp(progress, 0.f, 1.f);
 
     static const sf::Texture& outlineTex =
-        ResourceManager::instance().getTexture("assets/textures/ProgressBarOutline.png");
+        ResourceManager<sf::Texture>::instance().get("assets/textures/ProgressBarOutline.png");
 
     static const sf::Texture& fillTex =
-        ResourceManager::instance().getTexture("assets/textures/ProgressBarFull.png");
+        ResourceManager<sf::Texture>::instance().get("assets/textures/ProgressBarFull.png");
 
     sf::Sprite outline(outlineTex);
     sf::Sprite fill(fillTex);
@@ -185,9 +193,9 @@ void Display::computeLayout()
     const float horizontalSpacing = winW * 0.015f;
     const float columnGap = winW * (aspectRatio >= 2.0f ? 0.06f : 0.08f);
 
-    const sf::Texture& holderTex = ResourceManager::instance().getTexture("assets/textures/ItemHolder.png");
-    const sf::Texture& buyTex = ResourceManager::instance().getTexture("assets/textures/BuyButton.png");
-    const sf::Texture& timeTex = ResourceManager::instance().getTexture("assets/textures/TimeIntervalButton.png");
+    const sf::Texture& holderTex = ResourceManager<sf::Texture>::instance().get("assets/textures/ItemHolder.png");
+    const sf::Texture& buyTex = ResourceManager<sf::Texture>::instance().get("assets/textures/BuyButton.png");
+    const sf::Texture& timeTex = ResourceManager<sf::Texture>::instance().get("assets/textures/TimeIntervalButton.png");
 
     progressX = leftX + static_cast<float>(holderTex.getSize().x) * baseScale + horizontalSpacing;
     buyX = progressX;
@@ -202,7 +210,7 @@ void Display::initAudio()
     if (audio.started)
         return;
 
-    const auto& buf = ResourceManager::instance().getSound("assets/audio/adventure_capitalist_theme_song.wav");
+    const auto& buf = ResourceManager<sf::SoundBuffer>::instance().get("assets/audio/adventure_capitalist_theme_song.wav");
     audio.soundtrack.emplace(buf);
     audio.soundtrack->setLooping(true);
     audio.soundtrack->setVolume(50.f);
@@ -234,11 +242,11 @@ void Display::buildRows()
         ui.beverages.push_back(buildBeverageRow(i));
 }
 
-Display::RowUI Display::buildItemRow(int index) const
+Display::RowUI Display::buildItemRow(int index)
 {
-    const sf::Texture& holderTex = ResourceManager::instance().getTexture("assets/textures/ItemHolder.png");
-    const sf::Texture& buyTex = ResourceManager::instance().getTexture("assets/textures/BuyButton.png");
-    const sf::Texture& timeTex = ResourceManager::instance().getTexture("assets/textures/TimeIntervalButton.png");
+    const sf::Texture& holderTex = ResourceManager<sf::Texture>::instance().get("assets/textures/ItemHolder.png");
+    const sf::Texture& buyTex = ResourceManager<sf::Texture>::instance().get("assets/textures/BuyButton.png");
+    const sf::Texture& timeTex = ResourceManager<sf::Texture>::instance().get("assets/textures/TimeIntervalButton.png");
 
     const std::vector<std::string> icons = {
         "assets/textures/Pretzel.png",
@@ -255,11 +263,13 @@ Display::RowUI Display::buildItemRow(int index) const
     holder.setScale({baseScale, baseScale});
     holder.setPosition({leftX, y});
 
-    sf::Sprite icon(ResourceManager::instance().getTexture(icons[index]));
+    sf::Sprite icon(ResourceManager<sf::Texture>::instance().get(icons[index]));
     const float holderHeight = static_cast<float>(holderTex.getSize().y) * baseScale;
     const float iconScale = holderHeight * 0.5f / static_cast<float>(icon.getTexture().getSize().y);
     icon.setScale({iconScale, iconScale});
-    icon.setOrigin(icon.getLocalBounds().getCenter());
+    
+    Display::centerOrigin(icon);
+    
     icon.setPosition(rectCenter(holder.getGlobalBounds()));
     icon.move({0.f, -20.f});
 
@@ -306,10 +316,10 @@ Display::RowUI Display::buildItemRow(int index) const
     };
 }
 
-Display::RowUI Display::buildBeverageRow(int index) const
+Display::RowUI Display::buildBeverageRow(int index)
 {
-    const sf::Texture& holderTex = ResourceManager::instance().getTexture("assets/textures/ItemHolder.png");
-    const sf::Texture& buyTex = ResourceManager::instance().getTexture("assets/textures/BuyButton.png");
+    const sf::Texture& holderTex = ResourceManager<sf::Texture>::instance().get("assets/textures/ItemHolder.png");
+    const sf::Texture& buyTex = ResourceManager<sf::Texture>::instance().get("assets/textures/BuyButton.png");
 
     const std::vector<std::string> icons = {
         "assets/textures/Water.png",
@@ -326,11 +336,13 @@ Display::RowUI Display::buildBeverageRow(int index) const
     holder.setScale({baseScale, baseScale});
     holder.setPosition({secondColumnX, y});
 
-    sf::Sprite icon(ResourceManager::instance().getTexture(icons[index]));
+    sf::Sprite icon(ResourceManager<sf::Texture>::instance().get(icons[index]));
     const float holderHeight = static_cast<float>(holderTex.getSize().y) * baseScale;
     const float iconScale = holderHeight * 0.45f / static_cast<float>(icon.getTexture().getSize().y);
     icon.setScale({iconScale, iconScale});
-    icon.setOrigin(icon.getLocalBounds().getCenter());
+    
+    Display::centerOrigin(icon);
+    
     icon.setPosition(rectCenter(holder.getGlobalBounds()));
     icon.move({0.f, -22.f});
 
@@ -483,7 +495,7 @@ void Display::updateRowsText()
         const Item& item = *gameManager.getItems()[i];
 
         ui.items[i].level.setString("Level " + std::to_string(item.getLevel()));
-        ui.items[i].level.setOrigin(ui.items[i].level.getLocalBounds().getCenter());
+        Display::centerOrigin(ui.items[i].level);
 
         const bool unlocked = gameManager.isUnlocked(i);
 
@@ -504,7 +516,8 @@ void Display::updateRowsText()
         const Item& bev = *gameManager.getItems()[bevIndex];
 
         ui.beverages[i].level.setString("Level " + std::to_string(bev.getLevel()));
-        ui.beverages[i].level.setOrigin(ui.beverages[i].level.getLocalBounds().getCenter());
+        Display::centerOrigin(ui.beverages[i].level);
+
 
         if (!gameManager.isUnlocked(bevIndex)) {
             ui.beverages[i].primaryLabel.setString("UNLOCK");
@@ -570,7 +583,7 @@ void Display::renderFrame()
 
 void Display::drawBackground()
 {
-    sf::Sprite bg(ResourceManager::instance().getTexture("assets/textures/GameBackground.png"));
+    sf::Sprite bg(ResourceManager<sf::Texture>::instance().get("assets/textures/GameBackground.png"));
     bg.setScale({
         static_cast<float>(window.getSize().x) / static_cast<float>(bg.getTexture().getSize().x),
         static_cast<float>(window.getSize().y) / static_cast<float>(bg.getTexture().getSize().y)

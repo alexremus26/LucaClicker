@@ -1,29 +1,23 @@
 #ifndef OOP_RESOURCEMANAGER_H
 #define OOP_RESOURCEMANAGER_H
 
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/Graphics/Font.hpp>
-#include <SFML/Audio/SoundBuffer.hpp>
 #include <unordered_map>
 #include <string>
 
+template <typename T>
 class ResourceManager {
 private:
+    std::unordered_map<std::string, T> resources;
+
     ResourceManager() = default;
 
-    std::unordered_map<std::string, sf::Texture> textures;
-    std::unordered_map<std::string, sf::SoundBuffer> sounds;
-
 public:
-    static ResourceManager& instance();
-
-    const sf::Texture& getTexture(const std::string& path);
-    const sf::SoundBuffer& getSound(const std::string& path);
+    static ResourceManager<T>& instance();
 
     ResourceManager(const ResourceManager&) = delete;
     ResourceManager& operator=(const ResourceManager&) = delete;
 
-
+    const T& get(const std::string& path);
 };
 
 #endif // OOP_RESOURCEMANAGER_H

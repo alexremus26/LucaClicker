@@ -49,6 +49,9 @@ public:
 
     [[nodiscard]] bool wantsLoadGame() const;
     [[nodiscard]] bool wantsExit() const;
+
+    template <typename T>
+    static void centerOrigin(T& object);
 };
 
 #endif // MENU_H

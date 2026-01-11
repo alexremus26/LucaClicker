@@ -90,12 +90,12 @@ private:
     void initAudio();
     void initMoneyText();
     void buildRows();
-    RowUI buildItemRow(int index) const;
-    RowUI buildBeverageRow(int index) const;
+    RowUI buildItemRow(int index);
+    RowUI buildBeverageRow(int index);
 
     sf::Text makeSmallLabel(const std::string& str, const sf::FloatRect& bounds, const sf::Color& color) const;
-    sf::Text makeValueLabel(const std::string& str, const sf::FloatRect& bounds, const sf::Color& color) const;
-    sf::Text makeCenteredText(const std::string& str, unsigned int size, const sf::Color& color, const sf::Vector2f& center) const;
+    sf::Text makeValueLabel(const std::string& str, const sf::FloatRect& bounds, const sf::Color& color);
+    sf::Text makeCenteredText(const std::string& str, unsigned int size, const sf::Color& color, const sf::Vector2f& center);
 
     void gameLoop();
     void pollEvents();
@@ -132,6 +132,9 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Display& display);
 
     void run();
+
+    template <typename T>
+    static void centerOrigin(T& object);
 };
 
 #endif

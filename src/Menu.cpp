@@ -5,14 +5,22 @@
 #include <fstream>
 #include <iostream>
 
+template <typename T>
+void Menu::centerOrigin(T& object) {
+    auto bounds = object.getLocalBounds();
+    object.setOrigin(bounds.getCenter());
+}
+
+template void Menu::centerOrigin<sf::Text>(sf::Text&);
+template void Menu::centerOrigin<sf::Sprite>(sf::Sprite&);
+
 Menu::Menu(sf::RenderWindow &window)
     : window(window) {
     init();
 }
 
 void Menu::loadFont() {
-    if (!font.openFromFile("assets/font/MightySouly-lxggD.ttf"))
-        throw FontLoadingException("assets/font/MightySouly-lxggD.ttf");
+    font = ResourceManager<sf::Font>::instance().get("assets/font/MightySouly-lxggD.ttf");
 }
 
 bool Menu::saveExists() {
@@ -25,7 +33,7 @@ void Menu::deleteSave() {
 }
 
 void Menu::buildBackground() {
-    background.emplace(ResourceManager::instance().getTexture("assets/textures/MenuBackground.png"));
+    background.emplace(ResourceManager<sf::Texture>::instance().get("assets/textures/MenuBackground.png"));
     const sf::Vector2u bgSize = background->getTexture().getSize();
     background->setScale({
         static_cast<float>(MenuSize.x) / static_cast<float>(bgSize.x),
@@ -34,7 +42,7 @@ void Menu::buildBackground() {
 }
 
 void Menu::buildButtons() {
-    const sf::Texture &buttonTex = ResourceManager::instance().getTexture("assets/textures/MenuButton.png");
+    const sf::Texture &buttonTex = ResourceManager<sf::Texture>::instance().get("assets/textures/MenuButton.png");
 
     buttons.clear();
     buttons.emplace_back(buttonTex);
@@ -63,8 +71,7 @@ void Menu::buildLabels() {
     for (std::size_t i = 0; i < labels.size(); ++i) {
         labels[i].setFillColor(sf::Color(200, 200, 200));
 
-        const sf::FloatRect tb = labels[i].getLocalBounds();
-        labels[i].setOrigin(tb.getCenter());
+        Menu::centerOrigin(labels[i]);
 
         const sf::FloatRect bb = buttons[i].getGlobalBounds();
         labels[i].setPosition(bb.getCenter());
@@ -75,8 +82,7 @@ void Menu::buildTitle() {
     title.emplace(font, "Luca Clicker", 160);
     title->setFillColor(sf::Color(200, 200, 200));
 
-    const sf::FloatRect tb = title->getLocalBounds();
-    title->setOrigin(tb.getCenter());
+    Menu::centerOrigin(*title);
 
     title->setPosition({
         static_cast<float>(MenuSize.x) * 0.5f,
@@ -88,8 +94,7 @@ void Menu::buildWarning() {
     warning.emplace(font, "", 32);
     warning->setFillColor(sf::Color::Red);
 
-    const sf::FloatRect wb = warning->getLocalBounds();
-    warning->setOrigin(wb.getCenter());
+    Menu::centerOrigin(*warning);
 
     warning->setPosition({
         static_cast<float>(MenuSize.x) * 0.5f,
@@ -136,7 +141,7 @@ void Menu::pollEvents() {
                 if (i == 1) {
                     if (!saveExists()) {
                         warning->setString("No saved game found!");
-                        warning->setOrigin(warning->getLocalBounds().getCenter());
+                        Menu::centerOrigin(*warning);
                         warningClock.restart();
                         break;
                     }
