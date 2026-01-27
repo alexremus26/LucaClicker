@@ -31,42 +31,44 @@ Game::Game(Player& player_,
     sellingClock.resize(items.size());
     sellingDuration.resize(items.size(), sf::Time::Zero);
 
-    if (!items.empty())
+    if (!items.empty()) {
         itemUnlocked[0] = true;
+    }
 }
-
-
 
 Game::~Game() {
     stopAllDeliveries();
-    std::cout << "Game destroyed!\n";
 }
 
-std::ostream& operator<<(std::ostream& ostream, const Game& manager)
-{
+
+std::ostream& operator<<(std::ostream& ostream, const Game& manager) {
     ostream << "=== Game Manager ===\n";
     ostream << "Player money: " << manager.player.getMoney() << "\n";
     ostream << "Items:\n";
 
-    for (const auto& item : manager.items)
+    for (const auto& item : manager.items) {
         ostream << "  " << *item << "\n";
+    }
 
     return ostream;
 }
+
 
 std::string Game::unlockItem(const std::size_t index) {
     if (index >= itemUnlocked.size()) {
         throw InvalidIndexException("Attempted to unlock item at invalid index " + std::to_string(index) + ".");
     }
-    if (itemUnlocked[index])
+
+    if (itemUnlocked[index]) {
         return "Item already unlocked!";
+    }
 
     const double cost = items[index]->getUnlockCost();
-    if (!player.tryPay(cost))
+    if (!player.tryPay(cost)) {
         return "Not enough money!";
+    }
 
     itemUnlocked[index] = true;
-
     return "Unlocked item!";
 }
 
@@ -75,8 +77,14 @@ bool Game::isUnlocked(const std::size_t index) const {
 }
 
 bool Game::isSelling(const std::size_t index) const {
-    return index < sellingState.size() &&
-       sellingState[index] == SellingState::Running;
+    return index < sellingState.size() && sellingState[index] == SellingState::Running;
+}
+
+bool Game::isDeliveryRunning(std::size_t index) const {
+    if (index >= deliveryRunning.size()) {
+        throw InvalidIndexException("Invalid index for deliveryRunning check.");
+    }
+    return deliveryRunning[index];
 }
 
 
@@ -86,123 +94,129 @@ std::thread Game::runDeliveryLoop(Item& item, std::size_t index) {
         const DeliveryPlatform& platform = delivery.getPlatform();
 
         while (deliveryRunning[index]) {
-
             sellingRunning[index] = true;
             {
                 const sf::Clock clock;
                 const double speedMultiplier = combinedSpeedMultiplier();
                 const sf::Time duration = platform.computeSpeed(item) / static_cast<float>(speedMultiplier);
-                progress[index] = 0.f;
-
-                while (clock.getElapsedTime() < duration) {
-
-                    if (!deliveryRunning[index]) {
-                        progress[index] = 0.f;
-                        sellingRunning[index] = false;
-                        return;
-                    }
-
-                    float p = clock.getElapsedTime().asSeconds() / duration.asSeconds();
-                    progress[index] = std::min(1.f, p);
-                    std::cout << "Delivery Loop Progress[" << index << "]: " << progress[index] << std::endl;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(40));
-                }
-
-                const auto [income, message] = platform.computeIncome(item);
-                player.earn(income);
-                if (!message.empty()) {
-                    pushEventMessage(message);
-                }
 
                 progress[index] = 0.f;
+
+                                                while (clock.getElapsedTime() < duration) {
+
+                                
+
+                                                    if (!deliveryRunning[index]) {
+
+                                                        progress[index] = 0.f;
+
+                                                        sellingRunning[index] = false;
+
+                                                        return;
+
+                                                    }
+
+                                
+
+                                                    float p = clock.getElapsedTime().asSeconds() / duration.asSeconds();
+
+                                                    progress[index] = std::min(1.f, p);
+
+                                                    std::this_thread::sleep_for(std::chrono::milliseconds(40));
+
+                                                }
+
+                                
+
+                                                const auto [income, message] = platform.computeIncome(item);
+
+                                                player.earn(income);
+
+                                                if (!message.empty()) {
+
+                                                    pushEventMessage(message);
+
+                                                }
+
+                                
+
+                                                progress[index] = 0.f;
             }
             sellingRunning[index] = false;
-
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     });
 }
 
-void Game::runSellingLoop(const Item& item, const std::size_t index)
-{
+void Game::runSellingLoop(const Item& item, const std::size_t index) {
     if (sellingState[index] == SellingState::Running) {
         return;
     }
 
     const double speedMultiplier = combinedSpeedMultiplier();
-
-    sellingDuration[index] =
-        item.getDuration() / static_cast<float>(speedMultiplier);
+    sellingDuration[index] = item.getDuration() / static_cast<float>(speedMultiplier);
 
     sellingClock[index].restart();
     sellingState[index] = SellingState::Running;
     progress[index] = 0.f;
 }
 
-void Game::updateSelling()
-{
-    for (std::size_t i = 0; i < sellingState.size(); ++i)
-    {
-        if (sellingState[i] != SellingState::Running)
+void Game::updateSelling() {
+    for (std::size_t i = 0; i < sellingState.size(); ++i) {
+        if (sellingState[i] != SellingState::Running) {
             continue;
+        }
 
-        float p =
-            sellingClock[i].getElapsedTime().asSeconds() /
-            sellingDuration[i].asSeconds();
-
+        float p = sellingClock[i].getElapsedTime().asSeconds() / sellingDuration[i].asSeconds();
         progress[i] = std::min(1.f, p);
 
-        if (progress[i] >= 1.f)
-        {
+        if (progress[i] >= 1.f) {
             sell(*items[i]);
 
             if (deliveryRunning[i]) {
-
                 sellingClock[i].restart();
                 progress[i] = 0.f;
             } else {
-
                 sellingState[i] = SellingState::Idle;
                 progress[i] = 0.f;
             }
         }
-
     }
 }
+
 
 void Game::sell(const Item& item) const {
     player.earn(item.sellPayout());
 }
 
-void Game::upgrade(Item& item) const{
+void Game::upgrade(Item& item) const {
     const double cost = item.getUpgradeCost();
     if (cost > 0 && player.tryPay(cost)) {
         item.upgrade();
     }
 }
+
 float Game::anyProgress(std::size_t index) const {
     return (index < progress.size()) ? progress[index] : 0.f;
 }
 
-
-/*void Game::startDelivery(Item& item, const Delivery& delivery, const int index) {
-    if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size())
+void Game::startDelivery(Item& item, const Delivery& delivery, const int index) {
+    if (index < 0 || static_cast<std::size_t>(index) >= deliveryRunning.size()) {
         throw InvalidIndexException("Delivery index " + std::to_string(index) + " is out of bounds.");
-
-    if (sellingRunning[index])
-        return;
-
-    if (!deliveryRunning[index] &&
-        player.tryPay(delivery.getUnlockCost()))
-    {
-            deliveryRunning[index] = true;
-            deliveryThreads.emplace_back(runDeliveryLoop(item, index));
-            std::cout << "Automation purchased for " << item.getName() << "!\n";
     }
-}*/
+
+    if (sellingRunning[index]) {
+        return;
+    }
+
+    if (!deliveryRunning[index] && player.tryPay(delivery.getUnlockCost())) {
+        deliveryRunning[index] = true;
+        deliveryThreads.emplace_back(runDeliveryLoop(item, index));
+    }
+}
 
 void Game::stopAllDeliveries() {
-    for (auto && i : deliveryRunning) {
+    for (auto&& i : deliveryRunning) {
         i = false;
     }
 
@@ -237,8 +251,9 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
     RaffleTicket::registerItem();
 
     std::ifstream file(fileName);
-    if (!file.is_open())
+    if (!file.is_open()) {
         throw FileOpenException(fileName);
+    }
 
     std::vector<std::unique_ptr<Item>> items;
     std::vector<Delivery> deliveries;
@@ -263,9 +278,11 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
 
         std::string deliveryName = "None";
         double unlockDeliveryCost = 0.0;
+
         if (const auto it = currentItemConfig.find("deliveryName"); it != currentItemConfig.end()) {
             deliveryName = it->second;
         }
+
         if (const auto it = currentItemConfig.find("unlockDeliveryCost"); it != currentItemConfig.end()) {
             try {
                 unlockDeliveryCost = std::stod(it->second);
@@ -274,7 +291,6 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
             }
         }
         deliveries.emplace_back(deliveryName, unlockDeliveryCost);
-
         currentItemConfig.clear();
     };
 
@@ -286,20 +302,17 @@ Game Game::loadFromFile(const std::string& fileName, Player& player) {
 
         std::istringstream iss(line);
         std::string key;
-
-        if (!std::getline(iss, key, ':'))
-            continue;
+        if (!std::getline(iss, key, ':')) continue;
 
         std::string value;
         std::getline(iss, value);
-        if (!value.empty() && value[0] == ' ')
+        if (!value.empty() && value[0] == ' ') {
             value.erase(0, 1);
+        }
 
         currentItemConfig[key] = value;
     }
     processCurrentItem();
-
-    std::cout << "Loaded " << items.size() << " items.\n";
 
     return { player, std::move(items), std::move(deliveries) };
 }
@@ -319,61 +332,49 @@ void Game::saveGame() const {
         deliveries[i].save(file);
         file << "\n";
     }
-
-    std::cout << "Game saved.\n";
 }
-
 
 bool Game::loadSavedGame() {
     std::ifstream file("data/savefile.txt");
-    if (!file.is_open())
+    if (!file.is_open()) {
         throw FileOpenException("data/savefile.txt");
+    }
 
     player.load(file);
 
-    std::string line;
-    std::string key;
-    std::string value;
-
+    std::string line, key, value;
     auto getKV = [&](std::string& k, std::string& v) {
-
         while (std::getline(file, line)) {
             if (line.empty()) continue;
             break;
         }
-
         if (line.empty()) return false;
-
         const size_t pos = line.find(':');
-
         if (pos == std::string::npos) return false;
-
         k = line.substr(0, pos);
         v = line.substr(pos + 2);
-
         return true;
     };
 
-    if (!getKV(key, value) || key != "itemsCount")
+    if (!getKV(key, value) || key != "itemsCount") {
         throw SaveStateException("Missing itemsCount entry");
+    }
 
     std::size_t savedItemsCount;
     try {
         savedItemsCount = std::stoul(value);
-
-    }
-    catch (const std::logic_error& e) {
+    } catch (const std::logic_error& e) {
         throw InvalidFormatException("Invalid 'unlockCost' value: " + std::string(e.what()));
     }
+
     if (savedItemsCount != items.size()) {
         std::cerr << "Warning: Saved game has " << savedItemsCount
-                << " items, but current game has " << items.size() << " items.\n";
+                  << " items, but current game has " << items.size() << " items.\n";
     }
 
     for (std::size_t i = 0; i < savedItemsCount && i < items.size(); ++i) {
         if (!getKV(key, value) || key != "item_idx")
             throw SaveStateException("Missing item_idx entry for item " + std::to_string(i));
-
 
         if (!getKV(key, value) || key != "unlocked")
             throw SaveStateException("Missing unlocked entry for item " + std::to_string(i));
@@ -394,7 +395,7 @@ bool Game::loadSavedGame() {
         }
 
         items[i]->load(file);
-            deliveries[i].load(file);
+        deliveries[i].load(file);
 
         if (deliveryRunning[i]) {
             deliveryThreads.emplace_back(runDeliveryLoop(*items[i], i));
@@ -407,20 +408,24 @@ bool Game::loadSavedGame() {
 std::vector<std::unique_ptr<Item>>& Game::getItems() {
     return items;
 }
-//
-// std::vector<Delivery>& Game::getDelivery() {
-//     return deliveries;
-// }
 
+std::vector<Delivery>& Game::getDelivery() {
+    return deliveries;
+}
 
 double Game::getPlayerMoney() const {
     return player.getMoney();
+}
+
+Player& Game::getPlayer() {
+    return player;
 }
 
 void Game::useItem(const std::size_t index) {
     if (index >= items.size()) {
         throw InvalidIndexException("Attempted to use item at invalid index " + std::to_string(index) + ".");
     }
+
     if (!itemUnlocked[index]) {
         return;
     }
@@ -433,16 +438,13 @@ void Game::useItem(const std::size_t index) {
     }
 
     const double cost = item->getUseCost();
-
     if (cost > 0 && !player.tryPay(cost)) {
         pushEventMessage("Not enough money to use " + item->getName());
         return;
     }
 
     item->use(items, eventMessages, eventMutex);
-
     const double totalIncome = computeTotalIncomePerSecond();
-
     item->drawRaffle(player, totalIncome, eventMessages, eventMutex);
     item->upgrade();
 }
@@ -461,11 +463,9 @@ double Game::combinedSpeedMultiplier() const {
     return combined;
 }
 
-std::string Game::getItemSpecialty(const std::size_t index) const
-{
+std::string Game::getItemSpecialty(const std::size_t index) const {
     if (index >= items.size()) {
         throw InvalidIndexException("Invalid Index! ");
     }
-
     return items[index]->getEffectDescription();
 }

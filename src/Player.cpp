@@ -1,15 +1,18 @@
 #include "Player.h"
 #include <iostream>
+#include <cmath>
+#include <limits>
 
 Player::Player(std::string  playerName_,const double money_) : playerName(std::move(playerName_)), money(money_) {}
 
-Player::Player(const Player& player) : playerName(player.playerName) , money(player.money){}
+Player::Player(const Player& player) : playerName(player.playerName) , money(player.money), m_hasWon(player.m_hasWon) {}
 
 Player::~Player()= default;
 
 Player &Player::operator=(const Player &player) {
     playerName = player.playerName;
     money = player.money;
+    m_hasWon = player.m_hasWon;
     return *this;
 }
 
@@ -19,6 +22,7 @@ std::ostream &operator<<(std::ostream &os, const Player &player) {
 }
 
 const double &Player::getMoney() const { return money; }
+bool Player::hasWon() const { return m_hasWon; }
 
 
 bool Player::tryPay(const double amount) {
@@ -29,6 +33,9 @@ bool Player::tryPay(const double amount) {
 
 void Player::earn(const double amount) {
     money += amount;
+    if (money >= std::numeric_limits<long long>::max()) {
+        m_hasWon = true;
+    }
 }
 
 void Player::save(std::ostream& os) const {

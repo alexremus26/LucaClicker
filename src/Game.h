@@ -60,6 +60,7 @@ public:
     std::string unlockItem(std::size_t index);
     [[nodiscard]] bool isUnlocked(std::size_t index) const;
     [[nodiscard]] bool isSelling(std::size_t index) const;
+    [[nodiscard]] bool isDeliveryRunning(std::size_t index) const;
 
 
     void sell(const Item& item) const;
@@ -70,7 +71,7 @@ public:
     void upgrade(Item& item) const;
     [[nodiscard]] float anyProgress(std::size_t index) const;
 
-    // void startDelivery(Item& item, const Delivery& delivery, int index);
+    void startDelivery(Item& item, const Delivery& delivery, int index);
     void stopAllDeliveries();
 
     void useItem(std::size_t index);
@@ -81,8 +82,9 @@ public:
     [[nodiscard]] std::string getItemSpecialty(std::size_t index) const;
 
     std::vector<std::unique_ptr<Item>>& getItems();
-    // std::vector<Delivery>& getDelivery();
+    std::vector<Delivery>& getDelivery();
     [[nodiscard]] double getPlayerMoney() const;
+    [[nodiscard]] Player& getPlayer();
 };
 
 #endif // OOP_GAMEMANAGER_H

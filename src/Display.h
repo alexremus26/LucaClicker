@@ -12,6 +12,11 @@
 
 class Display {
 private:
+    enum class GameState {
+        Playing,
+        Won
+    };
+
     static constexpr sf::Vector2u MenuSize{1200u, 1100u};
     static constexpr float ReferenceHeight = 1080.f;
     static constexpr int ItemCount = 5;
@@ -22,6 +27,7 @@ private:
 
         sf::Sprite primaryButton;
         sf::Sprite secondaryButton;
+        sf::Sprite tertiaryButton;
 
         sf::Text name;
         sf::Text level;
@@ -32,8 +38,12 @@ private:
         sf::Text secondaryLabel;
         sf::Text secondaryValue;
 
+        sf::Text tertiaryLabel;
+        sf::Text tertiaryValue;
+
         bool primaryHovered = false;
         bool secondaryHovered = false;
+        bool tertiaryHovered = false;
         bool holderHovered = false;
     };
 
@@ -56,12 +66,22 @@ private:
         bool started = false;
     };
 
+    struct WinUI {
+        sf::RectangleShape       overlay;
+        std::optional<sf::Text> winText;
+        std::optional<sf::Sprite> exitButton;
+        std::optional<sf::Text> exitText;
+        bool                     exitHovered = false;
+    };
+
+    GameState currentState = GameState::Playing;
     Game& gameManager;
     sf::RenderWindow window;
     sf::Font font;
 
     AudioState audio;
     GameUI ui;
+    WinUI winUi;
 
     float heightScale = 1.f;
     float baseScale = 1.f;
@@ -75,6 +95,8 @@ private:
     float buyX = 0.f;
     float timeX = 0.f;
 
+    float deliveryButtonX = 0.f;
+
     float secondColumnX = 0.f;
     float useButtonX = 0.f;
 
@@ -86,9 +108,10 @@ private:
     void createGameWindow();
 
     void initGame();
-    void computeLayout();
     void initAudio();
     void initMoneyText();
+    void initWinScreen();
+    void computeLayout();
     void buildRows();
     RowUI buildItemRow(int index);
     RowUI buildBeverageRow(int index);
@@ -99,14 +122,15 @@ private:
 
     void gameLoop();
     void pollEvents();
-    void onClick(const sf::Vector2f& mouse) const;
+    void onClick(const sf::Vector2f& mouse);
 
     void updateFrame();
     void updateHover(const sf::Vector2f& mouse);
     void updateMoney();
     void updateRowsText();
-
     void updateTooltip(const sf::Vector2f& mouse);
+    void updateWinScreen(const sf::Vector2f& mouse);
+
     std::string tooltipContent() const;
 
     void renderFrame();
@@ -115,10 +139,11 @@ private:
     void drawItems();
     void drawBeverages();
     void drawTooltip();
+    void drawWinScreen();
     void drawProgressBar(float progress, float x, float y, float scale);
 
     void handleItemClick(int index, const sf::Vector2f& mouse) const;
-    void handleBeverageClick(int index, const sf::Vector2f& mouse) const;
+    void handleBeverageClick(int index, const sf::Vector2f& mouse);
 
     static sf::Vector2f rectCenter(const sf::FloatRect& r);
     static sf::Texture& getEmptyTexture();

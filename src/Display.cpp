@@ -200,8 +200,9 @@ void Display::computeLayout()
     progressX = leftX + static_cast<float>(holderTex.getSize().x) * baseScale + horizontalSpacing;
     buyX = progressX;
     timeX = buyX + static_cast<float>(buyTex.getSize().x) * buyScale + horizontalSpacing * 0.67f;
+    deliveryButtonX = timeX + static_cast<float>(timeTex.getSize().x) * timeScale + horizontalSpacing * 0.67f;
 
-    secondColumnX = timeX + static_cast<float>(timeTex.getSize().x) * timeScale + columnGap;
+    secondColumnX = deliveryButtonX + static_cast<float>(buyTex.getSize().x) * buyScale + columnGap;
     useButtonX = secondColumnX + static_cast<float>(holderTex.getSize().x) * baseScale + horizontalSpacing;
 }
 
@@ -290,26 +291,38 @@ Display::RowUI Display::buildItemRow(int index)
     upgBtn.setScale({timeScale, timeScale});
     upgBtn.setPosition({timeX, y + winH * 0.062f});
 
+    sf::Sprite deliveryBtn(buyTex);
+    deliveryBtn.setScale({buyScale, buyScale});
+    deliveryBtn.setPosition({deliveryButtonX, y + winH * 0.055f});
+
     const sf::FloatRect bb = buyBtn.getGlobalBounds();
     const sf::FloatRect ub = upgBtn.getGlobalBounds();
+    const sf::FloatRect db = deliveryBtn.getGlobalBounds();
 
     sf::Text buyLabel = makeSmallLabel("SELL", bb, sf::Color::Black);
     sf::Text buyValue = makeValueLabel("0", bb, sf::Color::Black);
 
-    sf::Text upgLabel = makeSmallLabel("UPGRADE", ub, sf::Color::Black);
+    sf::Text upgLabel = makeSmallLabel("UPGRADE", ub, sf::Color::White);
     sf::Text upgValue = makeValueLabel("0", ub, sf::Color::White);
+
+    sf::Text deliveryLabel = makeSmallLabel("DELIVERY", db, sf::Color::Black);
+    sf::Text deliveryValue = makeValueLabel("0", db, sf::Color::Black);
 
     return RowUI{
         holder,
         icon,
         buyBtn,
         upgBtn,
+        deliveryBtn,
         name,
         level,
         buyLabel,
         buyValue,
         upgLabel,
         upgValue,
+        deliveryLabel,
+        deliveryValue,
+        false,
         false,
         false,
         false
@@ -374,12 +387,16 @@ Display::RowUI Display::buildBeverageRow(int index)
         icon,
         useBtn,
         empty,
+        empty,
         name,
         level,
         useLabel,
         useValue,
         emptyT,
         emptyT,
+        emptyT,
+        emptyT,
+        false,
         false,
         false,
         false
@@ -389,6 +406,12 @@ Display::RowUI Display::buildBeverageRow(int index)
 void Display::gameLoop()
 {
     while (window.isOpen()) {
+        if (currentState == GameState::Playing && gameManager.getPlayer().hasWon()) {
+            currentState = GameState::Won;
+            gameManager.stopAllDeliveries();
+            initWinScreen();
+        }
+
         pollEvents();
         if (!window.isOpen())
             break;
@@ -415,13 +438,22 @@ void Display::pollEvents()
     }
 }
 
-void Display::onClick(const sf::Vector2f& mouse) const
+void Display::onClick(const sf::Vector2f& mouse)
 {
-    for (int i = 0; i < ItemCount; ++i)
-        handleItemClick(i, mouse);
+    switch(currentState) {
+        case GameState::Playing:
+            for (int i = 0; i < ItemCount; ++i)
+                handleItemClick(i, mouse);
 
-    for (int i = 0; i < ItemCount; ++i)
-        handleBeverageClick(i, mouse);
+            for (int i = 0; i < ItemCount; ++i)
+                handleBeverageClick(i, mouse);
+            break;
+        case GameState::Won:
+            if (winUi.exitButton && winUi.exitButton->getGlobalBounds().contains(mouse)) {
+                window.close();
+            }
+            break;
+    }
 }
 
 void Display::handleItemClick(const int index, const sf::Vector2f& mouse) const {
@@ -430,7 +462,7 @@ void Display::handleItemClick(const int index, const sf::Vector2f& mouse) const 
     if (row.primaryButton.getGlobalBounds().contains(mouse)) {
         if (!gameManager.isUnlocked(index)) {
             gameManager.unlockItem(index);
-        } else if (!gameManager.isSelling(index)) {
+        } else if (!gameManager.isSelling(index) && !gameManager.isDeliveryRunning(index)) {
             const auto& item = *gameManager.getItems()[index];
             gameManager.runSellingLoop(item, index);
         }
@@ -442,9 +474,15 @@ void Display::handleItemClick(const int index, const sf::Vector2f& mouse) const 
             gameManager.upgrade(item);
         }
     }
+
+    if (&row.tertiaryButton.getTexture() != &getEmptyTexture() && row.tertiaryButton.getGlobalBounds().contains(mouse)) {
+        if (gameManager.isUnlocked(index) && !gameManager.isDeliveryRunning(index)) {
+            gameManager.startDelivery(*gameManager.getItems()[index], gameManager.getDelivery()[index], index);
+        }
+    }
 }
 
-void Display::handleBeverageClick(const int index, const sf::Vector2f& mouse) const {
+void Display::handleBeverageClick(const int index, const sf::Vector2f& mouse) {
     const auto& row = ui.beverages[index];
 
     if (!row.primaryButton.getGlobalBounds().contains(mouse))
@@ -461,13 +499,20 @@ void Display::handleBeverageClick(const int index, const sf::Vector2f& mouse) co
 
 void Display::updateFrame()
 {
-    gameManager.updateSelling();
-
     const sf::Vector2f mouse = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-    updateHover(mouse);
-    updateMoney();
-    updateRowsText();
-    updateTooltip(mouse);
+
+    switch (currentState) {
+        case GameState::Playing:
+            gameManager.updateSelling();
+            updateHover(mouse);
+            updateMoney();
+            updateRowsText();
+            updateTooltip(mouse);
+            break;
+        case GameState::Won:
+            updateWinScreen(mouse);
+            break;
+    }
 }
 
 void Display::updateHover(const sf::Vector2f& mouse)
@@ -475,6 +520,7 @@ void Display::updateHover(const sf::Vector2f& mouse)
     for (int i = 0; i < ItemCount; ++i) {
         ui.items[i].primaryHovered = ui.items[i].primaryButton.getGlobalBounds().contains(mouse);
         ui.items[i].secondaryHovered = &ui.items[i].secondaryButton.getTexture() != &getEmptyTexture() && ui.items[i].secondaryButton.getGlobalBounds().contains(mouse);
+        ui.items[i].tertiaryHovered = &ui.items[i].tertiaryButton.getTexture() != &getEmptyTexture() && ui.items[i].tertiaryButton.getGlobalBounds().contains(mouse);
         ui.items[i].holderHovered = ui.items[i].holder.getGlobalBounds().contains(mouse);
 
         ui.beverages[i].primaryHovered = ui.beverages[i].primaryButton.getGlobalBounds().contains(mouse);
@@ -507,9 +553,21 @@ void Display::updateRowsText()
             ui.items[i].secondaryLabel.setString("UPGRADE");
             const double upg = item.getUpgradeCost();
             ui.items[i].secondaryValue.setString(upg > 0 ? std::to_string(static_cast<long long>(upg)) : "-");
+
+            if (!gameManager.isDeliveryRunning(i)) {
+                ui.items[i].tertiaryLabel.setString("DELIVERY");
+                const double deliveryCost = gameManager.getDelivery()[i].getUnlockCost();
+                ui.items[i].tertiaryValue.setString(std::to_string(static_cast<long long>(deliveryCost)));
+            } else {
+                ui.items[i].tertiaryLabel.setString("");
+                ui.items[i].tertiaryValue.setString("");
+            }
+
         } else {
             ui.items[i].secondaryLabel.setString("");
             ui.items[i].secondaryValue.setString("");
+            ui.items[i].tertiaryLabel.setString("");
+            ui.items[i].tertiaryValue.setString("");
         }
 
         const std::size_t bevIndex = static_cast<std::size_t>(i) + 5u;
@@ -578,6 +636,11 @@ void Display::renderFrame()
     drawItems();
     drawBeverages();
     drawTooltip();
+
+    if (currentState == GameState::Won) {
+        drawWinScreen();
+    }
+
     window.display();
 }
 
@@ -608,11 +671,12 @@ void Display::drawItems()
         window.draw(row.icon);
 
         sf::Color buyColor = row.primaryHovered ? sf::Color(255, 230, 160) : sf::Color::White;
-        if (gameManager.isSelling(i))
+        if (gameManager.isSelling(i) || gameManager.isDeliveryRunning(i))
             buyColor = sf::Color(180, 180, 180);
 
         row.primaryButton.setColor(buyColor);
         row.secondaryButton.setColor(row.secondaryHovered ? sf::Color(200, 200, 255) : sf::Color::White);
+        row.tertiaryButton.setColor(row.tertiaryHovered ? sf::Color(255, 100, 100) : sf::Color(255, 50, 50));
 
         window.draw(row.primaryButton);
         window.draw(row.primaryLabel);
@@ -622,6 +686,12 @@ void Display::drawItems()
             window.draw(row.secondaryButton);
             window.draw(row.secondaryLabel);
             window.draw(row.secondaryValue);
+        }
+
+        if (gameManager.isUnlocked(i) && !gameManager.isDeliveryRunning(i)) {
+            window.draw(row.tertiaryButton);
+            window.draw(row.tertiaryLabel);
+            window.draw(row.tertiaryValue);
         }
 
         drawProgressBar(gameManager.anyProgress(i), progressX, startY + static_cast<float>(i) * spacingY, progressScale);
@@ -654,4 +724,46 @@ void Display::drawTooltip()
     window.draw(ui.tooltip.background);
     if (ui.tooltip.text)
         window.draw(*ui.tooltip.text);
+}
+
+
+void Display::initWinScreen() {
+    const sf::Vector2f windowSize = sf::Vector2f(window.getSize());
+
+    winUi.overlay.setSize(windowSize);
+    winUi.overlay.setFillColor(sf::Color(0, 0, 0, 150));
+
+    winUi.winText.emplace(makeCenteredText("You have won!", 150 * heightScale, sf::Color::White, windowSize / 2.f));
+    winUi.winText->setOutlineColor(sf::Color::Black);
+    winUi.winText->setOutlineThickness(5.f);
+
+
+    const sf::Texture& buttonTexture = ResourceManager<sf::Texture>::instance().get("assets/textures/MenuButton.png");
+    winUi.exitButton.emplace(buttonTexture);
+    winUi.exitButton->setScale({0.75f * heightScale, 0.6f * heightScale});
+    centerOrigin(*winUi.exitButton);
+    const sf::Vector2f buttonPos = {windowSize.x / 2.f, windowSize.y / 2.f + 150 * heightScale};
+    winUi.exitButton->setPosition(buttonPos);
+
+    const unsigned int exitTextSize = static_cast<unsigned int>(50 * heightScale);
+    winUi.exitText.emplace(makeCenteredText("EXIT", exitTextSize, sf::Color::White, buttonPos));
+}
+
+void Display::updateWinScreen(const sf::Vector2f& mouse) {
+    if (winUi.exitButton)
+        winUi.exitHovered = winUi.exitButton->getGlobalBounds().contains(mouse);
+}
+
+void Display::drawWinScreen() {
+    window.draw(winUi.overlay);
+    if (winUi.winText)
+        window.draw(*winUi.winText);
+
+    if (winUi.exitButton) {
+        winUi.exitButton->setColor(winUi.exitHovered ? sf::Color(200, 200, 200) : sf::Color::White);
+        window.draw(*winUi.exitButton);
+    }
+
+    if (winUi.exitText)
+        window.draw(*winUi.exitText);
 }
