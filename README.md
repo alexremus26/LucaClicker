@@ -50,36 +50,50 @@ The game is played using the mouse.
 
 All the assets used in this project are stored in the `assets` directory. They are categorized into `audio`, `font`, and `textures`.
 
-### Textures
-
-The textures are used for the game's UI and items.
-
-| Item                 | Filename               | Source                                                                                                    |
-| -------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Pastries**         |                        |                                                                                                           |
-| Pretzel              | `Pretzel.png`          | [flaticon](https://www.flaticon.com/free-icon/pretzel_11615204)                                            |
-| Pizza                | `Pizza.png`            | [flaticon](https://www.flaticon.com/free-icon/pizza_6978255)                                               |
-| Apple Pie            | `ApplePie.png`         | [flaticon](https://www.flaticon.com/free-icon/pie-cake_17673040)                                           |
-| Strudel              | `Strudel.png`          | [flaticon](https://www.flaticon.com/free-icon/meat_15620753)                                               |
-| CovriLuca (Sausage Roll) | `CovriLuca.png`        | [flaticon](https://www.flaticon.com/free-icon/eating_15113960)                                             |
-| **Beverages**        |                        |                                                                                                           |
-| Water                | `Water.png`            | [flaticon](https://www.flaticon.com/free-icon/water_824239)                                                |
-| Coke                 | `Coke.png`             | [flaticon](https://www.flaticon.com/free-icon/soda-bottle_8933016)                                         |
-| Coffee               | `Coffee.png`           | [flaticon](https://www.flaticon.com/free-icon/coffee-cup_1047462)                                          |
-| Ayran                | `Ayran.png`            | [flaticon](https://www.flaticon.com/free-icon/ayran_6411124)                                               |
-| Matcha               | `Matcha.png`           | [flaticon](https://www.flaticon.com/free-icon/matcha-latte_11602032)                                       |
-The remaining UI textures (Game Background, Menu Background, Buttons, Item Holder, Progress Bars) were extracted from AdVenture Capitalist using [AssetStudio](https://github.com/Perfare/AssetStudio).
+### Pastries
 
 
-| Font        | Filename                 | Source                                                   |
-|-------------| ------------------------ |----------------------------------------------------------|
-| MightySouly | `MightySouly-lxggD.ttf`            | [font.download](https://font.download/font/mighty-souly) |
+| Item | Filename        | Source |
+|------|-----------------|--------|
+| **Pretzel** | `Pretzel.png`   | [Flaticon](https://www.flaticon.com/free-icon/pretzel_11615204) |
+| **Pizza** | `Pizza.png`     | [Flaticon](https://www.flaticon.com/free-icon/pizza_6978255) |
+| **Apple Pie** | `ApplePie.png`  | [Flaticon](https://www.flaticon.com/free-icon/pie-cake_17673040) |
+| **Strudel** | `Strudel.png`   | [Flaticon](https://www.flaticon.com/free-icon/meat_15620753) |
+| **CovriLuca** | `CovriLuca.png` | [Flaticon](https://www.flaticon.com/free-icon/eating_15113960) |
 
+---
+### Beverages
 
-| Audio               | Filename                                                       | Source                                                                     |
-|---------------------|----------------------------------------------------------------|----------------------------------------------------------------------------|
-| AdventureCapitalist | `adventure_capitalist_theme_song.wav`                          | [youtube](https://www.youtube.com/watch?v=VWYzCHB6kpg) - converted to .wav |
+| Item | Filename     | Source |
+|------|--------------|--------|
+| **Water** | `Water.png`  | [Flaticon](https://www.flaticon.com/free-icon/water_824239) |
+| **Coke** | `Coke.png`   | [Flaticon](https://www.flaticon.com/free-icon/soda-bottle_8933016) |
+| **Coffee** | `Coffee.png` | [Flaticon](https://www.flaticon.com/free-icon/coffee-cup_1047462) |
+| **Ayran** | `Ayran.png`  | [Flaticon](https://www.flaticon.com/free-icon/ayran_6411124) |
+| **Matcha** | `Matcha.png` | [Flaticon](https://www.flaticon.com/free-icon/matcha-latte_11602032) |
+---
 
+### UI
+
+Interface elements were extracted from *AdVenture Capitalist* using [AssetStudio](https://github.com/Perfare/AssetStudio).
+
+---
+
+### Font
+
+| Font | File | Source |
+|------|------|--------|
+| **Mighty Souly** | `MightySouly-lxggD.ttf` | [Download](https://font.download/font/mighty-souly) |
+
+---
+
+### Audio
+
+| Audio                          | File | Source |
+|--------------------------------|------|--------|
+| **Adventure Capitalist** | `adventure_capitalist_theme_song.wav` | [YouTube](https://www.youtube.com/watch?v=VWYzCHB6kpg) (converted to .wav) |
+
+---
 
 ## Technologies Used
 
