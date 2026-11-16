@@ -1,6 +1,8 @@
 # Luca Clicker
 
-Luca Clicker is an idle-incremental simulation game inspired by AdVenture Capitalist based on the Luca pastry shop. 
+![Luca Clicker win screen](screenshots/win.png)
+
+Luca Clicker is an idle-incremental simulation game inspired by AdVenture Capitalist based on the Luca pastry shop.
 You start with nothing but ambition and a pretzel.
 Sell items, earn money, and build your empire one click at a time.
 Each sale earns you income, which can be reinvested into upgrades and automation systems to scale your profits.
@@ -15,7 +17,7 @@ The game is played using the mouse.
     *   On the left side of the screen, you'll see a list of pastries you can sell.
     *   Click the **UNLOCK** button to make an item available for selling.
     *   Once unlocked, the button changes to **SELL**. Click it to start selling the item.
-    * A progress bar will show you the state of the sell.
+    *   A progress bar will show you the state of the sell.
 *   **Upgrading:**
     *   Next to the sell button, you'll find the **UPGRADE** button.
     *   Click it to level up your item, which makes it sell for more money.
@@ -28,10 +30,17 @@ The game is played using the mouse.
     *   Just like pastries, you first need to **UNLOCK** them.
     *   Once unlocked, you can **USE** them to get a temporary income boost.
 *   **Earning Money:** Your total money is displayed at the top of the screen.
+*   **Winning:** Earn enough to reach the limit of the money counter. See below for details.
 *   **Quitting:** Simply close the game window. Your progress will be saved automatically.
 
+## Winning
+
+The game ends when the money runs out of room. Your balance is stored in a 64-bit integer, and once it reaches `9,223,372,036,854,775,807`, the win screen appears and the run is over.
+
+Going past that limit wraps the number around to the other end of the range, so the balance on the win screen reads `$ -9223372036854775808`. Getting there is mostly a matter of upgrading pastries and buying enough automated deliveries to let the shop earn on its own.
+
 ## To Implement
-  
+
 - All the features of the game using the clicker UI.
 - Idle progress while the game is off.
 
