@@ -1,7 +1,5 @@
 # Luca Clicker
 
-![Luca Clicker win screen](screenshots/win.png)
-
 Luca Clicker is an idle-incremental simulation game inspired by AdVenture Capitalist based on the Luca pastry shop.
 You start with nothing but ambition and a pretzel.
 Sell items, earn money, and build your empire one click at a time.
@@ -35,9 +33,11 @@ The game is played using the mouse.
 
 ## Winning
 
-The game ends when the money runs out of room. Your balance is stored in a 64-bit integer, and once it reaches `9,223,372,036,854,775,807`, the win screen appears and the run is over.
+![Luca Clicker win screen](screenshots/win.png)
 
-Going past that limit wraps the number around to the other end of the range, so the balance on the win screen reads `$ -9223372036854775808`. Getting there is mostly a matter of upgrading pastries and buying enough automated deliveries to let the shop earn on its own.
+There is no final upgrade. The game ends when your balance outgrows the variable that stores it. Money is kept in a fixed-width integer, so there is a hard ceiling on what the shop can earn. Reach that ceiling and the win screen appears.
+
+Push a little past it and the counter wraps around to the far negative end of its range, which is the balance shown above. Getting there is mostly a matter of upgrading pastries and buying enough automated deliveries to let the shop earn on its own.
 
 ## To Implement
 
